@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Horizon Camera Web</title>
+    <title>Horizon Camera Clone</title>
     <style>
         * {
             box-sizing: border-box;
@@ -16,28 +16,80 @@
             background-color: #000;
             color: #fff;
             height: 100vh;
+            width: 100vw;
             display: flex;
-            flex-direction: column;
             overflow: hidden;
+            position: relative;
         }
 
-        /* Viewfinder container that acts as the leveling window */
-        .viewport {
-            position: relative;
-            flex: 1;
-            width: 100%;
-            overflow: hidden;
-            background: #111;
+        /* Left Sidebar Controls */
+        .sidebar-left {
+            width: 70px;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-around;
+            padding: 20px 0;
+            z-index: 20;
+            border-right: 1px solid #222;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            color: #ff9800;
+            font-size: 1.4rem;
+            cursor: pointer;
+            padding: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
-        /* Scaled wrapper so the video doesn't show black edges when rotating */
+        /* Center Viewport Area */
+        .viewport {
+            flex: 1;
+            position: relative;
+            background: #111;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        /* The actual rotating viewfinder box matching the screenshot */
+        .viewfinder-frame {
+            position: absolute;
+            width: 75%;
+            height: 75%;
+            border: 2px dashed rgba(255, 255, 255, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: #000;
+            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.7); /* Darkens everything outside the frame */
+        }
+
+        /* Corner markers like in the original app */
+        .corner {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-color: #fff;
+            border-style: solid;
+            z-index: 5;
+        }
+        .top-left { top: 10px; left: 10px; border-width: 3px 0 0 3px; }
+        .top-right { top: 10px; right: 10px; border-width: 3px 3px 0 0; }
+        .bottom-left { bottom: 10px; left: 10px; border-width: 0 0 3px 3px; }
+        .bottom-right { bottom: 10px; right: 10px; border-width: 0 3px 3px 0; }
+
         #rotator {
             position: absolute;
-            width: 150%;
-            height: 150%;
+            width: 140%;
+            height: 140%;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -50,118 +102,165 @@
             object-fit: cover;
         }
 
-        /* HUD Overlay styling */
-        .hud {
-            position: absolute;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            letter-spacing: 1px;
-            z-index: 10;
-            pointer-events: none;
-        }
-
-        .controls {
-            padding: 20px;
-            background: rgba(0, 0, 0, 0.8);
+        /* Right Sidebar Action Buttons (Shutter / Mode) */
+        .sidebar-right {
+            width: 90px;
+            background: rgba(0, 0, 0, 0.9);
             display: flex;
+            flex-direction: column;
+            align-items: center;
             justify-content: center;
-            gap: 15px;
-            z-index: 10;
+            gap: 25px;
+            z-index: 20;
+            border-left: 1px solid #222;
         }
 
-        .btn {
-            background: #ffffff;
-            color: #000;
-            border: none;
-            padding: 12px 24px;
-            font-size: 1rem;
-            font-weight: 600;
-            border-radius: 30px;
+        .shutter-btn {
+            width: 65px;
+            height: 65px;
+            border-radius: 50%;
+            background: #ff5722;
+            border: 4px solid #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+
+        .shutter-inner {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: #ff5722;
+        }
+
+        .mode-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            background: #333;
+            border: 2px solid #ff9800;
+            color: #ff9800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
             cursor: pointer;
         }
 
-        .btn-primary {
-            background: #e11d48;
+        /* Overlay Start Button for Permissions */
+        #startOverlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .btn-main {
+            background: #ff5722;
             color: white;
+            border: none;
+            padding: 14px 28px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
 
+    <!-- Start / Permission Overlay -->
+    <div id="startOverlay">
+        <h2>Horizon Camera Web</h2>
+        <p>Allow camera and motion access to begin leveling.</p>
+        <button class="btn-main" id="initBtn">Start Camera</button>
+    </div>
+
+    <!-- Left Toolbar (Settings, Flash, Rotate) -->
+    <div class="sidebar-left">
+        <button class="icon-btn">⚙️</button>
+        <button class="icon-btn">⚡</button>
+        <button class="icon-btn">🔄</button>
+        <button class="icon-btn">📐</button>
+    </div>
+
+    <!-- Center Viewfinder matching the app layout -->
     <div class="viewport">
-        <div class="hud" id="hudText">LEVEL: 0°</div>
-        <div id="rotator">
-            <video id="cameraStream" autoplay playsinline muted></video>
+        <div class="viewfinder-frame">
+            <div class="corner top-left"></div>
+            <div class="corner top-right"></div>
+            <div class="corner bottom-left"></div>
+            <div class="corner bottom-right"></div>
+            
+            <div id="rotator">
+                <video id="cameraStream" autoplay playsinline muted></video>
+            </div>
         </div>
     </div>
 
-    <div class="controls">
-        <button class="btn btn-primary" id="startBtn">Start Camera</button>
-        <button class="btn" id="permissionBtn" style="display:none;">Enable Gyro</button>
+    <!-- Right Toolbar (Shutter and Modes) -->
+    <div class="sidebar-right">
+        <button class="mode-btn">📷</button>
+        <div class="shutter-btn" id="shutterBtn">
+            <div class="shutter-inner"></div>
+        </div>
     </div>
 
     <script>
         const video = document.getElementById('cameraStream');
         const rotator = document.getElementById('rotator');
-        const hudText = document.getElementById('hudText');
-        const startBtn = document.getElementById('startBtn');
-        const permissionBtn = document.getElementById('permissionBtn');
+        const initBtn = document.getElementById('initBtn');
+        const startOverlay = document.getElementById('startOverlay');
+        const shutterBtn = document.getElementById('shutterBtn');
 
-        // Start back camera stream
-        startBtn.addEventListener('click', async () => {
+        initBtn.addEventListener('click', async () => {
             try {
+                // Request camera stream
                 const stream = await navigator.mediaDevices.getUserMedia({
                     video: { facingMode: { exact: "environment" } },
                     audio: false
-                }).catch(() => {
-                    // Fallback to any available camera if environment camera fails
-                    return navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-                });
+                }).catch(() => navigator.mediaDevices.getUserMedia({ video: true, audio: false }));
 
                 video.srcObject = stream;
-                startBtn.style.display = 'none';
+                startOverlay.style.display = 'none';
 
-                // Handle iOS 13+ motion permission requirements
+                // Request iOS 13+ motion permission if needed
                 if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-                    permissionBtn.style.display = 'inline-block';
+                    const response = await DeviceOrientationEvent.requestPermission();
+                    if (response === 'granted') {
+                        enableGyro();
+                    }
                 } else {
-                    startOrientationTracking();
+                    enableGyro();
                 }
             } catch (err) {
-                alert('Could not access camera. Please ensure permissions are allowed.');
+                alert('Camera error or permission denied.');
             }
         });
 
-        permissionBtn.addEventListener('click', async () => {
-            const permissionState = await DeviceOrientationEvent.requestPermission();
-            if (permissionState === 'granted') {
-                permissionBtn.style.display = 'none';
-                startOrientationTracking();
-            } else {
-                alert('Gyroscope permission is required for horizon leveling.');
-            }
-        });
-
-        function startOrientationTracking() {
+        function enableGyro() {
             window.addEventListener('deviceorientation', (event) => {
-                // Gamma represents left-to-right tilt (roll) in degrees (-90 to 90)
-                let tilt = event.gamma || 0;
+                let tilt = event.gamma || 0; // Roll angle
+                
+                // Limit range to prevent UI spilling out of bounds
+                if (tilt > 45) tilt = 45;
+                if (tilt < -45) tilt = -45;
 
-                // Limit extreme tilt values to prevent UI breaking
-                if (tilt > 50) tilt = 50;
-                if (tilt < -50) tilt = -50;
-
-                // Counter-rotate the video feed to keep the horizon flat
+                // Counter-rotate the inner video feed to keep the horizon perfectly flat
                 rotator.style.transform = `rotate(${-tilt}deg)`;
-                hudText.innerText = `LEVEL: ${Math.round(tilt)}°`;
             });
         }
+
+        shutterBtn.addEventListener('click', () => {
+            alert('Snapshot captured!');
+        });
     </script>
 </body>
 </html>
