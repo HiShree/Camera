@@ -4,26 +4,21 @@
 <meta charset="UTF-8">
 
 <meta name="viewport"
-      content="width=device-width,
-               initial-scale=1,
-               maximum-scale=1,
-               user-scalable=no,
-               viewport-fit=cover">
+content="width=device-width,
+initial-scale=1,
+maximum-scale=1,
+user-scalable=no,
+viewport-fit=cover">
 
 <title>Horizon Camera</title>
 
 <style>
-/* =========================================================
-   RESET
-========================================================= */
-
 *{
     box-sizing:border-box;
     -webkit-tap-highlight-color:transparent;
 }
 
-html,
-body{
+html,body{
     width:100%;
     height:100%;
     margin:0;
@@ -31,11 +26,8 @@ body{
     background:#000;
     color:#fff;
     font-family:
-        Inter,
-        -apple-system,
-        BlinkMacSystemFont,
-        "Segoe UI",
         Arial,
+        Helvetica,
         sans-serif;
 }
 
@@ -43,358 +35,99 @@ button{
     font:inherit;
 }
 
-
-/* =========================================================
-   CAMERA
-========================================================= */
-
-#cameraScreen{
+#camera{
     position:fixed;
     inset:0;
     overflow:hidden;
-    background:#050505;
+    background:#000;
 }
 
+/*
+ IMPORTANT:
+ The original camera video is NEVER rotated.
+ The leveling is performed on the canvas.
+*/
 #video{
     position:absolute;
     inset:0;
     width:100%;
     height:100%;
     object-fit:cover;
-    background:#050505;
+    background:#000;
+}
+
+/* Canvas preview */
+#outputCanvas{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    background:#000;
+}
+
+/* Hide raw video after canvas preview starts */
+.rawHidden{
+    opacity:0;
 }
 
 
-/* Cinematic overlay */
+/* =========================
+   CINEMATIC OVERLAY
+========================= */
 
-#cameraShade{
+#shade{
     position:absolute;
     inset:0;
     pointer-events:none;
+    z-index:5;
 
     background:
         linear-gradient(
             to bottom,
-            rgba(0,0,0,.55) 0%,
-            rgba(0,0,0,.05) 28%,
-            rgba(0,0,0,0) 55%,
-            rgba(0,0,0,.18) 75%,
-            rgba(0,0,0,.78) 100%
+            rgba(0,0,0,.60),
+            transparent 25%,
+            transparent 62%,
+            rgba(0,0,0,.75)
         );
 }
 
 
-/* =========================================================
+/* =========================
    TOP BAR
-========================================================= */
+========================= */
 
-#topBar{
+#top{
     position:absolute;
     top:0;
     left:0;
     right:0;
 
+    height:85px;
+
     padding:
-        calc(env(safe-area-inset-top) + 13px)
+        calc(env(safe-area-inset-top) + 12px)
         15px
-        12px;
+        10px;
 
     display:flex;
-    align-items:center;
     justify-content:space-between;
+    align-items:center;
 
     z-index:20;
 }
 
-.topSide{
-    display:flex;
-    align-items:center;
-    gap:9px;
-}
-
-.glassButton{
+.circle{
     width:44px;
     height:44px;
 
-    border:1px solid
-        rgba(255,255,255,.17);
-
-    border-radius:50%;
-
-    background:
-        rgba(15,15,18,.42);
-
-    color:white;
-
-    display:flex;
-    align-items:center;
-    justify-content:center;
-
-    font-size:20px;
-
-    backdrop-filter:blur(18px);
-    -webkit-backdrop-filter:blur(18px);
-
-    box-shadow:
-        0 8px 30px
-        rgba(0,0,0,.25);
-}
-
-.glassButton:active{
-    transform:scale(.92);
-}
-
-
-/* Brand */
-
-#brand{
-    position:absolute;
-    left:50%;
-    transform:translateX(-50%);
-
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-
-    pointer-events:none;
-}
-
-#brandTitle{
-    font-size:15px;
-    font-weight:700;
-    letter-spacing:3px;
-}
-
-#brandSubtitle{
-    margin-top:2px;
-    font-size:8px;
-    letter-spacing:2px;
-    opacity:.55;
-}
-
-
-/* =========================================================
-   STATUS PILL
-========================================================= */
-
-#statusPill{
-    position:absolute;
-
-    top:
-        calc(env(safe-area-inset-top) + 72px);
-
-    left:50%;
-    transform:translateX(-50%);
-
-    display:flex;
-    align-items:center;
-    gap:7px;
-
-    padding:7px 12px;
-
-    border-radius:30px;
-
-    background:
-        rgba(0,0,0,.42);
-
-    border:1px solid
-        rgba(255,255,255,.13);
-
-    backdrop-filter:blur(16px);
-    -webkit-backdrop-filter:blur(16px);
-
-    font-size:10px;
-    font-weight:600;
-
-    letter-spacing:1px;
-
-    z-index:15;
-
-    white-space:nowrap;
-}
-
-.statusDot{
-    width:7px;
-    height:7px;
-
-    border-radius:50%;
-
-    background:#43ff8b;
-
-    box-shadow:
-        0 0 12px
-        rgba(67,255,139,.8);
-
-    animation:pulse 1.6s infinite;
-}
-
-@keyframes pulse{
-    0%,100%{
-        opacity:1;
-        transform:scale(1);
-    }
-
-    50%{
-        opacity:.45;
-        transform:scale(.7);
-    }
-}
-
-
-/* =========================================================
-   HORIZON LEVEL
-========================================================= */
-
-#horizonArea{
-    position:absolute;
-
-    left:50%;
-    top:50%;
-
-    width:280px;
-    height:80px;
-
-    transform:
-        translate(-50%,-50%);
-
-    pointer-events:none;
-
-    z-index:10;
-}
-
-#horizonLine{
-    position:absolute;
-
-    left:0;
-    right:0;
-
-    top:50%;
-
-    height:1px;
-
-    background:
-        linear-gradient(
-            90deg,
-            transparent,
-            rgba(255,255,255,.3),
-            white,
-            rgba(255,255,255,.3),
-            transparent
-        );
-
-    box-shadow:
-        0 0 8px
-        rgba(255,255,255,.5);
-
-    transform-origin:center;
-
-    transition:
-        transform .12s linear;
-}
-
-#horizonCenter{
-    position:absolute;
-
-    left:50%;
-    top:50%;
-
-    width:22px;
-    height:22px;
-
-    transform:
-        translate(-50%,-50%);
-
-    border:1px solid
-        rgba(255,255,255,.8);
-
-    border-radius:50%;
-
-    box-shadow:
-        0 0 15px
-        rgba(255,255,255,.3);
-}
-
-#horizonCenter::after{
-    content:"";
-
-    position:absolute;
-
-    width:5px;
-    height:5px;
-
-    left:50%;
-    top:50%;
-
-    transform:
-        translate(-50%,-50%);
-
-    border-radius:50%;
-
-    background:white;
-}
-
-
-/* Degree */
-
-#degree{
-    position:absolute;
-
-    left:50%;
-    top:calc(50% + 35px);
-
-    transform:translateX(-50%);
-
-    font-size:10px;
-
-    letter-spacing:1px;
-
-    opacity:.75;
-
-    background:
-        rgba(0,0,0,.35);
-
-    padding:5px 9px;
-
-    border-radius:12px;
-
-    backdrop-filter:blur(8px);
-}
-
-
-/* =========================================================
-   QUICK CAMERA CONTROLS
-========================================================= */
-
-#quickControls{
-    position:absolute;
-
-    right:14px;
-
-    top:50%;
-
-    transform:
-        translateY(-50%);
-
-    display:flex;
-
-    flex-direction:column;
-
-    gap:10px;
-
-    z-index:20;
-}
-
-.quickButton{
-    width:43px;
-    height:43px;
-
     border-radius:50%;
 
     border:1px solid
-        rgba(255,255,255,.14);
+        rgba(255,255,255,.18);
 
     background:
-        rgba(0,0,0,.38);
+        rgba(0,0,0,.40);
 
     color:#fff;
 
@@ -402,83 +135,290 @@ button{
     align-items:center;
     justify-content:center;
 
-    font-size:18px;
+    font-size:19px;
 
     backdrop-filter:blur(16px);
-    -webkit-backdrop-filter:blur(16px);
 }
 
-.quickButton.active{
-    background:
-        rgba(255,255,255,.92);
+.circle:active{
+    transform:scale(.9);
+}
 
+#logo{
+    position:absolute;
+    left:50%;
+    transform:translateX(-50%);
+
+    text-align:center;
+    pointer-events:none;
+}
+
+#logoMain{
+    font-size:15px;
+    font-weight:bold;
+    letter-spacing:4px;
+}
+
+#logoSub{
+    font-size:8px;
+    opacity:.55;
+    letter-spacing:2px;
+    margin-top:3px;
+}
+
+
+/* =========================
+   STATUS
+========================= */
+
+#status{
+    position:absolute;
+    top:
+        calc(env(safe-area-inset-top) + 70px);
+
+    left:50%;
+    transform:translateX(-50%);
+
+    padding:7px 13px;
+
+    border-radius:20px;
+
+    background:
+        rgba(0,0,0,.45);
+
+    border:1px solid
+        rgba(255,255,255,.12);
+
+    backdrop-filter:blur(12px);
+
+    font-size:10px;
+    letter-spacing:1px;
+
+    z-index:20;
+
+    white-space:nowrap;
+}
+
+#statusDot{
+    display:inline-block;
+
+    width:6px;
+    height:6px;
+
+    margin-right:6px;
+
+    border-radius:50%;
+
+    background:#45ff92;
+
+    box-shadow:
+        0 0 10px #45ff92;
+}
+
+
+/* =========================
+   REAL HORIZON GUIDE
+========================= */
+
+#horizon{
+    position:absolute;
+
+    left:50%;
+    top:50%;
+
+    width:260px;
+    height:70px;
+
+    transform:
+        translate(-50%,-50%);
+
+    z-index:15;
+
+    pointer-events:none;
+}
+
+#horizonLine{
+    position:absolute;
+
+    left:0;
+    right:0;
+    top:50%;
+
+    height:2px;
+
+    background:
+        linear-gradient(
+            90deg,
+            transparent,
+            rgba(255,255,255,.35),
+            #fff,
+            rgba(255,255,255,.35),
+            transparent
+        );
+
+    box-shadow:
+        0 0 10px
+        rgba(255,255,255,.65);
+
+    transform-origin:center;
+}
+
+#center{
+    position:absolute;
+
+    left:50%;
+    top:50%;
+
+    width:20px;
+    height:20px;
+
+    transform:
+        translate(-50%,-50%);
+
+    border:
+        1px solid white;
+
+    border-radius:50%;
+}
+
+#center::after{
+    content:"";
+
+    position:absolute;
+
+    width:5px;
+    height:5px;
+
+    background:white;
+
+    border-radius:50%;
+
+    left:50%;
+    top:50%;
+
+    transform:
+        translate(-50%,-50%);
+}
+
+#angle{
+    position:absolute;
+
+    top:38px;
+    left:50%;
+
+    transform:translateX(-50%);
+
+    font-size:10px;
+
+    padding:5px 9px;
+
+    border-radius:12px;
+
+    background:
+        rgba(0,0,0,.40);
+
+    letter-spacing:1px;
+}
+
+
+/* =========================
+   SIDE BUTTONS
+========================= */
+
+#side{
+    position:absolute;
+
+    right:14px;
+    top:50%;
+
+    transform:translateY(-50%);
+
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+
+    z-index:20;
+}
+
+.sideButton{
+    width:44px;
+    height:44px;
+
+    border-radius:50%;
+
+    border:1px solid
+        rgba(255,255,255,.15);
+
+    background:
+        rgba(0,0,0,.40);
+
+    color:#fff;
+
+    backdrop-filter:blur(15px);
+}
+
+.sideButton.active{
+    background:#fff;
     color:#111;
 }
 
 
-/* =========================================================
+/* =========================
    ZOOM
-========================================================= */
+========================= */
 
-#zoomControl{
+#zoom{
     position:absolute;
+
+    bottom:
+        calc(env(safe-area-inset-bottom) + 210px);
 
     left:50%;
 
-    bottom:
-        calc(env(safe-area-inset-bottom) + 225px);
-
     transform:translateX(-50%);
 
-    z-index:20;
-
     display:flex;
-
-    align-items:center;
-
-    gap:8px;
+    gap:5px;
 
     padding:5px;
 
     border-radius:30px;
 
     background:
-        rgba(0,0,0,.38);
+        rgba(0,0,0,.42);
 
     border:1px solid
         rgba(255,255,255,.12);
 
     backdrop-filter:blur(15px);
+
+    z-index:20;
 }
 
-.zoomButton{
+.zoom{
+    min-width:42px;
+    height:29px;
+
     border:0;
-
-    min-width:40px;
-    height:30px;
-
     border-radius:18px;
 
     background:transparent;
+    color:#fff;
 
-    color:white;
-
-    font-size:11px;
-
-    font-weight:600;
+    font-size:10px;
 }
 
-.zoomButton.active{
+.zoom.active{
     background:
-        rgba(255,255,255,.18);
+        rgba(255,255,255,.20);
 }
 
 
-/* =========================================================
-   BOTTOM AREA
-========================================================= */
+/* =========================
+   BOTTOM
+========================= */
 
-#bottomArea{
+#bottom{
     position:absolute;
 
     left:0;
@@ -493,83 +433,61 @@ button{
 }
 
 
-/* Camera modes */
+/* Modes */
 
-#modeSelector{
+#modes{
     display:flex;
-
     justify-content:center;
-
-    align-items:center;
-
     gap:6px;
 
-    margin-bottom:18px;
+    margin-bottom:17px;
 }
 
 .mode{
-    border:0;
-
-    padding:8px 14px;
+    border:1px solid
+        rgba(255,255,255,.10);
 
     border-radius:20px;
 
-    color:
-        rgba(255,255,255,.62);
-
     background:
-        rgba(0,0,0,.34);
+        rgba(0,0,0,.38);
 
-    border:1px solid
-        rgba(255,255,255,.08);
+    color:
+        rgba(255,255,255,.65);
+
+    padding:8px 14px;
 
     font-size:10px;
-
-    font-weight:700;
-
-    letter-spacing:.8px;
-
-    backdrop-filter:blur(14px);
+    font-weight:bold;
 }
 
 .mode.active{
-    color:#111;
-
     background:#fff;
-
-    border-color:#fff;
-
-    box-shadow:
-        0 4px 18px
-        rgba(255,255,255,.2);
+    color:#111;
 }
 
 
-/* =========================================================
-   MAIN CONTROLS
-========================================================= */
+/* Controls */
 
-#mainControls{
+#controls{
     display:grid;
 
     grid-template-columns:
         1fr 100px 1fr;
 
     align-items:center;
-
-    width:100%;
 }
 
-.sideControl{
+.left,
+.right{
     display:flex;
-    align-items:center;
 }
 
-.sideControl.right{
+.right{
     justify-content:flex-end;
 }
 
-.sideButton{
+.control{
     width:48px;
     height:48px;
 
@@ -578,51 +496,40 @@ button{
     border:1px solid
         rgba(255,255,255,.15);
 
-    color:white;
-
     background:
-        rgba(0,0,0,.4);
+        rgba(0,0,0,.42);
 
-    display:flex;
-    align-items:center;
-    justify-content:center;
+    color:#fff;
 
-    font-size:19px;
+    backdrop-filter:blur(14px);
 
-    backdrop-filter:blur(16px);
-}
-
-.sideButton:active{
-    transform:scale(.9);
+    font-size:18px;
 }
 
 
-/* =========================================================
-   SHUTTER
-========================================================= */
+/* Shutter */
 
 #shutter{
-    width:82px;
-    height:82px;
+    width:80px;
+    height:80px;
+
+    justify-self:center;
 
     border-radius:50%;
 
     border:
         4px solid
-        rgba(255,255,255,.5);
+        rgba(255,255,255,.55);
 
-    background:
-        rgba(255,255,255,.96);
-
-    position:relative;
-
-    justify-self:center;
+    background:#fff;
 
     box-shadow:
         0 0 0 2px
             rgba(0,0,0,.35),
-        0 12px 35px
+        0 12px 30px
             rgba(0,0,0,.45);
+
+    position:relative;
 }
 
 #shutter::after{
@@ -632,21 +539,13 @@ button{
 
     inset:7px;
 
+    border:2px solid #111;
+
     border-radius:50%;
-
-    border:2px solid
-        rgba(0,0,0,.65);
-}
-
-#shutter:active{
-    transform:scale(.91);
 }
 
 #shutter.recording{
     background:#ff3045;
-
-    border-color:
-        rgba(255,255,255,.8);
 }
 
 #shutter.recording::after{
@@ -654,43 +553,18 @@ button{
 
     border:0;
 
-    border-radius:7px;
+    border-radius:6px;
 
     background:white;
 }
 
 
-/* =========================================================
-   MODE LABEL
-========================================================= */
-
-#captureModeLabel{
-    position:absolute;
-
-    bottom:
-        calc(env(safe-area-inset-bottom) + 7px);
-
-    left:50%;
-
-    transform:translateX(-50%);
-
-    font-size:8px;
-
-    letter-spacing:1px;
-
-    opacity:.55;
-
-    pointer-events:none;
-}
-
-
-/* =========================================================
-   SETTINGS
-========================================================= */
+/* =========================
+   PANELS
+========================= */
 
 .panel{
     position:fixed;
-
     inset:0;
 
     z-index:100;
@@ -698,16 +572,10 @@ button{
     display:none;
 
     background:
-        linear-gradient(
-            180deg,
-            rgba(12,12,15,.96),
-            rgba(3,3,5,.98)
-        );
-
-    backdrop-filter:blur(25px);
+        rgba(5,5,7,.97);
 
     padding:
-        calc(env(safe-area-inset-top) + 18px)
+        calc(env(safe-area-inset-top) + 20px)
         20px
         calc(env(safe-area-inset-bottom) + 20px);
 
@@ -716,28 +584,11 @@ button{
 
 .panel.show{
     display:block;
-
-    animation:
-        panelIn .25s ease;
-}
-
-@keyframes panelIn{
-    from{
-        opacity:0;
-        transform:translateY(20px);
-    }
-
-    to{
-        opacity:1;
-        transform:translateY(0);
-    }
 }
 
 .panelHeader{
     display:flex;
-
     justify-content:space-between;
-
     align-items:center;
 
     margin-bottom:25px;
@@ -745,27 +596,23 @@ button{
 
 .panelTitle{
     font-size:24px;
-
-    font-weight:750;
+    font-weight:bold;
 }
 
 .close{
     width:42px;
     height:42px;
 
+    border:0;
     border-radius:50%;
 
-    border:1px solid
-        rgba(255,255,255,.1);
-
-    background:#18181c;
-
-    color:white;
+    background:#19191d;
+    color:#fff;
 
     font-size:22px;
 }
 
-.settingCard{
+.setting{
     padding:18px 0;
 
     border-bottom:
@@ -773,114 +620,65 @@ button{
         rgba(255,255,255,.08);
 }
 
-.settingName{
-    font-size:15px;
-
-    font-weight:650;
-
-    margin-bottom:5px;
+.setting b{
+    display:block;
+    margin-bottom:6px;
 }
 
-.settingInfo{
+.setting p{
     color:
         rgba(255,255,255,.5);
 
     font-size:12px;
-
     line-height:1.5;
-
-    margin-bottom:13px;
 }
 
 select{
     width:100%;
-
-    height:46px;
-
-    padding:0 13px;
+    height:45px;
 
     border-radius:12px;
 
     border:1px solid
         rgba(255,255,255,.12);
 
-    background:#17171b;
+    background:#17171a;
 
-    color:white;
+    color:#fff;
 
-    outline:none;
+    padding:0 12px;
 }
 
 
-/* =========================================================
-   HELP
-========================================================= */
-
-.helpText{
-    color:
-        rgba(255,255,255,.65);
-
-    line-height:1.6;
-
-    font-size:14px;
-}
-
-.helpFeature{
-    margin:
-        0 0 22px;
-
-    padding:16px;
-
-    border-radius:16px;
-
-    background:
-        rgba(255,255,255,.045);
-
-    border:1px solid
-        rgba(255,255,255,.07);
-}
-
-.helpFeature strong{
-    display:block;
-
-    color:white;
-
-    margin-bottom:6px;
-}
-
-
-/* =========================================================
+/* =========================
    PREVIEW
-========================================================= */
+========================= */
 
 #preview{
     position:fixed;
-
     inset:0;
 
     z-index:200;
 
-    background:#000;
-
     display:none;
 
-    align-items:center;
-    justify-content:center;
+    background:#000;
 }
 
 #preview.show{
     display:flex;
+    align-items:center;
+    justify-content:center;
 }
 
-#preview img,
-#preview video{
+#previewImage,
+#previewVideo{
     width:100%;
     height:100%;
-
     object-fit:contain;
 }
 
-#previewBar{
+#previewControls{
     position:absolute;
 
     left:0;
@@ -889,55 +687,44 @@ select{
 
     padding:
         15px
-        18px
-        calc(env(safe-area-inset-bottom) + 18px);
+        20px
+        calc(env(safe-area-inset-bottom) + 20px);
 
     display:flex;
-
     justify-content:center;
-
     gap:10px;
 }
 
 .previewButton{
     min-width:100px;
-
     height:44px;
 
+    border:0;
     border-radius:24px;
 
-    border:1px solid
-        rgba(255,255,255,.15);
-
     background:
-        rgba(20,20,22,.75);
+        rgba(30,30,30,.8);
 
     color:white;
 
-    backdrop-filter:blur(16px);
-
-    font-size:12px;
-
-    font-weight:700;
+    font-weight:bold;
 }
 
-.previewButton.primary{
+.previewButton.save{
     background:white;
-
     color:#111;
 }
 
 
-/* =========================================================
+/* =========================
    TOAST
-========================================================= */
+========================= */
 
 #toast{
     position:fixed;
 
     left:50%;
-
-    top:44%;
+    top:45%;
 
     transform:
         translate(-50%,-50%)
@@ -945,30 +732,25 @@ select{
 
     opacity:0;
 
-    pointer-events:none;
-
     z-index:500;
 
     padding:11px 17px;
 
-    border-radius:24px;
+    border-radius:22px;
 
     background:
-        rgba(10,10,12,.82);
+        rgba(0,0,0,.78);
 
-    border:
-        1px solid
+    border:1px solid
         rgba(255,255,255,.12);
 
-    backdrop-filter:blur(18px);
+    backdrop-filter:blur(15px);
 
     font-size:12px;
 
-    transition:
-        opacity .2s,
-        transform .2s;
+    transition:.2s;
 
-    white-space:nowrap;
+    pointer-events:none;
 }
 
 #toast.show{
@@ -980,170 +762,150 @@ select{
 }
 
 
-/* =========================================================
-   FLASH EFFECT
-========================================================= */
+/* =========================
+   FLASH
+========================= */
 
-#flash{
+#flashEffect{
     position:fixed;
-
     inset:0;
 
-    z-index:600;
-
-    background:white;
+    background:#fff;
 
     opacity:0;
 
     pointer-events:none;
+
+    z-index:600;
 }
 
-#flash.fire{
-    animation:
-        flash .25s ease;
+#flashEffect.fire{
+    animation:flash .22s;
 }
 
 @keyframes flash{
     0%{opacity:0}
-    35%{opacity:.8}
+    35%{opacity:.85}
     100%{opacity:0}
 }
 
 
-/* =========================================================
-   MOBILE ADJUSTMENTS
-========================================================= */
+/* =========================
+   MOBILE
+========================= */
 
-@media(max-height:700px){
+@media(max-height:680px){
 
-    #zoomControl{
+    #zoom{
         bottom:
-            calc(env(safe-area-inset-bottom) + 190px);
+            calc(env(safe-area-inset-bottom) + 180px);
     }
 
     #shutter{
-        width:72px;
-        height:72px;
+        width:70px;
+        height:70px;
     }
 
-    #mainControls{
+    #controls{
         grid-template-columns:
             1fr 90px 1fr;
-    }
-
-    #modeSelector{
-        margin-bottom:11px;
     }
 }
 </style>
 </head>
 
+
 <body>
 
 
-<!-- =====================================================
-     CAMERA SCREEN
-===================================================== -->
+<div id="camera">
 
-<div id="cameraScreen">
-
+    <!-- RAW CAMERA -->
     <video id="video"
            autoplay
            muted
            playsinline></video>
 
-    <div id="cameraShade"></div>
+    <!-- STABILIZED PREVIEW -->
+    <canvas id="outputCanvas"></canvas>
+
+    <div id="shade"></div>
 
 
     <!-- TOP -->
 
-    <div id="topBar">
+    <div id="top">
 
-        <div class="topSide">
+        <button class="circle"
+                id="settings">
+            ⚙
+        </button>
 
-            <button class="glassButton"
-                    id="settingsButton"
-                    aria-label="Settings">
-                ⚙
-            </button>
+        <div id="logo">
 
-        </div>
-
-
-        <div id="brand">
-
-            <div id="brandTitle">
+            <div id="logoMain">
                 HORIZON
             </div>
 
-            <div id="brandSubtitle">
+            <div id="logoSub">
                 CAMERA
             </div>
 
         </div>
 
-
-        <div class="topSide">
-
-            <button class="glassButton"
-                    id="helpButton"
-                    aria-label="Help">
-                ?
-            </button>
-
-        </div>
+        <button class="circle"
+                id="help">
+            ?
+        </button>
 
     </div>
 
 
     <!-- STATUS -->
 
-    <div id="statusPill">
+    <div id="status">
 
-        <span class="statusDot"></span>
+        <span id="statusDot"></span>
 
         <span id="statusText">
-            CAMERA READY
+            STARTING CAMERA
         </span>
 
     </div>
 
 
-    <!-- HORIZON -->
+    <!-- HORIZON GUIDE -->
 
-    <div id="horizonArea">
+    <div id="horizon">
 
         <div id="horizonLine"></div>
 
-        <div id="horizonCenter"></div>
+        <div id="center"></div>
 
-        <div id="degree">
+        <div id="angle">
             0°
         </div>
 
     </div>
 
 
-    <!-- QUICK CONTROLS -->
+    <!-- SIDE -->
 
-    <div id="quickControls">
+    <div id="side">
 
-        <button class="quickButton"
-                id="flashButton"
-                title="Flash">
+        <button class="sideButton"
+                id="flash">
             ⚡
         </button>
 
-        <button class="quickButton"
-                id="gridButton"
-                title="Grid">
-            #
+        <button class="sideButton"
+                id="lock">
+            🔒
         </button>
 
-        <button class="quickButton"
-                id="lockButton"
-                title="Lock">
-            🔒
+        <button class="sideButton"
+                id="grid">
+            #
         </button>
 
     </div>
@@ -1151,19 +913,19 @@ select{
 
     <!-- ZOOM -->
 
-    <div id="zoomControl">
+    <div id="zoom">
 
-        <button class="zoomButton active"
+        <button class="zoom active"
                 data-zoom="1">
             1×
         </button>
 
-        <button class="zoomButton"
+        <button class="zoom"
                 data-zoom="1.5">
             1.5×
         </button>
 
-        <button class="zoomButton"
+        <button class="zoom"
                 data-zoom="2">
             2×
         </button>
@@ -1173,9 +935,9 @@ select{
 
     <!-- BOTTOM -->
 
-    <div id="bottomArea">
+    <div id="bottom">
 
-        <div id="modeSelector">
+        <div id="modes">
 
             <button class="mode active"
                     data-mode="flex">
@@ -1195,29 +957,25 @@ select{
         </div>
 
 
-        <div id="mainControls">
+        <div id="controls">
 
-            <div class="sideControl">
+            <div class="left">
 
-                <button class="sideButton"
-                        id="switchCamera"
-                        aria-label="Switch camera">
+                <button class="control"
+                        id="switch">
                     ↻
                 </button>
 
             </div>
 
 
-            <button id="shutter"
-                    aria-label="Capture">
-            </button>
+            <button id="shutter"></button>
 
 
-            <div class="sideControl right">
+            <div class="right">
 
-                <button class="sideButton"
-                        id="galleryButton"
-                        aria-label="Gallery">
+                <button class="control"
+                        id="gallery">
                     ▣
                 </button>
 
@@ -1227,17 +985,10 @@ select{
 
     </div>
 
-
-    <div id="captureModeLabel">
-        PHOTO
-    </div>
-
 </div>
 
 
-<!-- =====================================================
-     SETTINGS PANEL
-===================================================== -->
+<!-- SETTINGS -->
 
 <div id="settingsPanel"
      class="panel">
@@ -1256,15 +1007,13 @@ select{
     </div>
 
 
-    <div class="settingCard">
+    <div class="setting">
 
-        <div class="settingName">
-            Capture Mode
-        </div>
+        <b>Capture Mode</b>
 
-        <div class="settingInfo">
-            Select photo or video capture.
-        </div>
+        <p>
+            Choose between photo and stabilized video.
+        </p>
 
         <select id="captureType">
 
@@ -1281,24 +1030,22 @@ select{
     </div>
 
 
-    <div class="settingCard">
+    <div class="setting">
 
-        <div class="settingName">
-            Video Quality
-        </div>
+        <b>Recording Quality</b>
 
-        <div class="settingInfo">
-            Requested resolution for camera recording.
-        </div>
+        <p>
+            Higher resolution requires more processing.
+        </p>
 
-        <select id="videoQuality">
+        <select id="quality">
 
-            <option value="hd">
-                HD • 1280 × 720
+            <option value="1280">
+                HD 1280 × 720
             </option>
 
-            <option value="fullhd">
-                Full HD • 1920 × 1080
+            <option value="1920">
+                Full HD 1920 × 1080
             </option>
 
         </select>
@@ -1306,50 +1053,32 @@ select{
     </div>
 
 
-    <div class="settingCard">
+    <div class="setting">
 
-        <div class="settingName">
-            Level Indicator
-        </div>
+        <b>Horizon Guide</b>
 
-        <div class="settingInfo">
-            Display the horizon guide while shooting.
-        </div>
+        <p>
+            Show the sensor-based leveling guide.
+        </p>
 
-        <select id="levelSetting">
+        <select id="guide">
 
             <option value="on">
-                Enabled
+                On
             </option>
 
             <option value="off">
-                Disabled
+                Off
             </option>
 
         </select>
-
-    </div>
-
-
-    <div class="settingCard">
-
-        <div class="settingName">
-            Camera Info
-        </div>
-
-        <div class="settingInfo">
-            This web prototype uses the browser Camera API
-            and Device Orientation API.
-        </div>
 
     </div>
 
 </div>
 
 
-<!-- =====================================================
-     HELP PANEL
-===================================================== -->
+<!-- HELP -->
 
 <div id="helpPanel"
      class="panel">
@@ -1357,7 +1086,7 @@ select{
     <div class="panelHeader">
 
         <div class="panelTitle">
-            How it works
+            Horizon Camera
         </div>
 
         <button class="close"
@@ -1368,101 +1097,80 @@ select{
     </div>
 
 
-    <div class="helpFeature">
+    <div class="setting">
 
-        <strong>
-            FLEX
-        </strong>
+        <b>Flex</b>
 
-        <div class="helpText">
-            Keeps the visual horizon level while
-            you move or rotate the phone.
-        </div>
-
-    </div>
-
-
-    <div class="helpFeature">
-
-        <strong>
-            ROTATE
-        </strong>
-
-        <div class="helpText">
-            Allows the camera view to follow
-            the device orientation.
-        </div>
+        <p>
+            The output frame stays fixed while
+            the camera image is digitally rotated
+            inside the frame according to the
+            device orientation sensor.
+        </p>
 
     </div>
 
 
-    <div class="helpFeature">
+    <div class="setting">
 
-        <strong>
-            LOCKED
-        </strong>
+        <b>Rotate</b>
 
-        <div class="helpText">
-            Freezes the current orientation.
-        </div>
-
-    </div>
-
-
-    <div class="helpFeature">
-
-        <strong>
-            ZOOM
-        </strong>
-
-        <div class="helpText">
-            Select a supported zoom level.
-            Actual optical/digital zoom depends
-            on your device and browser.
-        </div>
+        <p>
+            Uses the sensor angle differently,
+            allowing the image to follow your
+            device orientation.
+        </p>
 
     </div>
 
 
-    <div class="helpFeature">
+    <div class="setting">
 
-        <strong>
-            PHOTO / VIDEO
-        </strong>
+        <b>Locked</b>
 
-        <div class="helpText">
-            Change the capture mode in Settings.
-            Tap the large shutter button to capture.
-        </div>
+        <p>
+            Locks the current horizon angle.
+        </p>
+
+    </div>
+
+
+    <div class="setting">
+
+        <b>Stabilized Video</b>
+
+        <p>
+            Video recording is performed from
+            the processed canvas rather than
+            directly from the camera stream.
+            This is what prevents the entire
+            recorded clip from rotating.
+        </p>
 
     </div>
 
 </div>
 
 
-<!-- =====================================================
-     PREVIEW
-===================================================== -->
+<!-- PREVIEW -->
 
 <div id="preview">
 
-    <img id="previewImage"
-         alt="Captured photo">
+    <img id="previewImage">
 
     <video id="previewVideo"
            controls
            playsinline></video>
 
-
-    <div id="previewBar">
+    <div id="previewControls">
 
         <button class="previewButton"
                 id="closePreview">
             CLOSE
         </button>
 
-        <button class="previewButton primary"
-                id="downloadButton">
+        <button class="previewButton save"
+                id="save">
             SAVE
         </button>
 
@@ -1473,62 +1181,73 @@ select{
 
 <div id="toast"></div>
 
-<div id="flash"></div>
-
-<canvas id="canvas"></canvas>
+<div id="flashEffect"></div>
 
 
 <script>
+
 /* =========================================================
-   VARIABLES
+   ELEMENTS
 ========================================================= */
 
 const video =
     document.getElementById("video");
 
 const canvas =
-    document.getElementById("canvas");
+    document.getElementById(
+        "outputCanvas"
+    );
+
+const ctx =
+    canvas.getContext(
+        "2d"
+    );
 
 const shutter =
-    document.getElementById("shutter");
+    document.getElementById(
+        "shutter"
+    );
 
 const statusText =
-    document.getElementById("statusText");
+    document.getElementById(
+        "statusText"
+    );
+
+const horizon =
+    document.getElementById(
+        "horizon"
+    );
 
 const horizonLine =
-    document.getElementById("horizonLine");
+    document.getElementById(
+        "horizonLine"
+    );
 
-const degree =
-    document.getElementById("degree");
-
-const horizonArea =
-    document.getElementById("horizonArea");
-
-const toast =
-    document.getElementById("toast");
-
-const flash =
-    document.getElementById("flash");
+const angleLabel =
+    document.getElementById(
+        "angle"
+    );
 
 const captureType =
-    document.getElementById("captureType");
-
-const captureModeLabel =
     document.getElementById(
-        "captureModeLabel"
+        "captureType"
     );
 
 let stream = null;
 
-let facingMode = "environment";
+let facingMode =
+    "environment";
 
-let orientationAngle = 0;
+let currentMode =
+    "flex";
+
+let sensorAngle = 0;
 
 let lockedAngle = 0;
 
-let currentMode = "flex";
+let zoomValue = 1;
 
-let mediaRecorder = null;
+let recorder = null;
 
 let chunks = [];
 
@@ -1536,42 +1255,52 @@ let recording = false;
 
 let mediaURL = null;
 
-let mediaKind = "photo";
+let mediaType = "photo";
 
-let currentZoom = 1;
+let drawAnimation = null;
 
-let flashEnabled = false;
+let flashOn = false;
 
-let gridEnabled = false;
+let gridOn = false;
+
+let orientationStarted = false;
 
 
 /* =========================================================
    TOAST
 ========================================================= */
 
-function showToast(text){
+function toast(text){
 
-    toast.textContent = text;
+    const el =
+        document.getElementById(
+            "toast"
+        );
 
-    toast.classList.add("show");
+    el.textContent =
+        text;
 
-    clearTimeout(
-        showToast.timer
+    el.classList.add(
+        "show"
     );
 
-    showToast.timer =
-        setTimeout(() => {
+    clearTimeout(
+        toast.timer
+    );
 
-            toast.classList.remove(
-                "show"
-            );
-
-        },1800);
+    toast.timer =
+        setTimeout(
+            () =>
+                el.classList.remove(
+                    "show"
+                ),
+            1800
+        );
 }
 
 
 /* =========================================================
-   CAMERA START
+   CAMERA
 ========================================================= */
 
 async function startCamera(){
@@ -1590,29 +1319,12 @@ async function startCamera(){
         }
 
 
-        const quality =
-            document.getElementById(
-                "videoQuality"
-            ).value;
-
-
-        const width =
-            quality === "fullhd"
-            ? 1920
-            : 1280;
-
-        const height =
-            quality === "fullhd"
-            ? 1080
-            : 720;
-
-
         stream =
             await navigator
                 .mediaDevices
                 .getUserMedia({
 
-                    audio:true,
+                    audio:false,
 
                     video:{
                         facingMode:{
@@ -1621,11 +1333,16 @@ async function startCamera(){
                         },
 
                         width:{
-                            ideal:width
+                            ideal:1280
                         },
 
                         height:{
-                            ideal:height
+                            ideal:720
+                        },
+
+                        frameRate:{
+                            ideal:30,
+                            max:30
                         }
                     }
 
@@ -1641,9 +1358,9 @@ async function startCamera(){
         statusText.textContent =
             "CAMERA READY";
 
-        showToast(
-            "Camera connected"
-        );
+
+        startCanvasPreview();
+
 
     }catch(error){
 
@@ -1652,8 +1369,8 @@ async function startCamera(){
         statusText.textContent =
             "CAMERA ERROR";
 
-        showToast(
-            "Allow camera permission"
+        toast(
+            "Camera permission required"
         );
 
     }
@@ -1662,36 +1379,256 @@ async function startCamera(){
 
 
 /* =========================================================
-   SWITCH CAMERA
+   CANVAS PREVIEW
 ========================================================= */
 
-document
-    .getElementById(
-        "switchCamera"
-    )
-    .addEventListener(
-        "click",
-        async () => {
+/*
+ IMPORTANT:
 
-            facingMode =
-                facingMode ===
-                "environment"
-                ? "user"
-                : "environment";
+ We do NOT transform the video element.
 
-            await startCamera();
+ Instead:
+
+ camera frame
+      ↓
+ canvas
+      ↓
+ rotate/crop
+      ↓
+ screen
+
+ The same canvas is later recorded.
+*/
+
+function startCanvasPreview(){
+
+    if(drawAnimation){
+
+        cancelAnimationFrame(
+            drawAnimation
+        );
+
+    }
+
+
+    function render(){
+
+        if(
+            video.readyState >= 2 &&
+            video.videoWidth
+        ){
+
+            drawFrame();
 
         }
-    );
+
+
+        drawAnimation =
+            requestAnimationFrame(
+                render
+            );
+
+    }
+
+
+    render();
+
+}
 
 
 /* =========================================================
-   ORIENTATION
+   DRAW STABILIZED FRAME
 ========================================================= */
 
-async function requestOrientation(){
+function drawFrame(){
+
+    const vw =
+        video.videoWidth;
+
+    const vh =
+        video.videoHeight;
+
+
+    if(!vw || !vh){
+        return;
+    }
+
+
+    /*
+      Keep a 16:9 output.
+    */
+
+    const targetRatio =
+        16 / 9;
+
+    let cw =
+        vw;
+
+    let ch =
+        vw / targetRatio;
+
+
+    if(ch > vh){
+
+        ch =
+            vh;
+
+        cw =
+            vh * targetRatio;
+
+    }
+
+
+    canvas.width =
+        Math.round(cw);
+
+    canvas.height =
+        Math.round(ch);
+
+
+    /*
+      Crop a little extra around the
+      image when rotation is needed.
+
+      This prevents black corners.
+    */
+
+    const angle =
+        getOutputAngle();
+
+
+    const radians =
+        angle *
+        Math.PI /
+        180;
+
+
+    ctx.save();
+
+    ctx.clearRect(
+        0,
+        0,
+        cw,
+        ch
+    );
+
+
+    ctx.translate(
+        cw / 2,
+        ch / 2
+    );
+
+
+    ctx.rotate(
+        radians
+    );
+
+
+    /*
+      Scale enough to cover the output
+      after rotation.
+    */
+
+    const scale =
+        Math.max(
+            cw / vw,
+            ch / vh
+        ) * 1.08;
+
+
+    const drawW =
+        vw * scale;
+
+    const drawH =
+        vh * scale;
+
+
+    /*
+      Front camera mirror.
+    */
+
+    if(facingMode === "user"){
+
+        ctx.scale(
+            -1,
+            1
+        );
+
+    }
+
+
+    ctx.drawImage(
+        video,
+
+        -drawW / 2,
+        -drawH / 2,
+
+        drawW,
+        drawH
+    );
+
+
+    ctx.restore();
+
+}
+
+
+/* =========================================================
+   OUTPUT ANGLE
+========================================================= */
+
+function getOutputAngle(){
+
+    if(
+        currentMode ===
+        "locked"
+    ){
+
+        return -lockedAngle;
+
+    }
+
+
+    if(
+        currentMode ===
+        "rotate"
+    ){
+
+        return sensorAngle;
+
+    }
+
+
+    /*
+      FLEX:
+
+      Counter-rotate the camera
+      image to keep the horizon level.
+    */
+
+    return -sensorAngle;
+
+}
+
+
+/* =========================================================
+   ORIENTATION SENSOR
+========================================================= */
+
+async function startOrientation(){
+
+    if(orientationStarted){
+
+        return;
+
+    }
+
 
     try{
+
+        /*
+          iOS-style permission if available.
+        */
 
         if(
             typeof DeviceOrientationEvent !==
@@ -1706,9 +1643,12 @@ async function requestOrientation(){
                 await DeviceOrientationEvent
                     .requestPermission();
 
-            if(permission !== "granted"){
+            if(
+                permission !==
+                "granted"
+            ){
 
-                showToast(
+                toast(
                     "Motion permission denied"
                 );
 
@@ -1721,168 +1661,305 @@ async function requestOrientation(){
 
         window.addEventListener(
             "deviceorientation",
-            orientationHandler,
+            handleOrientation,
             true
         );
 
+
+        orientationStarted =
+            true;
+
+
+        toast(
+            "Gyroscope enabled"
+        );
+
+
     }catch(error){
 
-        console.log(error);
+        console.error(error);
+
+        toast(
+            "Motion sensor unavailable"
+        );
 
     }
 
 }
 
 
-function orientationHandler(event){
+/* =========================================================
+   SENSOR CALCULATION
+========================================================= */
 
-    let value =
-        Number(event.gamma || 0);
+function handleOrientation(event){
+
+    /*
+      gamma:
+
+      left/right tilt
+
+      beta:
+
+      forward/back tilt
+    */
+
+    let gamma =
+        Number(
+            event.gamma || 0
+        );
+
+    let beta =
+        Number(
+            event.beta || 0
+        );
 
 
     /*
-       Clamp extreme sensor readings.
+      Account for browser screen orientation.
     */
 
-    value =
+    const screenAngle =
+        Number(
+            screen.orientation?.angle ||
+            window.orientation ||
+            0
+        );
+
+
+    let angle;
+
+
+    /*
+      Portrait orientation
+    */
+
+    if(
+        screenAngle === 0 ||
+        screenAngle === 180
+    ){
+
+        angle =
+            gamma;
+
+    }
+
+    /*
+      Landscape orientation
+    */
+
+    else{
+
+        angle =
+            beta;
+
+    }
+
+
+    /*
+      Normalize
+    */
+
+    if(angle > 180){
+        angle -= 360;
+    }
+
+    if(angle < -180){
+        angle += 360;
+    }
+
+
+    /*
+      Prevent extreme jumps.
+    */
+
+    angle =
         Math.max(
-            -45,
+            -90,
             Math.min(
-                45,
-                value
+                90,
+                angle
             )
         );
 
 
-    if(currentMode === "locked"){
+    /*
+      Smooth sensor movement.
+    */
 
-        value =
-            lockedAngle;
-
-    }
-
-
-    orientationAngle =
-        value;
+    sensorAngle =
+        sensorAngle * .82 +
+        angle * .18;
 
 
-    updateHorizon(
-        value
-    );
-
-}
+    angleLabel.textContent =
+        `${Math.round(sensorAngle)}°`;
 
 
-function updateHorizon(angle){
+    /*
+      ONLY the guide rotates.
 
-    degree.textContent =
-        `${Math.round(angle)}°`;
+      The actual video element
+      does not rotate.
+    */
+
+    let guideAngle =
+        -sensorAngle;
 
 
-    let visualAngle =
-        -angle;
+    if(
+        currentMode ===
+        "rotate"
+    ){
 
-
-    if(currentMode === "rotate"){
-
-        visualAngle =
-            angle;
+        guideAngle =
+            sensorAngle;
 
     }
 
 
-    if(currentMode === "locked"){
+    if(
+        currentMode ===
+        "locked"
+    ){
 
-        visualAngle =
+        guideAngle =
             -lockedAngle;
 
     }
 
 
     horizonLine.style.transform =
-        `rotate(${visualAngle}deg)`;
-
-
-    horizonArea.style.transform =
-        `translate(-50%,-50%) rotate(${visualAngle}deg)`;
+        `rotate(${guideAngle}deg)`;
 
 }
 
 
 /* =========================================================
-   CAMERA MODES
+   MODES
 ========================================================= */
 
 document
     .querySelectorAll(".mode")
-    .forEach(button => {
+    .forEach(
+        button => {
 
-        button.addEventListener(
-            "click",
-            () => {
+            button.addEventListener(
+                "click",
+                async () => {
 
-                document
-                    .querySelectorAll(".mode")
-                    .forEach(
-                        item =>
-                        item.classList
-                            .remove(
-                                "active"
-                            )
+                    document
+                        .querySelectorAll(
+                            ".mode"
+                        )
+                        .forEach(
+                            b =>
+                            b.classList
+                                .remove(
+                                    "active"
+                                )
+                        );
+
+
+                    button.classList.add(
+                        "active"
                     );
 
 
-                button.classList.add(
-                    "active"
+                    currentMode =
+                        button.dataset.mode;
+
+
+                    if(
+                        currentMode ===
+                        "locked"
+                    ){
+
+                        lockedAngle =
+                            sensorAngle;
+
+                        toast(
+                            "Horizon locked"
+                        );
+
+                    }
+
+
+                    await startOrientation();
+
+                }
+            );
+
+        }
+    );
+
+
+/* =========================================================
+   LOCK BUTTON
+========================================================= */
+
+document
+    .getElementById(
+        "lock"
+    )
+    .addEventListener(
+        "click",
+        async () => {
+
+            lockedAngle =
+                sensorAngle;
+
+            currentMode =
+                "locked";
+
+
+            document
+                .querySelectorAll(
+                    ".mode"
+                )
+                .forEach(
+                    b =>
+                    b.classList.toggle(
+                        "active",
+                        b.dataset.mode ===
+                        "locked"
+                    )
                 );
 
 
-                currentMode =
-                    button.dataset.mode;
+            await startOrientation();
+
+            toast(
+                "Horizon locked"
+            );
+
+        }
+    );
 
 
-                if(
-                    currentMode ===
-                    "locked"
-                ){
+/* =========================================================
+   CAMERA SWITCH
+========================================================= */
 
-                    lockedAngle =
-                        orientationAngle;
+document
+    .getElementById(
+        "switch"
+    )
+    .addEventListener(
+        "click",
+        async () => {
 
-                    showToast(
-                        "Horizon locked"
-                    );
-
-                }
-
-
-                if(
-                    currentMode ===
-                    "flex"
-                ){
-
-                    showToast(
-                        "Flex mode"
-                    );
-
-                }
+            facingMode =
+                facingMode ===
+                "environment"
+                ? "user"
+                : "environment";
 
 
-                if(
-                    currentMode ===
-                    "rotate"
-                ){
+            await startCamera();
 
-                    showToast(
-                        "Rotate mode"
-                    );
-
-                }
-
-            }
-        );
-
-    });
+        }
+    );
 
 
 /* =========================================================
@@ -1890,42 +1967,47 @@ document
 ========================================================= */
 
 document
-    .querySelectorAll(".zoomButton")
-    .forEach(button => {
+    .querySelectorAll(
+        ".zoom"
+    )
+    .forEach(
+        button => {
 
-        button.addEventListener(
-            "click",
-            async () => {
+            button.addEventListener(
+                "click",
+                async () => {
 
-                document
-                    .querySelectorAll(
-                        ".zoomButton"
-                    )
-                    .forEach(
-                        item =>
-                        item.classList
-                            .remove(
-                                "active"
-                            )
+                    document
+                        .querySelectorAll(
+                            ".zoom"
+                        )
+                        .forEach(
+                            b =>
+                            b.classList
+                                .remove(
+                                    "active"
+                                )
+                        );
+
+
+                    button.classList.add(
+                        "active"
                     );
 
-                button.classList.add(
-                    "active"
-                );
+
+                    zoomValue =
+                        Number(
+                            button.dataset.zoom
+                        );
 
 
-                currentZoom =
-                    Number(
-                        button.dataset.zoom
-                    );
+                    await applyZoom();
 
+                }
+            );
 
-                await applyZoom();
-
-            }
-        );
-
-    });
+        }
+    );
 
 
 async function applyZoom(){
@@ -1936,7 +2018,9 @@ async function applyZoom(){
             stream
                 ?.getVideoTracks()[0];
 
-        if(!track) return;
+        if(!track){
+            return;
+        }
 
 
         const capabilities =
@@ -1947,19 +2031,12 @@ async function applyZoom(){
             capabilities.zoom
         ){
 
-            const min =
-                capabilities.zoom.min;
-
-            const max =
-                capabilities.zoom.max;
-
-
-            const zoom =
+            const value =
                 Math.max(
-                    min,
+                    capabilities.zoom.min,
                     Math.min(
-                        max,
-                        currentZoom
+                        capabilities.zoom.max,
+                        zoomValue
                     )
                 );
 
@@ -1968,7 +2045,7 @@ async function applyZoom(){
 
                 advanced:[
                     {
-                        zoom:zoom
+                        zoom:value
                     }
                 ]
 
@@ -1979,8 +2056,7 @@ async function applyZoom(){
     }catch(error){
 
         console.log(
-            "Zoom unavailable",
-            error
+            "Zoom unavailable"
         );
 
     }
@@ -1989,33 +2065,33 @@ async function applyZoom(){
 
 
 /* =========================================================
-   FLASH
+   FLASH BUTTON
 ========================================================= */
 
 document
     .getElementById(
-        "flashButton"
+        "flash"
     )
     .addEventListener(
         "click",
         () => {
 
-            flashEnabled =
-                !flashEnabled;
+            flashOn =
+                !flashOn;
 
 
             document
                 .getElementById(
-                    "flashButton"
+                    "flash"
                 )
                 .classList.toggle(
                     "active",
-                    flashEnabled
+                    flashOn
                 );
 
 
-            showToast(
-                flashEnabled
+            toast(
+                flashOn
                 ? "Flash ON"
                 : "Flash OFF"
             );
@@ -2030,30 +2106,37 @@ document
 
 document
     .getElementById(
-        "gridButton"
+        "grid"
     )
     .addEventListener(
         "click",
         () => {
 
-            gridEnabled =
-                !gridEnabled;
+            gridOn =
+                !gridOn;
 
 
             document
                 .getElementById(
-                    "gridButton"
+                    "grid"
                 )
                 .classList.toggle(
                     "active",
-                    gridEnabled
+                    gridOn
                 );
 
 
-            if(gridEnabled){
+            /*
+              Simple guide using CSS.
+            */
 
-                cameraScreen.style
-                    .backgroundImage =
+            if(gridOn){
+
+                document
+                    .getElementById(
+                        "camera"
+                    )
+                    .style.backgroundImage =
                     `
                     linear-gradient(
                         rgba(255,255,255,.18)
@@ -2068,14 +2151,20 @@ document
                     )
                     `;
 
-                cameraScreen.style
-                    .backgroundSize =
+                document
+                    .getElementById(
+                        "camera"
+                    )
+                    .style.backgroundSize =
                     "33.333% 33.333%";
 
             }else{
 
-                cameraScreen.style
-                    .backgroundImage =
+                document
+                    .getElementById(
+                        "camera"
+                    )
+                    .style.backgroundImage =
                     "none";
 
             }
@@ -2085,59 +2174,16 @@ document
 
 
 /* =========================================================
-   LOCK
+   PHOTO
 ========================================================= */
 
-document
-    .getElementById(
-        "lockButton"
-    )
-    .addEventListener(
-        "click",
-        () => {
-
-            lockedAngle =
-                orientationAngle;
-
-            currentMode =
-                "locked";
-
-
-            document
-                .querySelectorAll(
-                    ".mode"
-                )
-                .forEach(
-                    button =>
-                    button.classList
-                        .toggle(
-                            "active",
-                            button.dataset.mode ===
-                            "locked"
-                        )
-                );
-
-
-            showToast(
-                "Orientation locked"
-            );
-
-        }
-    );
-
-
-/* =========================================================
-   TAKE PHOTO
-========================================================= */
-
-function takePhoto(){
+function capturePhoto(){
 
     if(
-        !video.videoWidth ||
-        !video.videoHeight
+        !video.videoWidth
     ){
 
-        showToast(
+        toast(
             "Camera not ready"
         );
 
@@ -2146,51 +2192,19 @@ function takePhoto(){
     }
 
 
-    canvas.width =
-        video.videoWidth;
-
-    canvas.height =
-        video.videoHeight;
-
-
-    const ctx =
-        canvas.getContext(
-            "2d"
-        );
-
-
     /*
-       Mirror the front camera.
+      Capture the CURRENT STABILIZED
+      canvas frame.
+
+      This is important.
     */
-
-    if(facingMode === "user"){
-
-        ctx.translate(
-            canvas.width,
-            0
-        );
-
-        ctx.scale(
-            -1,
-            1
-        );
-
-    }
-
-
-    ctx.drawImage(
-        video,
-        0,
-        0,
-        canvas.width,
-        canvas.height
-    );
-
 
     canvas.toBlob(
         blob => {
 
-            if(!blob) return;
+            if(!blob){
+                return;
+            }
 
 
             if(mediaURL){
@@ -2207,69 +2221,79 @@ function takePhoto(){
                     blob
                 );
 
-            mediaKind =
+
+            mediaType =
                 "photo";
 
 
             document
                 .getElementById(
                     "previewImage"
-                ).src =
+                )
+                .src =
                 mediaURL;
 
 
             document
                 .getElementById(
                     "previewImage"
-                ).style.display =
+                )
+                .style.display =
                 "block";
 
 
             document
                 .getElementById(
                     "previewVideo"
-                ).style.display =
+                )
+                .style.display =
                 "none";
 
 
             document
                 .getElementById(
                     "preview"
-                ).classList.add(
+                )
+                .classList.add(
                     "show"
                 );
 
         },
         "image/jpeg",
-        .96
+        .95
     );
 
 
-    /* camera flash animation */
-
-    flash.classList.remove(
-        "fire"
-    );
-
-    void flash.offsetWidth;
-
-    flash.classList.add(
-        "fire"
-    );
+    document
+        .getElementById(
+            "flashEffect"
+        )
+        .classList.add(
+            "fire"
+        );
 
 }
 
 
 /* =========================================================
-   START VIDEO
+   STABILIZED VIDEO RECORDING
 ========================================================= */
 
 function startRecording(){
 
-    if(!stream){
+    /*
+      THIS IS THE MAIN FIX.
 
-        showToast(
-            "Camera not ready"
+      We record canvas.captureStream()
+      instead of the raw camera stream.
+    */
+
+    if(
+        !canvas.captureStream
+    ){
+
+        toast(
+            "Canvas video unsupported"
         );
 
         return;
@@ -2277,7 +2301,29 @@ function startRecording(){
     }
 
 
-    chunks = [];
+    const canvasStream =
+        canvas.captureStream(
+            30
+        );
+
+
+    /*
+      Add microphone separately.
+    */
+
+    if(stream){
+
+        const audioTracks =
+            stream.getAudioTracks();
+
+        audioTracks.forEach(
+            track =>
+            canvasStream.addTrack(
+                track
+            )
+        );
+
+    }
 
 
     let mime =
@@ -2285,9 +2331,10 @@ function startRecording(){
 
 
     if(
-        !MediaRecorder.isTypeSupported(
-            mime
-        )
+        !MediaRecorder
+            .isTypeSupported(
+                mime
+            )
     ){
 
         mime =
@@ -2298,18 +2345,22 @@ function startRecording(){
 
     try{
 
-        mediaRecorder =
+        recorder =
             new MediaRecorder(
-                stream,
+                canvasStream,
                 {
-                    mimeType:mime
+                    mimeType:mime,
+                    videoBitsPerSecond:
+                        6000000
                 }
             );
 
     }catch(error){
 
-        showToast(
-            "Video recording unavailable"
+        console.error(error);
+
+        toast(
+            "Recording unavailable"
         );
 
         return;
@@ -2317,12 +2368,15 @@ function startRecording(){
     }
 
 
-    mediaRecorder.ondataavailable =
+    chunks = [];
+
+
+    recorder.ondataavailable =
         event => {
 
             if(
                 event.data &&
-                event.data.size > 0
+                event.data.size
             ){
 
                 chunks.push(
@@ -2334,7 +2388,7 @@ function startRecording(){
         };
 
 
-    mediaRecorder.onstop =
+    recorder.onstop =
         () => {
 
             const blob =
@@ -2360,45 +2414,53 @@ function startRecording(){
                     blob
                 );
 
-            mediaKind =
+
+            mediaType =
                 "video";
 
 
-            const previewVideo =
-                document
-                    .getElementById(
-                        "previewVideo"
-                    );
-
-
-            previewVideo.src =
+            document
+                .getElementById(
+                    "previewVideo"
+                )
+                .src =
                 mediaURL;
 
 
-            previewVideo.style.display =
+            document
+                .getElementById(
+                    "previewVideo"
+                )
+                .style.display =
                 "block";
 
 
             document
                 .getElementById(
                     "previewImage"
-                ).style.display =
+                )
+                .style.display =
                 "none";
 
 
             document
                 .getElementById(
                     "preview"
-                ).classList.add(
+                )
+                .classList.add(
                     "show"
                 );
 
         };
 
 
-    mediaRecorder.start();
+    recorder.start(
+        100
+    );
 
-    recording = true;
+
+    recording =
+        true;
 
 
     shutter.classList.add(
@@ -2406,39 +2468,36 @@ function startRecording(){
     );
 
 
-    captureModeLabel.textContent =
-        "RECORDING";
-
-
     statusText.textContent =
-        "RECORDING";
+        "STABILIZED RECORDING";
 
 
-    showToast(
-        "Recording started"
+    toast(
+        "Stabilized recording started"
     );
 
 }
 
 
 /* =========================================================
-   STOP VIDEO
+   STOP RECORDING
 ========================================================= */
 
 function stopRecording(){
 
     if(
-        mediaRecorder &&
-        mediaRecorder.state !==
+        recorder &&
+        recorder.state !==
         "inactive"
     ){
 
-        mediaRecorder.stop();
+        recorder.stop();
 
     }
 
 
-    recording = false;
+    recording =
+        false;
 
 
     shutter.classList.remove(
@@ -2446,16 +2505,12 @@ function stopRecording(){
     );
 
 
-    captureModeLabel.textContent =
-        "VIDEO";
-
-
     statusText.textContent =
         "CAMERA READY";
 
 
-    showToast(
-        "Recording stopped"
+    toast(
+        "Processing stabilized video..."
     );
 
 }
@@ -2469,7 +2524,7 @@ shutter.addEventListener(
     "click",
     async () => {
 
-        await requestOrientation();
+        await startOrientation();
 
 
         if(
@@ -2477,7 +2532,7 @@ shutter.addEventListener(
             "photo"
         ){
 
-            takePhoto();
+            capturePhoto();
 
         }else{
 
@@ -2492,29 +2547,6 @@ shutter.addEventListener(
             }
 
         }
-
-    }
-);
-
-
-/* =========================================================
-   CAPTURE MODE
-========================================================= */
-
-captureType.addEventListener(
-    "change",
-    () => {
-
-        captureModeLabel.textContent =
-            captureType.value
-                .toUpperCase();
-
-        showToast(
-            captureType.value ===
-            "photo"
-            ? "Photo mode"
-            : "Video mode"
-        );
 
     }
 );
@@ -2537,18 +2569,15 @@ const helpPanel =
 
 document
     .getElementById(
-        "settingsButton"
+        "settings"
     )
     .addEventListener(
         "click",
-        () => {
-
-            settingsPanel
-                .classList.add(
-                    "show"
-                );
-
-        }
+        () =>
+        settingsPanel
+            .classList.add(
+                "show"
+            )
     );
 
 
@@ -2558,31 +2587,25 @@ document
     )
     .addEventListener(
         "click",
-        () => {
-
-            settingsPanel
-                .classList.remove(
-                    "show"
-                );
-
-        }
+        () =>
+        settingsPanel
+            .classList.remove(
+                "show"
+            )
     );
 
 
 document
     .getElementById(
-        "helpButton"
+        "help"
     )
     .addEventListener(
         "click",
-        () => {
-
-            helpPanel
-                .classList.add(
-                    "show"
-                );
-
-        }
+        () =>
+        helpPanel
+            .classList.add(
+                "show"
+            )
     );
 
 
@@ -2592,36 +2615,29 @@ document
     )
     .addEventListener(
         "click",
-        () => {
-
-            helpPanel
-                .classList.remove(
-                    "show"
-                );
-
-        }
+        () =>
+        helpPanel
+            .classList.remove(
+                "show"
+            )
     );
 
 
 /* =========================================================
-   LEVEL SETTING
+   GUIDE
 ========================================================= */
 
 document
     .getElementById(
-        "levelSetting"
+        "guide"
     )
     .addEventListener(
         "change",
         event => {
 
-            const enabled =
+            horizon.style.display =
                 event.target.value ===
-                "on";
-
-
-            horizonArea.style.display =
-                enabled
+                "on"
                 ? "block"
                 : "none";
 
@@ -2630,14 +2646,27 @@ document
 
 
 /* =========================================================
-   PREVIEW
+   CAPTURE MODE
 ========================================================= */
 
-const preview =
-    document.getElementById(
-        "preview"
-    );
+captureType.addEventListener(
+    "change",
+    () => {
 
+        toast(
+            captureType.value ===
+            "photo"
+            ? "Photo mode"
+            : "Stabilized video mode"
+        );
+
+    }
+);
+
+
+/* =========================================================
+   PREVIEW
+========================================================= */
 
 document
     .getElementById(
@@ -2647,9 +2676,14 @@ document
         "click",
         () => {
 
-            preview.classList.remove(
-                "show"
-            );
+            document
+                .getElementById(
+                    "preview"
+                )
+                .classList.remove(
+                    "show"
+                );
+
 
             document
                 .getElementById(
@@ -2662,58 +2696,56 @@ document
 
 
 /* =========================================================
-   DOWNLOAD
+   SAVE
 ========================================================= */
 
 document
     .getElementById(
-        "downloadButton"
+        "save"
     )
     .addEventListener(
         "click",
         () => {
 
             if(!mediaURL){
-
                 return;
-
             }
 
 
-            const link =
+            const a =
                 document.createElement(
                     "a"
                 );
 
 
-            link.href =
+            a.href =
                 mediaURL;
 
 
-            if(mediaKind === "photo"){
+            if(mediaType === "photo"){
 
-                link.download =
+                a.download =
                     `horizon-photo-${Date.now()}.jpg`;
 
             }else{
 
-                link.download =
-                    `horizon-video-${Date.now()}.webm`;
+                a.download =
+                    `horizon-stabilized-${Date.now()}.webm`;
 
             }
 
 
             document.body.appendChild(
-                link
+                a
             );
 
-            link.click();
+            a.click();
 
-            link.remove();
+            a.remove();
 
 
-            showToast(
-                "Saving media..."
+            toast(
+                "Saving..."
             );
 
         }
@@ -2726,14 +2758,14 @@ document
 
 document
     .getElementById(
-        "galleryButton"
+        "gallery"
     )
     .addEventListener(
         "click",
         () => {
 
-            showToast(
-                "Captured media appears here"
+            toast(
+                "Gallery integration can be added next"
             );
 
         }
@@ -2741,28 +2773,10 @@ document
 
 
 /* =========================================================
-   VIDEO QUALITY
+   START
 ========================================================= */
 
-document
-    .getElementById(
-        "videoQuality"
-    )
-    .addEventListener(
-        "change",
-        async () => {
-
-            await startCamera();
-
-        }
-    );
-
-
-/* =========================================================
-   INITIALIZE
-========================================================= */
-
-async function initialize(){
+async function init(){
 
     if(
         !navigator.mediaDevices ||
@@ -2770,12 +2784,12 @@ async function initialize(){
             .getUserMedia
     ){
 
-        showToast(
-            "Camera API not supported"
-        );
-
         statusText.textContent =
-            "UNSUPPORTED";
+            "NOT SUPPORTED";
+
+        toast(
+            "Camera API unavailable"
+        );
 
         return;
 
@@ -2788,17 +2802,17 @@ async function initialize(){
 
 
 /*
-   Some browsers require orientation
-   permission to be requested after
-   a user interaction.
+  Do not request motion permission
+  automatically on page load.
+
+  Mobile browsers may require a
+  user gesture.
 */
 
 document.addEventListener(
     "click",
     () => {
-
-        requestOrientation();
-
+        startOrientation();
     },
     {
         once:true
@@ -2806,7 +2820,7 @@ document.addEventListener(
 );
 
 
-initialize();
+init();
 
 </script>
 
