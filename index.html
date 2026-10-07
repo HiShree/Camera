@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web Camera Studio - True Horizon Lock</title>
+    <title>Filmic Horizon Studio</title>
     <!-- Tailwind CSS for modern styling -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <!-- FontAwesome for icons -->
@@ -11,11 +11,10 @@
     <style>
         .filter-grayscale { filter: grayscale(100%); }
         .filter-sepia { filter: sepia(100%); }
-        .filter-invert { filter: invert(100%); }
-        .filter-warm { filter: sepia(40%) saturate(180%) hue-rotate(-10deg); }
-        .filter-cool { filter: saturate(150%) hue-rotate(180deg); }
+        .filter-noir { filter: grayscale(100%) contrast(150%) brightness(90%); }
+        .filter-teal-orange { filter: contrast(120%) saturate(140%) hue-rotate(15deg) sepia(20%); }
+        .filter-bleach { filter: contrast(160%) saturate(60%) brightness(110%); }
         .filter-cyberpunk { filter: contrast(150%) saturate(200%) hue-rotate(270deg); }
-        .filter-vintage { filter: sepia(50%) contrast(120%) brightness(90%); }
 
         @keyframes flashAnim {
             0% { opacity: 1; }
@@ -26,31 +25,34 @@
         }
     </style>
 </head>
-<body class="bg-gray-950 text-white min-h-screen flex flex-col justify-between overflow-x-hidden font-sans">
+<body class="bg-black text-amber-500 min-h-screen flex flex-col justify-between overflow-x-hidden font-mono select-none">
 
-    <!-- Top Bar -->
-    <header class="w-full p-4 flex justify-between items-center bg-gray-900/80 backdrop-blur-md border-b border-gray-800 z-20">
-        <div class="flex items-center space-x-2">
-            <i class="fa-solid fa-camera-retro text-amber-400 text-xl"></i>
-            <h1 class="text-lg font-bold tracking-wide">WebCam Studio</h1>
+    <!-- Cinema Top HUD -->
+    <header class="w-full p-3 flex justify-between items-center bg-neutral-900/90 backdrop-blur border-b border-neutral-800 z-20 text-xs">
+        <div class="flex items-center space-x-3">
+            <span class="bg-neutral-800 px-2 py-1 rounded text-amber-400 font-bold tracking-wider">4K / 30FPS</span>
+            <span id="audioMeter" class="text-emerald-400 flex items-center space-x-1">
+                <i class="fa-solid fa-microphone text-[10px]"></i>
+                <span>-12dB</span>
+            </span>
         </div>
         <div class="flex items-center space-x-3">
-            <button id="horizonToggleBtn" class="bg-gray-800 hover:bg-gray-700 p-2.5 rounded-full transition text-sm flex items-center justify-center w-10 h-10 shadow text-gray-400" title="Toggle Horizon Leveler">
+            <button id="horizonToggleBtn" class="bg-neutral-800 hover:bg-neutral-700 p-2 rounded transition text-neutral-400 hover:text-amber-400" title="Toggle Horizon Leveler">
                 <i class="fa-solid fa-compass"></i>
             </button>
-            <button id="switchCameraBtn" class="bg-gray-800 hover:bg-gray-700 p-2.5 rounded-full transition text-sm flex items-center justify-center w-10 h-10 shadow">
+            <button id="switchCameraBtn" class="bg-neutral-800 hover:bg-neutral-700 p-2 rounded transition text-neutral-300">
                 <i class="fa-solid fa-camera-rotate"></i>
             </button>
-            <button id="galleryBtn" class="relative bg-gray-800 hover:bg-gray-700 p-2.5 rounded-full transition text-sm flex items-center justify-center w-10 h-10 shadow">
+            <button id="galleryBtn" class="relative bg-neutral-800 hover:bg-neutral-700 p-2 rounded transition text-neutral-300">
                 <i class="fa-solid fa-photo-film"></i>
-                <span id="galleryBadge" class="absolute -top-1 -right-1 bg-amber-500 text-gray-950 font-bold text-xs w-5 h-5 rounded-full flex items-center justify-center hidden">0</span>
+                <span id="galleryBadge" class="absolute -top-1 -right-1 bg-amber-500 text-black font-bold text-[10px] w-4 h-4 rounded-full flex items-center justify-center hidden">0</span>
             </button>
         </div>
     </header>
 
-    <!-- Main Viewport -->
-    <main class="relative flex-1 flex flex-col items-center justify-center w-full max-w-2xl mx-auto my-auto p-2 sm:p-4">
-        <div id="viewFinder" class="relative w-full aspect-[3/4] sm:aspect-[4/3] max-h-[70vh] bg-black rounded-2xl overflow-hidden shadow-2xl border border-gray-800 flex items-center justify-center">
+    <!-- Main Viewport Area -->
+    <main class="relative flex-1 flex flex-col items-center justify-center w-full max-w-2xl mx-auto my-auto p-2">
+        <div id="viewFinder" class="relative w-full aspect-[16/9] max-h-[65vh] bg-neutral-950 rounded-xl overflow-hidden shadow-2xl border border-neutral-800 flex items-center justify-center">
             
             <!-- Video Stream -->
             <video id="videoElement" autoplay playsinline muted class="w-full h-full object-cover"></video>
@@ -58,121 +60,105 @@
             <!-- Flash Overlay -->
             <div id="flashOverlay" class="absolute inset-0 bg-white opacity-0 pointer-events-none z-10"></div>
 
-            <!-- Fixed Upright Horizon Box (Matches Horizon App Style) -->
-            <div id="horizonBoxOverlay" class="absolute inset-0 flex items-center justify-center pointer-events-none hidden z-15">
-                <div class="relative w-[50%] h-[75%] border-2 border-white bg-white/5 rounded-lg shadow-2xl flex items-center justify-center">
-                    <div class="absolute -top-1.5 -left-1.5 w-5 h-5 border-t-4 border-l-4 border-white"></div>
-                    <div class="absolute -top-1.5 -right-1.5 w-5 h-5 border-t-4 border-r-4 border-white"></div>
-                    <div class="absolute -bottom-1.5 -left-1.5 w-5 h-5 border-b-4 border-l-4 border-white"></div>
-                    <div class="absolute -bottom-1.5 -right-1.5 w-5 h-5 border-b-4 border-r-4 border-white"></div>
-                    <div class="absolute top-2 bg-black/70 backdrop-blur-md px-2.5 py-0.5 rounded-full border border-amber-400/30 flex items-center space-x-1.5 shadow">
-                        <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-                        <span class="text-[10px] font-mono tracking-wider text-amber-400 font-bold">HORIZON LOCK</span>
-                    </div>
-                </div>
-            </div>
+            <!-- Filmic Pro Cinematic Letterbox Guides -->
+            <div class="absolute inset-x-0 top-0 h-8 bg-black pointer-events-none z-15"></div>
+            <div class="absolute inset-x-0 bottom-0 h-8 bg-black pointer-events-none z-15"></div>
 
             <!-- Horizon Leveler Indicator Overlay -->
-            <div id="horizonLevelIndicator" class="absolute inset-x-0 top-1/2 -translate-y-1/2 flex flex-col items-center pointer-events-none opacity-0 transition-opacity duration-300 z-20">
-                <div class="relative w-3/4 max-w-xs h-6 flex items-center justify-center">
-                    <div class="absolute w-0.5 h-6 bg-white shadow z-10"></div>
-                    <div class="w-full h-1 bg-black/40 backdrop-blur-sm rounded-full overflow-hidden border border-white/20">
+            <div id="horizonOverlay" class="absolute inset-x-0 top-1/2 -translate-y-1/2 flex flex-col items-center pointer-events-none opacity-0 transition-opacity duration-300 z-20">
+                <div class="relative w-2/3 max-w-xs h-5 flex items-center justify-center">
+                    <div class="absolute w-0.5 h-5 bg-amber-400 shadow z-10"></div>
+                    <div class="w-full h-1 bg-black/60 rounded-full overflow-hidden border border-neutral-700">
                         <div id="horizonIndicatorBar" class="w-full h-full bg-emerald-400 transition-all duration-75 origin-left" style="transform: translateX(0px);"></div>
                     </div>
                 </div>
-                <span id="horizonAngleText" class="mt-1 text-[10px] font-mono tracking-widest bg-black/60 px-2 py-0.5 rounded text-emerald-400 border border-white/10 shadow">0.0° LEVEL</span>
+                <span id="horizonAngleText" class="mt-1 text-[9px] tracking-widest bg-black/80 px-2 py-0.5 rounded text-emerald-400 border border-neutral-800">0.0° LEVEL</span>
             </div>
 
             <!-- Recording Timer Badge -->
-            <div id="recordTimer" class="absolute top-4 left-4 bg-red-600/90 text-white px-3 py-1 rounded-full text-xs font-semibold tracking-wider flex items-center space-x-2 hidden z-10 backdrop-blur-sm shadow">
-                <span class="w-2.5 h-2.5 bg-white rounded-full animate-ping"></span>
-                <span id="timerText">00:00</span>
+            <div id="recordTimer" class="absolute top-10 left-4 bg-red-600 text-white px-2.5 py-0.5 rounded text-[10px] font-bold tracking-widest flex items-center space-x-1.5 hidden z-20 shadow">
+                <span class="w-2 h-2 bg-white rounded-full animate-ping"></span>
+                <span id="timerText">00:00:00</span>
             </div>
 
-            <!-- Composition Grid Lines -->
-            <div class="absolute inset-0 grid grid-cols-3 grid-rows-3 pointer-events-none opacity-20 z-10">
-                <div class="border-r border-b border-white"></div>
-                <div class="border-r border-b border-white"></div>
-                <div class="border-b border-white"></div>
-                <div class="border-r border-b border-white"></div>
-                <div class="border-r border-b border-white"></div>
-                <div class="border-b border-white"></div>
-                <div class="border-r border-white"></div>
-                <div class="border-r border-white"></div>
-                <div></div>
+            <!-- Focus Reticle Box -->
+            <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-40 z-10">
+                <div class="w-16 h-16 border border-amber-500/60 rounded-sm flex items-center justify-center">
+                    <div class="w-1.5 h-1.5 bg-amber-500 rounded-full"></div>
+                </div>
             </div>
 
-            <!-- Error / Permission Banner -->
-            <div id="errorMsg" class="absolute inset-0 bg-gray-900/95 flex flex-col items-center justify-center p-6 text-center z-30 hidden">
-                <i class="fa-solid fa-triangle-exclamation text-amber-400 text-4xl mb-3"></i>
-                <h3 class="text-lg font-bold mb-1">Camera Access Required</h3>
-                <p id="errorText" class="text-sm text-gray-400 mb-4 max-w-xs">Please allow camera permissions in your browser settings to use this app.</p>
-                <button id="retryBtn" class="bg-amber-500 hover:bg-amber-400 text-gray-950 font-semibold px-5 py-2 rounded-xl transition shadow">Grant Access</button>
+            <!-- Error Banner -->
+            <div id="errorMsg" class="absolute inset-0 bg-neutral-900 flex flex-col items-center justify-center p-6 text-center z-30 hidden">
+                <i class="fa-solid fa-triangle-exclamation text-amber-500 text-3xl mb-2"></i>
+                <h3 class="text-sm font-bold mb-1 text-white">Camera Permission Needed</h3>
+                <p class="text-xs text-neutral-400 mb-3">Please enable camera access in browser settings.</p>
+                <button id="retryBtn" class="bg-amber-500 text-black text-xs font-bold px-4 py-2 rounded">Grant Access</button>
             </div>
         </div>
 
-        <!-- Filter Bar -->
-        <div class="w-full mt-3 overflow-x-auto py-2 flex space-x-2 px-1 no-scrollbar">
-            <button onclick="setFilter('')" class="filter-btn bg-gray-800 hover:bg-gray-700 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap border border-amber-500 transition">Normal</button>
-            <button onclick="setFilter('filter-grayscale')" class="filter-btn bg-gray-800 hover:bg-gray-700 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap border border-transparent transition">Grayscale</button>
-            <button onclick="setFilter('filter-sepia')" class="filter-btn bg-gray-800 hover:bg-gray-700 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap border border-transparent transition">Sepia</button>
-            <button onclick="setFilter('filter-warm')" class="filter-btn bg-gray-800 hover:bg-gray-700 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap border border-transparent transition">Warm</button>
-            <button onclick="setFilter('filter-cool')" class="filter-btn bg-gray-800 hover:bg-gray-700 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap border border-transparent transition">Cool</button>
-            <button onclick="setFilter('filter-cyberpunk')" class="filter-btn bg-gray-800 hover:bg-gray-700 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap border border-transparent transition">Cyberpunk</button>
-            <button onclick="setFilter('filter-vintage')" class="filter-btn bg-gray-800 hover:bg-gray-700 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap border border-transparent transition">Vintage</button>
+        <!-- Filmic Pro Style Color Grade Preset Bar -->
+        <div class="w-full mt-2 overflow-x-auto py-1 flex space-x-2 px-1 text-xs">
+            <button onclick="setFilter('')" class="preset-btn bg-neutral-900 hover:bg-neutral-800 px-3 py-1 rounded text-amber-400 border border-amber-500 whitespace-nowrap">Standard</button>
+            <button onclick="setFilter('filter-teal-orange')" class="preset-btn bg-neutral-900 hover:bg-neutral-800 px-3 py-1 rounded text-neutral-400 border border-neutral-800 whitespace-nowrap">Teal & Orange</button>
+            <button onclick="setFilter('filter-noir')" class="preset-btn bg-neutral-900 hover:bg-neutral-800 px-3 py-1 rounded text-neutral-400 border border-neutral-800 whitespace-nowrap">Cine Noir</button>
+            <button onclick="setFilter('filter-bleach')" class="preset-btn bg-neutral-900 hover:bg-neutral-800 px-3 py-1 rounded text-neutral-400 border border-neutral-800 whitespace-nowrap">Bleach Bypass</button>
+            <button onclick="setFilter('filter-cyberpunk')" class="preset-btn bg-neutral-900 hover:bg-neutral-800 px-3 py-1 rounded text-neutral-400 border border-neutral-800 whitespace-nowrap">Cyberpunk</button>
         </div>
     </main>
 
-    <!-- Bottom Controls -->
-    <footer class="w-full p-4 bg-gray-900/90 backdrop-blur-md border-t border-gray-800 flex flex-col items-center z-20">
+    <!-- Bottom Controls HUD -->
+    <footer class="w-full p-4 bg-neutral-900/95 border-t border-neutral-800 flex flex-col items-center z-20">
         <div class="w-full max-w-md flex justify-around items-center">
-            <div class="flex bg-gray-800 p-1 rounded-full shadow-inner">
-                <button id="photoModeBtn" class="px-4 py-1.5 rounded-full text-xs font-bold bg-amber-500 text-gray-950 transition">Photo</button>
-                <button id="videoModeBtn" class="px-4 py-1.5 rounded-full text-xs font-bold text-gray-400 hover:text-white transition">Video</button>
+            
+            <!-- Mode Switcher -->
+            <div class="flex bg-neutral-950 p-1 rounded border border-neutral-800">
+                <button id="photoModeBtn" class="px-3 py-1 rounded text-[11px] font-bold bg-amber-500 text-black">PHOTO</button>
+                <button id="videoModeBtn" class="px-3 py-1 rounded text-[11px] font-bold text-neutral-400 hover:text-white">VIDEO</button>
             </div>
 
-            <button id="captureBtn" class="w-16 h-16 rounded-full border-4 border-white flex items-center justify-center bg-white/20 hover:bg-white/40 transition transform active:scale-95 shadow-lg">
-                <div id="shutterInner" class="w-12 h-12 bg-white rounded-full transition-all duration-200"></div>
+            <!-- Cinema Shutter Button -->
+            <button id="captureBtn" class="w-14 h-14 rounded-full border-2 border-amber-500 flex items-center justify-center bg-neutral-900 hover:bg-neutral-800 transition active:scale-95 shadow-lg">
+                <div id="shutterInner" class="w-10 h-10 bg-amber-500 rounded-full transition-all duration-200"></div>
             </button>
 
-            <button id="gimbalToggleBtn" class="w-11 h-11 bg-gray-800 hover:bg-gray-700 rounded-full flex items-center justify-center transition border border-gray-700 text-gray-400 hidden shadow" title="Toggle Horizon App Mode">
-                <i class="fa-solid fa-cube text-sm"></i>
-            </button>
+            <!-- Status readout placeholder -->
+            <div class="text-[10px] text-neutral-400 text-right">
+                <div>ISO: 100</div>
+                <div>WB: 5600K</div>
+            </div>
         </div>
     </footer>
 
-    <!-- Gallery Modal Drawer -->
-    <div id="galleryModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex flex-col justify-end transition-opacity duration-300 opacity-0 pointer-events-none">
-        <div class="bg-gray-900 w-full h-[85vh] rounded-t-3xl border-t border-gray-800 flex flex-col overflow-hidden shadow-2xl">
-            <div class="p-4 border-b border-gray-800 flex justify-between items-center">
-                <div class="flex items-center space-x-2">
-                    <i class="fa-solid photo-film text-amber-400"></i>
-                    <h2 class="font-bold text-lg">Captured Media (<span id="galleryCount">0</span>)</h2>
-                </div>
-                <button id="closeGalleryBtn" class="bg-gray-800 hover:bg-gray-700 w-9 h-9 rounded-full flex items-center justify-center transition">
-                    <i class="fa-solid fa-xmark text-lg"></i>
+    <!-- Gallery Drawer -->
+    <div id="galleryModal" class="fixed inset-0 bg-black/85 backdrop-blur z-50 flex flex-col justify-end transition-opacity duration-300 opacity-0 pointer-events-none">
+        <div class="bg-neutral-900 w-full h-[85vh] rounded-t-2xl border-t border-neutral-800 flex flex-col overflow-hidden">
+            <div class="p-4 border-b border-neutral-800 flex justify-between items-center text-sm">
+                <h2 class="font-bold text-amber-400">Captured Takes (<span id="galleryCount">0</span>)</h2>
+                <button id="closeGalleryBtn" class="bg-neutral-800 w-8 h-8 rounded flex items-center justify-center text-neutral-300">
+                    <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
             <div id="galleryGrid" class="flex-1 p-4 overflow-y-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3"></div>
-            <div id="emptyGallery" class="flex-1 flex flex-col items-center justify-center text-gray-500 p-6 text-center">
-                <i class="fa-regular fa-images text-5xl mb-2"></i>
-                <p>No photos or videos captured yet!</p>
+            <div id="emptyGallery" class="flex-1 flex flex-col items-center justify-center text-neutral-500 p-6 text-center text-xs">
+                <i class="fa-regular fa-images text-4xl mb-2"></i>
+                <p>No media recorded yet.</p>
             </div>
         </div>
     </div>
 
     <!-- Media Preview Modal -->
     <div id="previewModal" class="fixed inset-0 bg-black/95 z-50 flex flex-col items-center justify-center p-4 hidden">
-        <button id="closePreviewBtn" class="absolute top-4 right-4 bg-gray-800 hover:bg-gray-700 w-10 h-10 rounded-full flex items-center justify-center text-white text-lg transition z-10">
+        <button id="closePreviewBtn" class="absolute top-4 right-4 bg-neutral-800 w-10 h-10 rounded-full flex items-center justify-center text-white text-lg z-10">
             <i class="fa-solid fa-xmark"></i>
         </button>
-        <div id="previewContainer" class="w-full max-w-3xl max-h-[75vh] flex items-center justify-center overflow-hidden rounded-xl mb-4"></div>
-        <div class="flex space-x-4">
-            <a id="downloadLink" download="capture.jpg" class="bg-amber-500 hover:bg-amber-400 text-gray-950 font-bold px-6 py-2.5 rounded-xl flex items-center space-x-2 transition shadow">
+        <div id="previewContainer" class="w-full max-w-3xl max-h-[75vh] flex items-center justify-center overflow-hidden rounded-lg mb-4"></div>
+        <div class="flex space-x-4 text-xs">
+            <a id="downloadLink" download="take.jpg" class="bg-amber-500 text-black font-bold px-5 py-2 rounded flex items-center space-x-2">
                 <i class="fa-solid fa-download"></i>
-                <span>Download</span>
+                <span>Export Media</span>
             </a>
-            <button id="deleteMediaBtn" class="bg-red-600/80 hover:bg-red-600 text-white font-bold px-5 py-2.5 rounded-xl flex items-center space-x-2 transition shadow">
+            <button id="deleteMediaBtn" class="bg-red-600 text-white font-bold px-4 py-2 rounded flex items-center space-x-2">
                 <i class="fa-solid fa-trash"></i>
                 <span>Delete</span>
             </button>
@@ -206,14 +192,11 @@
         const deleteMediaBtn = document.getElementById('deleteMediaBtn');
 
         const horizonToggleBtn = document.getElementById('horizonToggleBtn');
-        const horizonLevelIndicator = document.getElementById('horizonLevelIndicator');
+        const horizonOverlay = document.getElementById('horizonOverlay');
         const horizonIndicatorBar = document.getElementById('horizonIndicatorBar');
         const horizonAngleText = document.getElementById('horizonAngleText');
 
-        const gimbalToggleBtn = document.getElementById('gimbalToggleBtn');
-        const horizonBoxOverlay = document.getElementById('horizonBoxOverlay');
-
-        let currentFacingMode = 'user';
+        let currentFacingMode = 'environment';
         let mediaStream = null;
         let currentFilter = '';
         let mode = 'photo';
@@ -224,38 +207,22 @@
         let galleryItems = [];
         let activePreviewIndex = null;
         let isHorizonEnabled = false;
-        let isHorizonAppMode = false;
-
-        let rawRoll = 0;
-        let smoothedRoll = 0;
-        let canvasStream = null;
 
         async function initCamera() {
-            if (mediaStream) {
-                mediaStream.getTracks().forEach(track => track.stop());
-            }
-
-            const constraints = {
-                video: {
-                    facingMode: currentFacingMode,
-                    width: { ideal: 1920 },
-                    height: { ideal: 1080 }
-                },
-                audio: mode === 'video'
-            };
-
+            if (mediaStream) mediaStream.getTracks().forEach(track => track.stop());
             try {
-                mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+                mediaStream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: currentFacingMode, width: { ideal: 1920 }, height: { ideal: 1080 } },
+                    audio: mode === 'video'
+                });
                 videoElement.srcObject = mediaStream;
                 errorMsg.classList.add('hidden');
             } catch (err) {
-                console.error("Camera access error:", err);
                 errorMsg.classList.remove('hidden');
             }
         }
 
         retryBtn.addEventListener('click', initCamera);
-
         switchCameraBtn.addEventListener('click', () => {
             currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
             initCamera();
@@ -264,244 +231,126 @@
         horizonToggleBtn.addEventListener('click', () => {
             isHorizonEnabled = !isHorizonEnabled;
             if (isHorizonEnabled) {
-                requestOrientationPermission(() => activateHorizonSensor());
+                if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                    DeviceOrientationEvent.requestPermission().then(resp => {
+                        if (resp === 'granted') activateHorizon();
+                    });
+                } else {
+                    activateHorizon();
+                }
             } else {
-                deactivateHorizonSensor();
+                deactivateHorizon();
             }
         });
 
-        gimbalToggleBtn.addEventListener('click', () => {
-            isHorizonAppMode = !isHorizonAppMode;
-            if (isHorizonAppMode) {
-                requestOrientationPermission(() => activateHorizonAppMode());
-            } else {
-                deactivateHorizonAppMode();
-            }
-        });
-
-        function requestOrientationPermission(onGranted) {
-            if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-                DeviceOrientationEvent.requestPermission()
-                    .then(response => {
-                        if (response === 'granted') onGranted();
-                        else alert("Orientation permission is required for horizon locking.");
-                    }).catch(console.error);
-            } else {
-                onGranted();
-            }
-        }
-
-        function activateHorizonSensor() {
-            horizonToggleBtn.classList.remove('text-gray-400');
-            horizonToggleBtn.classList.add('text-amber-400', 'bg-gray-800', 'ring-1', 'ring-amber-400/50');
-            horizonLevelIndicator.classList.remove('opacity-0');
+        function activateHorizon() {
+            horizonToggleBtn.classList.add('text-amber-400', 'bg-neutral-800');
+            horizonOverlay.classList.remove('opacity-0');
             window.addEventListener('deviceorientation', handleOrientation, true);
         }
 
-        function deactivateHorizonSensor() {
-            horizonToggleBtn.classList.add('text-gray-400');
-            horizonToggleBtn.classList.remove('text-amber-400', 'bg-gray-800', 'ring-1', 'ring-amber-400/50');
-            horizonLevelIndicator.classList.add('opacity-0');
+        function deactivateHorizon() {
+            horizonToggleBtn.classList.remove('text-amber-400', 'bg-neutral-800');
+            horizonOverlay.classList.add('opacity-0');
             window.removeEventListener('deviceorientation', handleOrientation, true);
         }
 
-        function activateHorizonAppMode() {
-            gimbalToggleBtn.classList.remove('text-gray-400', 'border-gray-700');
-            gimbalToggleBtn.classList.add('text-amber-400', 'bg-gray-800', 'border-amber-400/50', 'ring-1', 'ring-amber-400/50');
-            horizonBoxOverlay.classList.remove('hidden');
-            window.addEventListener('deviceorientation', handleOrientation, true);
-        }
-
-        function deactivateHorizonAppMode() {
-            gimbalToggleBtn.classList.add('text-gray-400', 'border-gray-700');
-            gimbalToggleBtn.classList.remove('text-amber-400', 'bg-gray-800', 'border-amber-400/50', 'ring-1', 'ring-amber-400/50');
-            horizonBoxOverlay.classList.add('hidden');
-            rawRoll = 0;
-            smoothedRoll = 0;
-            if (!isHorizonEnabled) {
-                window.removeEventListener('deviceorientation', handleOrientation, true);
-            }
-        }
-
         function handleOrientation(event) {
-            rawRoll = event.gamma || 0;
-            const smoothingFactor = 0.12;
-            smoothedRoll += (rawRoll - smoothedRoll) * smoothingFactor;
-
-            if (isHorizonEnabled) {
-                const absRoll = Math.abs(smoothedRoll);
-                let translateX = Math.max(-60, Math.min(60, (smoothedRoll / 45) * 50));
-                horizonIndicatorBar.style.transform = `translateX(${translateX}px)`;
-                horizonAngleText.innerText = `${smoothedRoll.toFixed(1)}° LEVEL`;
-                if (absRoll <= 1.5) {
-                    horizonIndicatorBar.className = "w-full h-full bg-emerald-400 transition-all duration-75 origin-left";
-                    horizonAngleText.className = "mt-1 text-[10px] font-mono tracking-widest bg-black/60 px-2 py-0.5 rounded text-emerald-400 border border-emerald-500/30 shadow";
-                } else {
-                    horizonIndicatorBar.className = "w-full h-full bg-amber-400 transition-all duration-75 origin-left";
-                    horizonAngleText.className = "mt-1 text-[10px] font-mono tracking-widest bg-black/60 px-2 py-0.5 rounded text-amber-400 border border-amber-500/30 shadow";
-                }
+            if (!isHorizonEnabled) return;
+            const roll = event.gamma || 0;
+            const translateX = Math.max(-50, Math.min(50, (roll / 45) * 50));
+            horizonIndicatorBar.style.transform = `translateX(${translateX}px)`;
+            horizonAngleText.innerText = `${roll.toFixed(1)}° LEVEL`;
+            if (Math.abs(roll) <= 1.5) {
+                horizonIndicatorBar.className = "w-full h-full bg-emerald-400 transition-all duration-75 origin-left";
+                horizonAngleText.className = "mt-1 text-[9px] tracking-widest bg-black/80 px-2 py-0.5 rounded text-emerald-400 border border-emerald-500/30";
+            } else {
+                horizonIndicatorBar.className = "w-full h-full bg-amber-400 transition-all duration-75 origin-left";
+                horizonAngleText.className = "mt-1 text-[9px] tracking-widest bg-black/80 px-2 py-0.5 rounded text-amber-400 border border-amber-500/30";
             }
         }
 
         function setFilter(filterClass) {
             currentFilter = filterClass;
             videoElement.className = `w-full h-full object-cover ${filterClass}`;
-            document.querySelectorAll('.filter-btn').forEach(btn => {
-                btn.classList.remove('border-amber-500');
-                btn.classList.add('border-transparent');
+            document.querySelectorAll('.preset-btn').forEach(btn => {
+                btn.classList.remove('text-amber-400', 'border-amber-500');
+                btn.classList.add('text-neutral-400', 'border-neutral-800');
             });
-            event.target.classList.add('border-amber-500');
-            event.target.classList.remove('border-transparent');
+            event.target.classList.add('text-amber-400', 'border-amber-500');
+            event.target.classList.remove('text-neutral-400', 'border-neutral-800');
         }
 
         photoModeBtn.addEventListener('click', () => {
             if (mediaRecorder && mediaRecorder.state === 'recording') return;
             mode = 'photo';
-            photoModeBtn.className = "px-4 py-1.5 rounded-full text-xs font-bold bg-amber-500 text-gray-950 transition";
-            videoModeBtn.className = "px-4 py-1.5 rounded-full text-xs font-bold text-gray-400 hover:text-white transition";
-            shutterInner.className = "w-12 h-12 bg-white rounded-full transition-all duration-200";
-            if (isHorizonAppMode) deactivateHorizonAppMode();
-            gimbalToggleBtn.classList.add('hidden');
+            photoModeBtn.className = "px-3 py-1 rounded text-[11px] font-bold bg-amber-500 text-black";
+            videoModeBtn.className = "px-3 py-1 rounded text-[11px] font-bold text-neutral-400 hover:text-white";
+            shutterInner.className = "w-10 h-10 bg-amber-500 rounded-full transition-all duration-200";
             initCamera();
         });
 
         videoModeBtn.addEventListener('click', () => {
             mode = 'video';
-            videoModeBtn.className = "px-4 py-1.5 rounded-full text-xs font-bold bg-red-600 text-white transition";
-            photoModeBtn.className = "px-4 py-1.5 rounded-full text-xs font-bold text-gray-400 hover:text-white transition";
-            shutterInner.className = "w-6 h-6 bg-red-600 rounded-sm transition-all duration-200";
-            gimbalToggleBtn.classList.remove('hidden');
+            videoModeBtn.className = "px-3 py-1 rounded text-[11px] font-bold bg-red-600 text-white";
+            photoModeBtn.className = "px-3 py-1 rounded text-[11px] font-bold text-neutral-400 hover:text-white";
+            shutterInner.className = "w-4 h-4 bg-red-600 rounded-sm transition-all duration-200";
             initCamera();
         });
 
-        function playShutterSound() {
-            try {
-                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(300, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.1);
-                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.1);
-            } catch (e) {}
-        }
-
         captureBtn.addEventListener('click', () => {
             if (mode === 'photo') takeSnapshot();
-            else toggleVideoRecording();
+            else toggleRecording();
         });
 
         function takeSnapshot() {
-            playShutterSound();
             flashOverlay.classList.remove('flash-effect');
             void flashOverlay.offsetWidth;
             flashOverlay.classList.add('flash-effect');
 
             const canvas = document.createElement('canvas');
-            const vWidth = videoElement.videoWidth || 1280;
-            const vHeight = videoElement.videoHeight || 720;
-
-            if (isHorizonAppMode) {
-                canvas.width = vWidth * 0.5;
-                canvas.height = vHeight * 0.75;
-            } else {
-                canvas.width = vWidth;
-                canvas.height = vHeight;
-            }
-
+            canvas.width = videoElement.videoWidth || 1280;
+            canvas.height = videoElement.videoHeight || 720;
             const ctx = canvas.getContext('2d');
             if (currentFilter) ctx.filter = getComputedStyle(videoElement).filter;
-
-            ctx.save();
-            ctx.translate(canvas.width / 2, canvas.height / 2);
-
-            // TRUE HORIZON LOCK: Counter-rotate source video around center so content remains upright
-            if (isHorizonAppMode) {
-                ctx.rotate((-smoothedRoll * Math.PI) / 180);
-            }
-
             if (currentFacingMode === 'user') {
+                ctx.translate(canvas.width, 0);
                 ctx.scale(-1, 1);
             }
-
-            ctx.drawImage(videoElement, -vWidth / 2, -vHeight / 2, vWidth, vHeight);
-            ctx.restore();
-
-            addToGallery({ type: 'image', url: canvas.toDataURL('image/jpeg', 0.9), timestamp: new Date().toLocaleTimeString() });
+            ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+            addToGallery({ type: 'image', url: canvas.toDataURL('image/jpeg', 0.95) });
         }
 
-        function toggleVideoRecording() {
+        function toggleRecording() {
             if (!mediaRecorder || mediaRecorder.state === 'inactive') startRecording();
             else stopRecording();
         }
 
         function startRecording() {
             recordedChunks = [];
-            let recordStream = mediaStream;
-
-            if (isHorizonAppMode) {
-                const recordCanvas = document.createElement('canvas');
-                const vWidth = videoElement.videoWidth || 1280;
-                const vHeight = videoElement.videoHeight || 720;
-                recordCanvas.width = vWidth * 0.5;
-                recordCanvas.height = vHeight * 0.75;
-                const rCtx = recordCanvas.getContext('2d');
-
-                const renderHorizonLockedFrame = () => {
-                    if (!mediaRecorder || mediaRecorder.state === 'inactive') return;
-                    rCtx.save();
-                    rCtx.clearRect(0, 0, recordCanvas.width, recordCanvas.height);
-                    if (currentFilter) rCtx.filter = getComputedStyle(videoElement).filter;
-
-                    rCtx.translate(recordCanvas.width / 2, recordCanvas.height / 2);
-                    // Counter-rotate the video frames to lock horizon perfectly upright in file
-                    rCtx.rotate((-smoothedRoll * Math.PI) / 180);
-                    rCtx.drawImage(videoElement, -vWidth / 2, -vHeight / 2, vWidth, vHeight);
-                    rCtx.restore();
-
-                    requestAnimationFrame(renderHorizonLockedFrame);
-                };
-
-                canvasStream = recordCanvas.captureStream(30);
-                const audioTracks = mediaStream.getAudioTracks();
-                if (audioTracks.length > 0) canvasStream.addTrack(audioTracks[0]);
-                recordStream = canvasStream;
-                requestAnimationFrame(renderHorizonLockedFrame);
-            }
-
             try {
-                mediaRecorder = new MediaRecorder(recordStream, { mimeType: 'video/webm;codecs=vp9' });
+                mediaRecorder = new MediaRecorder(mediaStream, { mimeType: 'video/webm;codecs=vp9' });
             } catch (e) {
-                try { mediaRecorder = new MediaRecorder(recordStream); }
-                catch (err) { alert("Video recording is not supported on your browser."); return; }
+                mediaRecorder = new MediaRecorder(mediaStream);
             }
 
-            mediaRecorder.ondataavailable = (event) => {
-                if (event.data.size > 0) recordedChunks.push(event.data);
-            };
-
+            mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
             mediaRecorder.onstop = () => {
                 const blob = new Blob(recordedChunks, { type: 'video/webm' });
-                addToGallery({ type: 'video', url: URL.createObjectURL(blob), blob: blob, timestamp: new Date().toLocaleTimeString() });
+                addToGallery({ type: 'video', url: URL.createObjectURL(blob), blob: blob });
             };
 
             mediaRecorder.start();
-            shutterInner.className = "w-6 h-6 bg-white rounded-full animate-pulse";
-            captureBtn.classList.add('border-red-600');
+            shutterInner.className = "w-4 h-4 bg-white rounded-full animate-pulse";
+            recordTimer.classList.remove('hidden');
             
             recordingSeconds = 0;
-            timerText.innerText = "00:00";
-            recordTimer.classList.remove('hidden');
             recordingTimerInterval = setInterval(() => {
                 recordingSeconds++;
-                const mins = String(Math.floor(recordingSeconds / 60)).padStart(2, '0');
+                const hrs = String(Math.floor(recordingSeconds / 3600)).padStart(2, '0');
+                const mins = String(Math.floor((recordingSeconds % 3600) / 60)).padStart(2, '0');
                 const secs = String(recordingSeconds % 60).padStart(2, '0');
-                timerText.innerText = `${mins}:${secs}`;
+                timerText.innerText = `${hrs}:${mins}:${secs}`;
             }, 1000);
         }
 
@@ -509,41 +358,25 @@
             mediaRecorder.stop();
             clearInterval(recordingTimerInterval);
             recordTimer.classList.add('hidden');
-            shutterInner.className = "w-6 h-6 bg-red-600 rounded-sm transition-all duration-200";
-            captureBtn.classList.remove('border-red-600');
+            shutterInner.className = "w-4 h-4 bg-red-600 rounded-sm transition-all duration-200";
         }
 
         function addToGallery(item) {
             galleryItems.unshift(item);
-            updateGalleryUI();
-        }
-
-        function updateGalleryUI() {
-            galleryCount.innerText = galleryItems.length;
-            if (galleryItems.length > 0) {
-                galleryBadge.innerText = galleryItems.length;
-                galleryBadge.classList.remove('hidden');
-                emptyGallery.classList.add('hidden');
-            } else {
-                galleryBadge.classList.add('hidden');
-                emptyGallery.classList.remove('hidden');
-            }
+            galleryBadge.innerText = galleryItems.length;
+            galleryBadge.classList.remove('hidden');
+            emptyGallery.classList.add('hidden');
 
             galleryGrid.innerHTML = '';
-            galleryItems.forEach((item, index) => {
+            galleryItems.forEach((it, idx) => {
                 const card = document.createElement('div');
-                card.className = "relative aspect-square bg-gray-800 rounded-xl overflow-hidden cursor-pointer group shadow border border-gray-800 hover:border-amber-500 transition";
-                if (item.type === 'image') {
-                    card.innerHTML = `<img src="${item.url}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">`;
+                card.className = "relative aspect-video bg-neutral-950 rounded overflow-hidden cursor-pointer border border-neutral-800 hover:border-amber-500";
+                if (it.type === 'image') {
+                    card.innerHTML = `<img src="${it.url}" class="w-full h-full object-cover">`;
                 } else {
-                    card.innerHTML = `
-                        <video src="${item.url}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300"></video>
-                        <div class="absolute inset-0 flex items-center justify-center bg-black/30">
-                            <i class="fa-solid fa-circle-play text-white text-3xl drop-shadow"></i>
-                        </div>
-                    `;
+                    card.innerHTML = `<video src="${it.url}" class="w-full h-full object-cover"></video><div class="absolute inset-0 flex items-center justify-center bg-black/40"><i class="fa-solid fa-play text-white text-lg"></i></div>`;
                 }
-                card.addEventListener('click', () => openPreview(index));
+                card.addEventListener('click', () => openPreview(idx));
                 galleryGrid.appendChild(card);
             });
         }
@@ -551,42 +384,37 @@
         galleryBtn.addEventListener('click', () => galleryModal.classList.remove('opacity-0', 'pointer-events-none'));
         closeGalleryBtn.addEventListener('click', () => galleryModal.classList.add('opacity-0', 'pointer-events-none'));
 
-        function openPreview(index) {
-            activePreviewIndex = index;
-            const item = galleryItems[index];
+        function openPreview(idx) {
+            activePreviewIndex = idx;
+            const item = galleryItems[idx];
             previewContainer.innerHTML = '';
             if (item.type === 'image') {
                 const img = document.createElement('img');
                 img.src = item.url;
-                img.className = "max-w-full max-h-[75vh] object-contain rounded-lg";
+                img.className = "max-w-full max-h-[75vh] object-contain rounded";
                 previewContainer.appendChild(img);
                 downloadLink.href = item.url;
-                downloadLink.download = `photo_${Date.now()}.jpg`;
+                downloadLink.download = `take_${Date.now()}.jpg`;
             } else {
-                const video = document.createElement('video');
-                video.src = item.url;
-                video.controls = true;
-                video.autoplay = true;
-                video.className = "max-w-full max-h-[75vh] object-contain rounded-lg";
-                previewContainer.appendChild(video);
+                const vid = document.createElement('video');
+                vid.src = item.url;
+                vid.controls = true;
+                vid.autoplay = true;
+                vid.className = "max-w-full max-h-[75vh] object-contain rounded";
+                previewContainer.appendChild(vid);
                 downloadLink.href = item.url;
-                downloadLink.download = `video_${Date.now()}.webm`;
+                downloadLink.download = `take_${Date.now()}.webm`;
             }
             previewModal.classList.remove('hidden');
         }
 
-        closePreviewBtn.addEventListener('click', () => {
-            previewModal.classList.add('hidden');
-            previewContainer.innerHTML = '';
-        });
-
+        closePreviewBtn.addEventListener('click', () => previewModal.classList.add('hidden'));
         deleteMediaBtn.addEventListener('click', () => {
             if (activePreviewIndex !== null) {
                 galleryItems.splice(activePreviewIndex, 1);
-                updateGalleryUI();
                 previewModal.classList.add('hidden');
-                previewContainer.innerHTML = '';
-                activePreviewIndex = null;
+                galleryBadge.innerText = galleryItems.length;
+                if(galleryItems.length === 0) galleryBadge.classList.add('hidden');
             }
         });
 
