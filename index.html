@@ -10,7 +10,7 @@
                user-scalable=no,
                viewport-fit=cover">
 
-<title>Horizon Camera</title>
+<title>Horizon Camera VNext</title>
 
 <style>
 *{
@@ -18,42 +18,34 @@
     -webkit-tap-highlight-color:transparent;
 }
 
-html,
-body{
+html,body{
     margin:0;
-    padding:0;
     width:100%;
     height:100%;
     overflow:hidden;
-    background:#000;
-    color:#fff;
+    background:#05070b;
     font-family:Arial,Helvetica,sans-serif;
 }
 
-button{
-    font:inherit;
-    border:0;
-    outline:0;
-    cursor:pointer;
+body{
+    display:flex;
+    justify-content:center;
+    align-items:center;
 }
 
-#camera{
-    position:fixed;
-    inset:0;
+#app{
+    position:relative;
+    width:100%;
+    height:100%;
+    max-width:540px;
     overflow:hidden;
     background:#000;
 }
 
-/* ==================================================
-   CAMERA
-================================================== */
+/* CAMERA */
 
-#video{
-    position:absolute;
-    width:1px;
-    height:1px;
-    opacity:0;
-    pointer-events:none;
+#camera{
+    display:none;
 }
 
 #outputCanvas{
@@ -65,677 +57,430 @@ button{
     background:#000;
 }
 
-
-/* ==================================================
-   TOP BAR
-================================================== */
+/* TOP BAR */
 
 .topBar{
     position:absolute;
     top:0;
     left:0;
     right:0;
-
-    height:
-        calc(62px + env(safe-area-inset-top));
-
-    padding:
-        env(safe-area-inset-top)
-        14px
-        0
-        14px;
+    z-index:10;
 
     display:flex;
     align-items:center;
     justify-content:space-between;
 
-    background:
-        linear-gradient(
-            to bottom,
-            rgba(0,0,0,.65),
-            rgba(0,0,0,0)
-        );
+    padding:
+        calc(env(safe-area-inset-top) + 14px)
+        16px
+        12px;
 
-    z-index:20;
+    background:linear-gradient(
+        to bottom,
+        rgba(0,0,0,.72),
+        rgba(0,0,0,0)
+    );
 }
 
-.topLeft,
-.topRight{
-    display:flex;
-    align-items:center;
-    gap:9px;
+.logo{
+    color:white;
+    font-size:18px;
+    font-weight:800;
+    letter-spacing:.5px;
 }
 
-.iconButton{
-    width:42px;
-    height:42px;
-
-    border-radius:50%;
-
-    background:rgba(0,0,0,.45);
-
-    border:
-        1px solid
-        rgba(255,255,255,.18);
-
-    color:#fff;
-
-    display:flex;
-    align-items:center;
-    justify-content:center;
-
-    font-size:20px;
-
-    backdrop-filter:blur(8px);
-    -webkit-backdrop-filter:blur(8px);
-}
-
-.iconButton:active{
-    transform:scale(.92);
-}
-
-.modeLabel{
-    padding:8px 12px;
-
+.status{
+    padding:7px 11px;
     border-radius:20px;
 
+    color:#fff;
     background:rgba(0,0,0,.45);
+    border:1px solid rgba(255,255,255,.15);
 
-    border:
-        1px solid
-        rgba(255,255,255,.18);
+    font-size:11px;
+    font-weight:700;
+    backdrop-filter:blur(10px);
+}
 
-    font-size:12px;
-    font-weight:bold;
-    letter-spacing:.8px;
+.status.ready{
+    color:#7dffae;
+}
+
+.status.error{
+    color:#ff7777;
+}
+
+/* HORIZON INDICATOR */
+
+.horizonIndicator{
+    position:absolute;
+    top:50%;
+    left:50%;
+
+    width:150px;
+    height:2px;
+
+    transform:translate(-50%,-50%);
+
+    background:rgba(255,255,255,.8);
+    box-shadow:
+        0 0 8px rgba(255,255,255,.4);
+
+    opacity:.5;
+    pointer-events:none;
+}
+
+.horizonIndicator::before,
+.horizonIndicator::after{
+    content:"";
+    position:absolute;
+    top:50%;
+    width:2px;
+    height:12px;
+    transform:translateY(-50%);
+    background:white;
+}
+
+.horizonIndicator::before{
+    left:0;
+}
+
+.horizonIndicator::after{
+    right:0;
+}
+
+/* ANGLE */
+
+.angleBadge{
+    position:absolute;
+    top:calc(env(safe-area-inset-top) + 70px);
+    left:50%;
+    transform:translateX(-50%);
+
+    z-index:9;
+
+    padding:6px 10px;
+    border-radius:14px;
+
+    background:rgba(0,0,0,.42);
+    color:white;
+
+    font-size:11px;
+    font-weight:700;
 
     backdrop-filter:blur(8px);
-    -webkit-backdrop-filter:blur(8px);
 }
 
+/* ZOOM */
 
-/* ==================================================
-   HORIZON
-================================================== */
-
-#horizonGuide{
+.zoomBar{
     position:absolute;
-
-    left:0;
-    right:0;
-    top:50%;
-
-    height:2px;
-
-    transform:
-        translateY(-50%);
-
-    z-index:8;
-
-    pointer-events:none;
-
-    opacity:.9;
-}
-
-#horizonLine{
-    position:absolute;
-
-    left:8%;
-    right:8%;
-    top:0;
-
-    height:2px;
-
-    background:#fff;
-
-    box-shadow:
-        0 0 7px
-        rgba(255,255,255,.8);
-}
-
-.horizonCenter{
-    position:absolute;
-
     left:50%;
-    top:50%;
+    bottom:128px;
 
-    width:32px;
-    height:32px;
-
-    transform:
-        translate(-50%,-50%);
-
-    border:
-        1px solid
-        rgba(255,255,255,.9);
-
-    border-radius:50%;
-}
-
-.horizonCenter::before,
-.horizonCenter::after{
-    content:"";
-
-    position:absolute;
-
-    background:#fff;
-}
-
-.horizonCenter::before{
-    width:10px;
-    height:1px;
-
-    left:50%;
-    top:50%;
-
-    transform:
-        translate(-50%,-50%);
-}
-
-.horizonCenter::after{
-    width:1px;
-    height:10px;
-
-    left:50%;
-    top:50%;
-
-    transform:
-        translate(-50%,-50%);
-}
-
-
-/* ==================================================
-   SIDE CONTROLS
-================================================== */
-
-.sideControls{
-    position:absolute;
-
-    right:14px;
-    top:50%;
-
-    transform:
-        translateY(-50%);
-
-    display:flex;
-    flex-direction:column;
-
-    gap:12px;
+    transform:translateX(-50%);
 
     z-index:20;
-}
-
-.sideButton{
-    width:46px;
-    height:46px;
-
-    border-radius:50%;
-
-    background:
-        rgba(0,0,0,.48);
-
-    border:
-        1px solid
-        rgba(255,255,255,.2);
-
-    color:#fff;
 
     display:flex;
-    align-items:center;
-    justify-content:center;
+    gap:7px;
 
-    font-size:20px;
-
-    backdrop-filter:blur(8px);
-    -webkit-backdrop-filter:blur(8px);
-}
-
-.sideButton:active{
-    transform:scale(.9);
-}
-
-
-/* ==================================================
-   ZOOM
-================================================== */
-
-.zoomControls{
-    position:absolute;
-
-    left:50%;
-
-    bottom:
-        calc(
-            128px +
-            env(safe-area-inset-bottom)
-        );
-
-    transform:
-        translateX(-50%);
-
-    display:flex;
-    align-items:center;
-
-    gap:8px;
-
-    padding:6px;
+    padding:7px;
 
     border-radius:30px;
 
-    background:
-        rgba(0,0,0,.45);
+    background:rgba(0,0,0,.48);
+    border:1px solid rgba(255,255,255,.14);
 
-    border:
-        1px solid
-        rgba(255,255,255,.18);
-
-    backdrop-filter:blur(10px);
-    -webkit-backdrop-filter:blur(10px);
-
-    z-index:25;
+    backdrop-filter:blur(14px);
 }
 
 .zoomButton{
-    width:38px;
-    height:38px;
+    width:48px;
+    height:36px;
 
-    border-radius:50%;
+    border:0;
+    border-radius:20px;
 
-    color:#fff;
+    background:transparent;
+    color:white;
 
-    background:
-        rgba(255,255,255,.12);
-
-    font-size:23px;
-
-    display:flex;
-    align-items:center;
-    justify-content:center;
+    font-size:13px;
+    font-weight:800;
 }
 
-.zoomButton:active{
-    transform:scale(.9);
+.zoomButton.active{
+    background:white;
+    color:#111;
 }
 
-#zoomValue{
-    min-width:50px;
-
-    text-align:center;
-
-    font-size:14px;
-    font-weight:bold;
-}
-
-.zoomReset{
-    position:absolute;
-
-    left:50%;
-
-    bottom:
-        calc(
-            82px +
-            env(safe-area-inset-bottom)
-        );
-
-    transform:
-        translateX(-50%);
-
-    min-width:52px;
-    height:30px;
-
-    padding:0 12px;
-
-    border-radius:18px;
-
-    color:#fff;
-
-    background:
-        rgba(0,0,0,.45);
-
-    border:
-        1px solid
-        rgba(255,255,255,.18);
-
-    font-size:12px;
-    font-weight:bold;
-
-    backdrop-filter:blur(8px);
-    -webkit-backdrop-filter:blur(8px);
-
-    z-index:25;
-}
-
-
-/* ==================================================
-   BOTTOM CONTROLS
-================================================== */
+/* BOTTOM */
 
 .bottomControls{
     position:absolute;
-
     left:0;
     right:0;
     bottom:0;
 
-    height:
-        calc(
-            105px +
-            env(safe-area-inset-bottom)
-        );
+    z-index:20;
 
     padding:
-        10px
+        12px
         18px
-        env(safe-area-inset-bottom)
-        18px;
+        calc(env(safe-area-inset-bottom) + 18px);
 
+    background:linear-gradient(
+        to top,
+        rgba(0,0,0,.85),
+        rgba(0,0,0,0)
+    );
+}
+
+.controlRow{
     display:flex;
     align-items:center;
     justify-content:space-between;
-
-    background:
-        linear-gradient(
-            to top,
-            rgba(0,0,0,.72),
-            rgba(0,0,0,0)
-        );
-
-    z-index:20;
 }
 
-.bottomButton{
-    width:52px;
-    height:52px;
-
-    border-radius:50%;
-
-    background:
-        rgba(0,0,0,.45);
-
-    border:
-        1px solid
-        rgba(255,255,255,.18);
-
-    color:#fff;
-
+.sideControls{
     display:flex;
-    align-items:center;
-    justify-content:center;
-
-    font-size:20px;
-
-    backdrop-filter:blur(8px);
-    -webkit-backdrop-filter:blur(8px);
+    gap:10px;
+    width:90px;
 }
 
-.bottomButton:active{
-    transform:scale(.9);
+.sideControls.right{
+    justify-content:flex-end;
 }
 
+.circleButton{
+    width:48px;
+    height:48px;
 
-/* ==================================================
-   SHUTTER
-================================================== */
+    border-radius:50%;
+    border:1px solid rgba(255,255,255,.18);
 
-#shutter{
-    width:72px;
-    height:72px;
+    background:rgba(0,0,0,.5);
+    color:white;
+
+    font-size:18px;
+
+    backdrop-filter:blur(10px);
+}
+
+.recordButton{
+    width:74px;
+    height:74px;
 
     border-radius:50%;
 
-    background:#fff;
+    background:white;
 
-    border:
-        5px solid
-        rgba(255,255,255,.45);
+    border:7px solid rgba(255,255,255,.35);
 
     box-shadow:
-        0 0 0 3px
-        rgba(0,0,0,.4);
-
-    position:relative;
+        0 0 0 2px rgba(255,255,255,.5);
 }
 
-#shutter::after{
-    content:"";
-
-    position:absolute;
-
-    inset:5px;
-
-    border-radius:50%;
-
-    border:
-        2px solid
-        rgba(0,0,0,.12);
+.recordButton.recording{
+    background:#ff3344;
 }
 
-#shutter.recording{
-    background:#ff3040;
-}
+/* MODE */
 
-#shutter.recording::before{
-    content:"";
-
-    position:absolute;
-
-    width:25px;
-    height:25px;
-
-    left:50%;
-    top:50%;
-
-    transform:
-        translate(-50%,-50%);
-
-    border-radius:5px;
-
-    background:#fff;
-}
-
-
-/* ==================================================
-   STATUS
-================================================== */
-
-#status{
+.modeBar{
     position:absolute;
 
     left:50%;
+    bottom:215px;
 
-    top:
-        calc(
-            72px +
-            env(safe-area-inset-top)
-        );
+    transform:translateX(-50%);
 
-    transform:
-        translateX(-50%);
+    z-index:20;
+
+    display:flex;
+
+    padding:5px;
+
+    border-radius:25px;
+
+    background:rgba(0,0,0,.45);
+    backdrop-filter:blur(12px);
+}
+
+.modeButton{
+    border:0;
+    background:transparent;
+
+    color:rgba(255,255,255,.65);
 
     padding:7px 12px;
 
     border-radius:18px;
 
-    background:
-        rgba(0,0,0,.45);
-
-    border:
-        1px solid
-        rgba(255,255,255,.15);
-
     font-size:11px;
-
-    color:#fff;
-
-    z-index:30;
-
-    opacity:.9;
-
-    backdrop-filter:blur(8px);
-    -webkit-backdrop-filter:blur(8px);
+    font-weight:800;
 }
 
+.modeButton.active{
+    background:rgba(255,255,255,.18);
+    color:white;
+}
 
-/* ==================================================
-   MODALS
-================================================== */
+/* START SCREEN */
 
-.modal{
+#startScreen{
     position:absolute;
-
     inset:0;
 
-    display:none;
+    z-index:50;
+
+    display:flex;
+    flex-direction:column;
 
     align-items:center;
     justify-content:center;
 
-    background:
-        rgba(0,0,0,.72);
-
-    z-index:100;
-
-    padding:20px;
-}
-
-.modal.show{
-    display:flex;
-}
-
-.modalBox{
-    width:min(420px,92vw);
-
-    max-height:82vh;
-
-    overflow:auto;
-
-    padding:22px;
-
-    border-radius:22px;
+    padding:30px;
 
     background:
-        rgba(25,25,25,.95);
+        radial-gradient(
+            circle at 50% 30%,
+            #18243c,
+            #05070b 65%
+        );
 
-    border:
-        1px solid
-        rgba(255,255,255,.15);
+    color:white;
 
-    box-shadow:
-        0 20px 60px
-        rgba(0,0,0,.5);
+    text-align:center;
 }
 
-.modalBox h2{
-    margin:
-        0 0 14px;
-
-    font-size:20px;
+#startScreen h1{
+    margin:0 0 8px;
+    font-size:32px;
 }
 
-.modalBox p{
-    color:#ccc;
-
-    line-height:1.5;
-
+#startScreen p{
+    margin:0 0 25px;
+    color:#aeb7c8;
     font-size:14px;
+    line-height:1.5;
 }
 
-.modalClose{
-    margin-top:15px;
+.startButton{
+    width:230px;
+    padding:15px;
 
-    width:100%;
-    height:46px;
+    border:0;
+    border-radius:30px;
 
-    border-radius:14px;
+    background:white;
+    color:#111;
 
-    background:#fff;
-    color:#000;
-
-    font-weight:bold;
+    font-size:15px;
+    font-weight:800;
 }
 
+/* CALIBRATION MESSAGE */
 
-/* ==================================================
-   PREVIEW
-================================================== */
-
-#previewModal video{
-    width:100%;
-
-    max-height:55vh;
-
-    border-radius:14px;
-
-    background:#000;
-}
-
-
-/* ==================================================
-   TOAST
-================================================== */
-
-#toast{
+#calibration{
     position:absolute;
 
     left:50%;
+    top:50%;
 
-    bottom:
-        calc(
-            190px +
-            env(safe-area-inset-bottom)
-        );
+    transform:translate(-50%,-50%);
 
-    transform:
-        translateX(-50%)
-        translateY(20px);
+    z-index:30;
 
-    padding:10px 15px;
+    width:280px;
+
+    padding:18px;
 
     border-radius:20px;
 
-    background:
-        rgba(0,0,0,.75);
+    background:rgba(10,12,18,.88);
+    border:1px solid rgba(255,255,255,.15);
 
+    color:white;
+
+    text-align:center;
+
+    backdrop-filter:blur(16px);
+
+    display:none;
+}
+
+#calibration.show{
+    display:block;
+}
+
+#calibration strong{
+    display:block;
+    margin-bottom:8px;
+}
+
+#calibration span{
+    display:block;
+    color:#b7bfce;
     font-size:12px;
-
-    opacity:0;
-
-    pointer-events:none;
-
-    transition:
-        opacity .2s,
-        transform .2s;
-
-    z-index:200;
+    line-height:1.5;
 }
 
-#toast.show{
-    opacity:1;
+.smallButton{
+    margin-top:14px;
 
-    transform:
-        translateX(-50%)
-        translateY(0);
+    border:0;
+    border-radius:20px;
+
+    padding:9px 16px;
+
+    background:white;
+    color:#111;
+
+    font-weight:700;
 }
 
+/* ERROR */
 
-/* ==================================================
-   SMALL SCREENS
-================================================== */
+#errorBox{
+    position:absolute;
+    left:20px;
+    right:20px;
+    top:50%;
 
-@media(max-width:420px){
+    transform:translateY(-50%);
 
-    .sideControls{
-        right:9px;
+    z-index:100;
+
+    display:none;
+
+    padding:20px;
+
+    border-radius:20px;
+
+    background:#15171d;
+    color:white;
+
+    text-align:center;
+}
+
+#errorBox.show{
+    display:block;
+}
+
+#errorBox p{
+    color:#bfc4ce;
+    font-size:13px;
+    line-height:1.5;
+}
+
+@media (max-height:700px){
+    .zoomBar{
+        bottom:108px;
     }
 
-    .iconButton{
-        width:39px;
-        height:39px;
-    }
-
-    #shutter{
-        width:68px;
-        height:68px;
+    .modeBar{
+        bottom:180px;
     }
 }
 </style>
@@ -743,448 +488,329 @@ button{
 
 <body>
 
-<div id="camera">
-
-    <!--
-        Raw camera feed.
-
-        It is deliberately hidden.
-        The camera image is rendered to canvas
-        so that the corrected orientation is
-        also present in the recorded video.
-    -->
+<div id="app">
 
     <video
-        id="video"
+        id="camera"
         autoplay
-        muted
-        playsinline>
+        playsinline
+        muted>
     </video>
-
-
-    <!-- FINAL CAMERA FRAME -->
 
     <canvas id="outputCanvas"></canvas>
 
-
-    <!-- TOP BAR -->
-
     <div class="topBar">
+        <div class="logo">HORIZON</div>
+        <div id="status" class="status">CAMERA OFF</div>
+    </div>
 
-        <div class="topLeft">
+    <div id="angleBadge" class="angleBadge">
+        0.0°
+    </div>
+
+    <div class="horizonIndicator"></div>
+
+    <div class="modeBar">
+
+        <button
+            class="modeButton active"
+            data-mode="flex">
+            FLEX
+        </button>
+
+        <button
+            class="modeButton"
+            data-mode="locked">
+            LOCKED
+        </button>
+
+    </div>
+
+    <div class="zoomBar">
+
+        <button
+            class="zoomButton active"
+            data-zoom="1">
+            1×
+        </button>
+
+        <button
+            class="zoomButton"
+            data-zoom="1.5">
+            1.5×
+        </button>
+
+        <button
+            class="zoomButton"
+            data-zoom="2">
+            2×
+        </button>
+
+    </div>
+
+    <div class="bottomControls">
+
+        <div class="controlRow">
+
+            <div class="sideControls">
+
+                <button
+                    id="calibrateButton"
+                    class="circleButton"
+                    title="Calibrate">
+                    ◎
+                </button>
+
+            </div>
 
             <button
-                class="iconButton"
-                id="closeBtn">
-                ×
+                id="recordButton"
+                class="recordButton">
             </button>
 
-            <div
-                class="modeLabel"
-                id="modeLabel">
-                FLEX
+            <div class="sideControls right">
+
+                <button
+                    id="cameraButton"
+                    class="circleButton"
+                    title="Camera">
+                    ↻
+                </button>
+
             </div>
 
         </div>
 
-
-        <div class="topRight">
-
-            <button
-                class="iconButton"
-                id="orientationBtn">
-                ◎
-            </button>
-
-            <button
-                class="iconButton"
-                id="settingsBtn">
-                ⚙
-            </button>
-
-        </div>
-
     </div>
 
+    <div id="calibration">
 
-    <!-- STATUS -->
+        <strong>Horizon calibrated</strong>
 
-    <div id="status">
-        Starting camera…
-    </div>
-
-
-    <!-- HORIZON GUIDE -->
-
-    <div id="horizonGuide">
-
-        <div id="horizonLine"></div>
-
-        <div class="horizonCenter"></div>
-
-    </div>
-
-
-    <!-- SIDE BUTTONS -->
-
-    <div class="sideControls">
+        <span>
+            Keep the phone in the position you want
+            to use as level.
+        </span>
 
         <button
-            class="sideButton"
-            id="modeBtn">
-            H
-        </button>
-
-        <button
-            class="sideButton"
-            id="flipBtn">
-            ↔
-        </button>
-
-        <button
-            class="sideButton"
-            id="helpBtn">
-            ?
+            id="closeCalibration"
+            class="smallButton">
+            Done
         </button>
 
     </div>
 
+    <div id="startScreen">
 
-    <!-- ZOOM -->
+        <h1>Horizon</h1>
 
-    <div class="zoomControls">
-
-        <button
-            class="zoomButton"
-            id="zoomMinus">
-            −
-        </button>
-
-        <div id="zoomValue">
-            1×
-        </div>
+        <p>
+            Portrait camera with smooth horizon
+            stabilization and normal 1× / 1.5× / 2× zoom.
+        </p>
 
         <button
-            class="zoomButton"
-            id="zoomPlus">
-            +
+            id="startButton"
+            class="startButton">
+            START CAMERA
         </button>
 
     </div>
 
+    <div id="errorBox">
 
-    <button
-        class="zoomReset"
-        id="zoomReset">
-        1×
-    </button>
+        <strong>Camera unavailable</strong>
 
-
-    <!-- BOTTOM CONTROLS -->
-
-    <div class="bottomControls">
-
-        <button
-            class="bottomButton"
-            id="galleryBtn">
-            ▣
-        </button>
-
-        <button
-            id="shutter">
-        </button>
-
-        <button
-            class="bottomButton"
-            id="previewBtn">
-            ▶
-        </button>
+        <p id="errorText">
+            Please allow camera access and try again.
+        </p>
 
     </div>
 
 </div>
-
-
-<!-- SETTINGS -->
-
-<div
-    class="modal"
-    id="settingsModal">
-
-    <div class="modalBox">
-
-        <h2>Camera Settings</h2>
-
-        <p>
-            The horizon uses the device gravity
-            sensor instead of relying only on
-            DeviceOrientation.
-        </p>
-
-        <p>
-            Zoom starts at the normal 1× camera
-            view and supports up to 5×.
-        </p>
-
-        <button
-            class="modalClose"
-            id="settingsClose">
-            Close
-        </button>
-
-    </div>
-
-</div>
-
-
-<!-- HELP -->
-
-<div
-    class="modal"
-    id="helpModal">
-
-    <div class="modalBox">
-
-        <h2>Horizon Camera</h2>
-
-        <p>
-            Hold the phone normally and the horizon
-            will automatically compensate for roll.
-        </p>
-
-        <p>
-            Tap ◎ to calibrate the current horizon.
-        </p>
-
-        <p>
-            Use − and + to change the zoom.
-            The 1× button returns to normal view.
-        </p>
-
-        <p>
-            Tap the shutter to record.
-        </p>
-
-        <button
-            class="modalClose"
-            id="helpClose">
-            Close
-        </button>
-
-    </div>
-
-</div>
-
-
-<!-- PREVIEW -->
-
-<div
-    class="modal"
-    id="previewModal">
-
-    <div class="modalBox">
-
-        <h2>Last Recording</h2>
-
-        <video
-            id="previewVideo"
-            controls
-            playsinline>
-        </video>
-
-        <button
-            class="modalClose"
-            id="saveBtn">
-            Save / Share
-        </button>
-
-        <button
-            class="modalClose"
-            id="previewClose">
-            Close
-        </button>
-
-    </div>
-
-</div>
-
-
-<div id="toast"></div>
-
 
 <script>
+"use strict";
 
-/* ==================================================
+/* =========================================================
    ELEMENTS
-================================================== */
+========================================================= */
 
-const video =
-    document.getElementById(
-        "video"
-    );
+const video = document.getElementById("camera");
+const canvas = document.getElementById("outputCanvas");
+const ctx = canvas.getContext("2d", {
+    alpha:false
+});
 
-const canvas =
-    document.getElementById(
-        "outputCanvas"
-    );
+const startScreen =
+    document.getElementById("startScreen");
 
-const ctx =
-    canvas.getContext(
-        "2d",
-        {
-            alpha:false
-        }
-    );
+const startButton =
+    document.getElementById("startButton");
 
-const statusText =
-    document.getElementById(
-        "status"
-    );
+const status =
+    document.getElementById("status");
 
-const horizonGuide =
-    document.getElementById(
-        "horizonGuide"
-    );
+const recordButton =
+    document.getElementById("recordButton");
 
-const modeLabel =
-    document.getElementById(
-        "modeLabel"
-    );
+const cameraButton =
+    document.getElementById("cameraButton");
 
-const shutter =
-    document.getElementById(
-        "shutter"
-    );
+const calibrateButton =
+    document.getElementById("calibrateButton");
 
-const zoomValue =
-    document.getElementById(
-        "zoomValue"
-    );
+const calibration =
+    document.getElementById("calibration");
 
-const toast =
-    document.getElementById(
-        "toast"
-    );
+const closeCalibration =
+    document.getElementById("closeCalibration");
 
-const previewVideo =
-    document.getElementById(
-        "previewVideo"
-    );
+const angleBadge =
+    document.getElementById("angleBadge");
+
+const errorBox =
+    document.getElementById("errorBox");
+
+const errorText =
+    document.getElementById("errorText");
 
 
-/* ==================================================
+/* =========================================================
    CAMERA STATE
-================================================== */
+========================================================= */
 
 let stream = null;
 
-let recorder = null;
+let facingMode = "environment";
 
-let recordedChunks = [];
-
-let lastRecordingURL = null;
-
-let facingMode =
-    "environment";
-
-let currentMode =
-    "flex";
-
-let animationFrame = null;
+let cameraStarted = false;
 
 let recording = false;
 
+let mediaRecorder = null;
 
-/* ==================================================
-   GRAVITY SENSOR STATE
-================================================== */
-
-let sensorAngle = 0;
-
-let targetSensorAngle = 0;
-
-let gravityX = 0;
-
-let gravityY = 0;
-
-let gravityZ = 0;
-
-let motionStarted = false;
-
-let lastMotionTime = 0;
-
-let gravityInitialized = false;
+let recordedChunks = [];
 
 
-/* ==================================================
-   ZOOM STATE
-================================================== */
+/* =========================================================
+   ZOOM
+========================================================= */
 
-let zoomLevel = 1.0;
+/*
+   IMPORTANT:
 
-let targetZoom = 1.0;
+   We intentionally DO NOT use:
 
-const MIN_ZOOM = 1.0;
+   track.applyConstraints({
+       advanced:[{zoom:...}]
+   });
 
-const MAX_ZOOM = 5.0;
+   That caused the previous version to apply
+   native zoom + canvas zoom simultaneously.
 
-const ZOOM_STEP = 0.5;
+   This version uses canvas zoom only.
 
+   Therefore:
 
-/* ==================================================
-   CAMERA MODES
-================================================== */
+       1×  = original camera image
+       1.5× = 1.5 digital crop
+       2×  = 2 digital crop
+*/
 
-const modes = [
-    "flex",
-    "rotate",
-    "locked"
-];
-
-let modeIndex = 0;
+let zoomLevel = 1;
 
 
-/* ==================================================
-   TOAST
-================================================== */
+/* =========================================================
+   HORIZON STATE
+========================================================= */
 
-function showToast(message){
+let mode = "flex";
 
-    toast.textContent =
-        message;
+/*
+   Maximum correction.
 
-    toast.classList.add(
-        "show"
+   The image can NEVER be rotated more than
+   45 degrees in either direction.
+*/
+
+const MAX_ROLL = 45;
+
+
+/*
+   Reference angle.
+
+   When calibration happens, the current
+   phone roll becomes the new zero position.
+*/
+
+let referenceRoll = 0;
+
+
+/*
+   Sensor values.
+*/
+
+let currentRoll = 0;
+
+let targetRoll = 0;
+
+let sensorReady = false;
+
+
+/*
+   Smoothing.
+
+   Lower = smoother/slower.
+*/
+
+const SENSOR_SMOOTHING = 0.15;
+
+const OUTPUT_SMOOTHING = 0.12;
+
+
+/*
+   Small dead zone prevents tiny sensor noise
+   from constantly moving the image.
+*/
+
+const DEAD_ZONE = 1.0;
+
+
+/* =========================================================
+   SENSOR FILTER
+========================================================= */
+
+let filteredGamma = 0;
+
+let calibrationSamples = [];
+
+let calibratingAutomatically = false;
+
+
+/* =========================================================
+   CANVAS
+========================================================= */
+
+const OUTPUT_WIDTH = 720;
+const OUTPUT_HEIGHT = 1280;
+
+canvas.width = OUTPUT_WIDTH;
+canvas.height = OUTPUT_HEIGHT;
+
+
+/* =========================================================
+   UTILITIES
+========================================================= */
+
+function clamp(value, min, max){
+
+    return Math.max(
+        min,
+        Math.min(max, value)
     );
-
-    clearTimeout(
-        showToast.timer
-    );
-
-    showToast.timer =
-        setTimeout(
-            () => {
-
-                toast.classList.remove(
-                    "show"
-                );
-
-            },
-            1800
-        );
 }
 
-
-function setStatus(message){
-
-    statusText.textContent =
-        message;
-}
-
-
-/* ==================================================
-   ANGLE FUNCTIONS
-================================================== */
 
 function normalizeAngle(angle){
 
@@ -1200,230 +826,384 @@ function normalizeAngle(angle){
 }
 
 
-function smoothAngle(
-    current,
-    target,
-    factor
-){
+function setStatus(text, type=""){
 
-    const difference =
-        normalizeAngle(
-            target -
-            current
-        );
+    status.textContent = text;
 
-    return normalizeAngle(
-        current +
-        difference * factor
-    );
+    status.className =
+        "status " + type;
 }
 
 
-/* ==================================================
-   SCREEN ORIENTATION
-================================================== */
+/* =========================================================
+   PORTRAIT LOCK
+========================================================= */
 
-function getScreenAngle(){
+async function lockPortrait(){
 
-    let angle =
-        Number(
-            screen.orientation?.angle ??
-            window.orientation ??
-            0
+    try{
+
+        if(
+            screen.orientation &&
+            screen.orientation.lock
+        ){
+
+            await screen.orientation.lock(
+                "portrait"
+            );
+        }
+
+    }catch(error){
+
+        /*
+           Some browsers only allow
+           orientation.lock in fullscreen/PWA.
+
+           Failure is harmless.
+        */
+
+        console.log(
+            "Portrait lock unavailable:",
+            error
         );
-
-
-    angle =
-        ((angle % 360) + 360) % 360;
-
-
-    /*
-       Round to the normal four
-       physical screen orientations.
-    */
-
-    if(
-        angle < 45 ||
-        angle >= 315
-    ){
-
-        return 0;
     }
-
-
-    if(
-        angle >= 45 &&
-        angle < 135
-    ){
-
-        return 90;
-    }
-
-
-    if(
-        angle >= 135 &&
-        angle < 225
-    ){
-
-        return 180;
-    }
-
-
-    return 270;
 }
 
 
-/* ==================================================
-   GRAVITY → SCREEN COORDINATES
-================================================== */
+/* =========================================================
+   CAMERA
+========================================================= */
 
-function getScreenGravity(
-    x,
-    y,
-    z
-){
+async function startCamera(){
 
-    const screenAngle =
-        getScreenAngle();
+    try{
 
+        if(stream){
 
-    let sx;
-    let sy;
+            stream.getTracks().forEach(
+                track => track.stop()
+            );
 
-
-    /*
-       Portrait
-    */
-
-    if(
-        screenAngle === 0
-    ){
-
-        sx = x;
-        sy = y;
-
-    }
+            stream = null;
+        }
 
 
-    /*
-       Landscape right
-    */
-
-    else if(
-        screenAngle === 90
-    ){
-
-        sx = y;
-        sy = -x;
-
-    }
-
-
-    /*
-       Upside-down
-    */
-
-    else if(
-        screenAngle === 180
-    ){
-
-        sx = -x;
-        sy = -y;
-
-    }
-
-
-    /*
-       Landscape left
-    */
-
-    else{
-
-        sx = -y;
-        sy = x;
-
-    }
-
-
-    return {
-        x:sx,
-        y:sy,
-        z:z
-    };
-}
-
-
-/* ==================================================
-   CALCULATE HORIZON ROLL
-================================================== */
-
-function calculateGravityRoll(
-    x,
-    y,
-    z
-){
-
-    const gravity =
-        getScreenGravity(
-            x,
-            y,
-            z
+        setStatus(
+            "STARTING...",
+            ""
         );
 
 
-    /*
-       We use the horizontal gravity
-       direction.
+        stream =
+            await navigator.mediaDevices.getUserMedia({
 
-       atan2 gives the signed roll angle.
-    */
+                video:{
+                    facingMode:{
+                        ideal:facingMode
+                    },
 
-    let roll =
-        Math.atan2(
-            gravity.x,
-            -gravity.y
-        )
-        * 180 /
-        Math.PI;
+                    width:{
+                        ideal:1280
+                    },
+
+                    height:{
+                        ideal:1920
+                    },
+
+                    frameRate:{
+                        ideal:30,
+                        max:30
+                    }
+                },
+
+                audio:true
+            });
 
 
-    roll =
-        normalizeAngle(
-            roll
+        video.srcObject = stream;
+
+        await video.play();
+
+
+        cameraStarted = true;
+
+        startScreen.style.display = "none";
+
+        errorBox.classList.remove("show");
+
+
+        setStatus(
+            "CAMERA READY",
+            "ready"
         );
 
 
-    return roll;
+        await lockPortrait();
+
+
+        /*
+           Start automatic sensor calibration.
+        */
+
+        beginInitialCalibration();
+
+
+        /*
+           Start rendering.
+        */
+
+        requestAnimationFrame(
+            renderFrame
+        );
+
+    }catch(error){
+
+        console.error(error);
+
+        cameraStarted = false;
+
+        setStatus(
+            "CAMERA ERROR",
+            "error"
+        );
+
+        errorText.textContent =
+            "Camera permission was denied or the camera could not be opened.";
+
+        errorBox.classList.add("show");
+    }
 }
 
 
-/* ==================================================
-   DEVICE MOTION
-================================================== */
+/* =========================================================
+   CAMERA SWITCH
+========================================================= */
 
-function handleMotion(event){
+async function switchCamera(){
 
-    const now =
-        performance.now();
+    if(!cameraStarted){
+
+        return;
+    }
+
+    facingMode =
+        facingMode === "environment"
+            ? "user"
+            : "environment";
+
+
+    await startCamera();
+}
+
+
+/* =========================================================
+   INITIAL CALIBRATION
+========================================================= */
+
+function beginInitialCalibration(){
+
+    calibrationSamples = [];
+
+    calibratingAutomatically = true;
+
+    sensorReady = false;
 
 
     /*
-       Don't process hundreds of
-       unnecessary events per second.
+       Wait for several sensor readings.
+       This avoids using one noisy reading.
     */
 
-    if(
-        now -
-        lastMotionTime <
-        8
-    ){
+    setTimeout(() => {
+
+        if(
+            calibrationSamples.length > 0
+        ){
+
+            const sum =
+                calibrationSamples.reduce(
+                    (a,b) => a + b,
+                    0
+                );
+
+            referenceRoll =
+                sum /
+                calibrationSamples.length;
+
+            currentRoll = 0;
+            targetRoll = 0;
+
+            sensorReady = true;
+        }
+
+        calibratingAutomatically = false;
+
+    }, 1000);
+}
+
+
+/* =========================================================
+   MANUAL CALIBRATION
+========================================================= */
+
+function calibrate(){
+
+    /*
+       Current filtered sensor position
+       becomes the new zero.
+    */
+
+    referenceRoll =
+        filteredGamma;
+
+    currentRoll = 0;
+    targetRoll = 0;
+
+    calibration.classList.add("show");
+
+    setTimeout(() => {
+
+        calibration.classList.remove("show");
+
+    }, 1500);
+}
+
+
+/* =========================================================
+   DEVICE ORIENTATION
+========================================================= */
+
+/*
+   We use gamma ONLY.
+
+   gamma represents left/right roll
+   while the phone is held in portrait.
+
+   We intentionally do NOT switch to beta
+   when the phone becomes landscape.
+
+   That was one of the causes of the previous
+   90°/180° jumps.
+*/
+
+function handleOrientation(event){
+
+    if(!cameraStarted){
 
         return;
     }
 
 
-    lastMotionTime =
-        now;
+    let gamma =
+        Number(event.gamma);
+
+
+    if(!Number.isFinite(gamma)){
+
+        return;
+    }
+
+
+    /*
+       Keep gamma inside a sensible range.
+    */
+
+    gamma =
+        clamp(
+            gamma,
+            -90,
+            90
+        );
+
+
+    /*
+       Smooth raw sensor.
+    */
+
+    filteredGamma =
+        filteredGamma +
+        (gamma - filteredGamma) *
+        SENSOR_SMOOTHING;
+
+
+    /*
+       During startup, collect samples
+       instead of moving the camera.
+    */
+
+    if(calibratingAutomatically){
+
+        calibrationSamples.push(
+            filteredGamma
+        );
+
+        return;
+    }
+
+
+    if(!sensorReady){
+
+        return;
+    }
+
+
+    /*
+       Difference from calibrated level.
+    */
+
+    let delta =
+        normalizeAngle(
+            filteredGamma -
+            referenceRoll
+        );
+
+
+    /*
+       NEVER allow the horizon correction
+       to exceed ±45°.
+    */
+
+    delta =
+        clamp(
+            delta,
+            -MAX_ROLL,
+            MAX_ROLL
+        );
+
+
+    /*
+       Dead zone.
+    */
+
+    if(Math.abs(delta) < DEAD_ZONE){
+
+        delta = 0;
+    }
+
+
+    targetRoll = delta;
+}
+
+
+/* =========================================================
+   DEVICE MOTION FALLBACK
+========================================================= */
+
+function handleMotion(event){
+
+    /*
+       OrientationEvent is preferred.
+
+       This fallback is only used when
+       orientation data is unavailable.
+    */
+
+    if(
+        "DeviceOrientationEvent" in window
+    ){
+
+        return;
+    }
 
 
     const acceleration =
@@ -1436,26 +1216,16 @@ function handleMotion(event){
     }
 
 
-    const x =
-        Number(
-            acceleration.x
-        );
+    const gx =
+        Number(acceleration.x || 0);
 
-    const y =
-        Number(
-            acceleration.y
-        );
-
-    const z =
-        Number(
-            acceleration.z
-        );
+    const gy =
+        Number(acceleration.y || 0);
 
 
     if(
-        !Number.isFinite(x) ||
-        !Number.isFinite(y) ||
-        !Number.isFinite(z)
+        !Number.isFinite(gx) ||
+        !Number.isFinite(gy)
     ){
 
         return;
@@ -1463,307 +1233,139 @@ function handleMotion(event){
 
 
     /*
-       Initialize directly from the
-       first valid gravity measurement.
+       Portrait-only gravity roll.
 
-       This prevents the sensor from
-       slowly jumping from 0° on startup.
+       We do NOT rotate the coordinate system
+       based on screen orientation.
     */
 
-    if(!gravityInitialized){
-
-        gravityX = x;
-        gravityY = y;
-        gravityZ = z;
-
-        gravityInitialized = true;
-
-    }else{
-
-        /*
-           Low-pass gravity filter.
-
-           Lower value = smoother.
-        */
-
-        const filter = 0.10;
+    const roll =
+        Math.atan2(
+            gx,
+            -gy
+        ) *
+        180 /
+        Math.PI;
 
 
-        gravityX =
-            gravityX * (1 - filter) +
-            x * filter;
+    filteredGamma =
+        filteredGamma +
+        (roll - filteredGamma) *
+        SENSOR_SMOOTHING;
 
 
-        gravityY =
-            gravityY * (1 - filter) +
-            y * filter;
+    if(calibratingAutomatically){
 
-
-        gravityZ =
-            gravityZ * (1 - filter) +
-            z * filter;
-    }
-
-
-    const calculatedRoll =
-        calculateGravityRoll(
-            gravityX,
-            gravityY,
-            gravityZ
+        calibrationSamples.push(
+            filteredGamma
         );
-
-
-    if(
-        !Number.isFinite(
-            calculatedRoll
-        )
-    ){
 
         return;
     }
 
 
-    targetSensorAngle =
-        calculatedRoll;
-
-
-    /*
-       Smooth final movement.
-
-       This prevents the horizon from
-       jumping with every sensor reading.
-    */
-
-    sensorAngle =
-        smoothAngle(
-            sensorAngle,
-            targetSensorAngle,
-            0.10
+    let delta =
+        normalizeAngle(
+            filteredGamma -
+            referenceRoll
         );
 
 
-    /*
-       Small dead-zone.
-    */
+    delta =
+        clamp(
+            delta,
+            -MAX_ROLL,
+            MAX_ROLL
+        );
 
-    if(
-        Math.abs(sensorAngle) <
-        0.4
-    ){
 
-        sensorAngle = 0;
+    if(Math.abs(delta) < DEAD_ZONE){
+
+        delta = 0;
     }
 
 
-    motionStarted = true;
+    targetRoll = delta;
 }
 
 
-/* ==================================================
-   START MOTION SENSOR
-================================================== */
+/* =========================================================
+   SENSOR PERMISSION
+========================================================= */
 
-async function startOrientation(){
+async function enableSensors(){
 
     try{
 
         /*
            iOS requires permission.
+
+           Android normally does not.
         */
 
         if(
-            typeof DeviceMotionEvent !==
+            typeof DeviceOrientationEvent !==
             "undefined" &&
-
-            typeof DeviceMotionEvent
-                .requestPermission ===
-                "function"
+            typeof DeviceOrientationEvent.requestPermission ===
+            "function"
         ){
 
             const permission =
-                await DeviceMotionEvent
+                await DeviceOrientationEvent
                     .requestPermission();
 
+            if(permission !== "granted"){
 
-            if(
-                permission !==
-                "granted"
-            ){
-
-                setStatus(
-                    "Motion permission denied"
+                console.warn(
+                    "Device orientation permission denied."
                 );
 
                 return;
             }
         }
 
-
-        /*
-           IMPORTANT:
-           We use DeviceMotion only.
-        */
-
-        window.addEventListener(
-            "devicemotion",
-            handleMotion,
-            true
-        );
-
-
-        setStatus(
-            "Horizon sensor ready"
-        );
-
-
     }catch(error){
 
-        console.error(
-            "Motion sensor error:",
+        console.warn(
+            "Sensor permission:",
             error
         );
-
-
-        setStatus(
-            "Motion sensor unavailable"
-        );
     }
-}
 
 
-/* ==================================================
-   CALIBRATE HORIZON
-================================================== */
-
-function recalibrateHorizon(){
-
-    /*
-       Re-zero the filtered sensor.
-
-       This means the current physical
-       position becomes the reference.
-    */
-
-    targetSensorAngle = 0;
-
-    sensorAngle = 0;
+    window.addEventListener(
+        "deviceorientation",
+        handleOrientation,
+        true
+    );
 
 
-    /*
-       Reinitialize gravity so the next
-       reading is treated as the new baseline.
-    */
-
-    gravityInitialized = false;
-
-
-    showToast(
-        "Horizon calibrated"
+    window.addEventListener(
+        "devicemotion",
+        handleMotion,
+        true
     );
 }
 
 
-/* ==================================================
-   CAMERA OUTPUT ROTATION
-================================================== */
+/* =========================================================
+   RENDER CAMERA FRAME
+========================================================= */
 
-function getOutputAngle(){
-
-    /*
-       Locked = no image correction.
-    */
+function renderFrame(){
 
     if(
-        currentMode ===
-        "locked"
+        !cameraStarted ||
+        video.readyState <
+        HTMLMediaElement.HAVE_CURRENT_DATA
     ){
 
-        return 0;
-    }
-
-
-    /*
-       Both active modes use the
-       stabilized sensor angle.
-    */
-
-    return -sensorAngle;
-}
-
-
-/* ==================================================
-   CANVAS SETUP
-================================================== */
-
-function setupCanvas(){
-
-    if(
-        !video.videoWidth ||
-        !video.videoHeight
-    ){
+        requestAnimationFrame(
+            renderFrame
+        );
 
         return;
     }
-
-
-    /*
-       Keep a fixed output size.
-
-       This is important because resizing
-       a canvas every frame destroys its
-       drawing state and can cause recording
-       instability.
-    */
-
-    const width =
-        1280;
-
-    const height =
-        720;
-
-
-    if(
-        canvas.width !== width ||
-        canvas.height !== height
-    ){
-
-        canvas.width =
-            width;
-
-        canvas.height =
-            height;
-    }
-}
-
-
-/* ==================================================
-   DRAW CAMERA
-================================================== */
-
-function drawFrame(){
-
-    if(
-        !video.videoWidth ||
-        !video.videoHeight
-    ){
-
-        animationFrame =
-            requestAnimationFrame(
-                drawFrame
-            );
-
-        return;
-    }
-
-
-    setupCanvas();
-
-
-    const cw =
-        canvas.width;
-
-    const ch =
-        canvas.height;
 
 
     const vw =
@@ -1773,29 +1375,87 @@ function drawFrame(){
         video.videoHeight;
 
 
+    if(!vw || !vh){
+
+        requestAnimationFrame(
+            renderFrame
+        );
+
+        return;
+    }
+
+
     /*
-       Fill the output frame.
+       Smooth final horizon angle.
+    */
+
+    if(mode === "locked"){
+
+        currentRoll +=
+            (0 - currentRoll) *
+            OUTPUT_SMOOTHING;
+
+    }else{
+
+        currentRoll +=
+            (targetRoll - currentRoll) *
+            OUTPUT_SMOOTHING;
+    }
+
+
+    /*
+       Safety clamp.
+
+       Even after smoothing,
+       the value can NEVER exceed ±45°.
+    */
+
+    currentRoll =
+        clamp(
+            currentRoll,
+            -MAX_ROLL,
+            MAX_ROLL
+        );
+
+
+    angleBadge.textContent =
+        currentRoll.toFixed(1) + "°";
+
+
+    /*
+       Clear frame.
+    */
+
+    ctx.setTransform(
+        1,0,0,1,0,0
+    );
+
+    ctx.fillStyle = "#000";
+
+    ctx.fillRect(
+        0,
+        0,
+        OUTPUT_WIDTH,
+        OUTPUT_HEIGHT
+    );
+
+
+    /*
+       Calculate a portrait camera crop.
+
+       At 1× this is the BASE camera frame.
+       There is no hidden native zoom.
     */
 
     const baseScale =
         Math.max(
-            cw / vw,
-            ch / vh
+            OUTPUT_WIDTH / vw,
+            OUTPUT_HEIGHT / vh
         );
 
-
-    /*
-       Apply normal camera zoom.
-
-       1× = normal view.
-    */
 
     const scale =
-        baseScale *
-        Math.max(
-            1,
-            zoomLevel
-        );
+        baseScale * zoomLevel;
 
 
     const drawW =
@@ -1805,70 +1465,32 @@ function drawFrame(){
         vh * scale;
 
 
-    const angle =
-        getOutputAngle();
-
-
-    const radians =
-        angle *
-        Math.PI /
-        180;
-
-
     /*
-       Reset canvas transform.
-    */
-
-    ctx.setTransform(
-        1,
-        0,
-        0,
-        1,
-        0,
-        0
-    );
-
-
-    ctx.fillStyle =
-        "#000";
-
-
-    ctx.fillRect(
-        0,
-        0,
-        cw,
-        ch
-    );
-
-
-    /*
-       Only the camera image is rotated.
-
-       The UI remains fixed.
+       Rotate around the center.
     */
 
     ctx.save();
 
-
     ctx.translate(
-        cw / 2,
-        ch / 2
+        OUTPUT_WIDTH / 2,
+        OUTPUT_HEIGHT / 2
     );
 
 
     ctx.rotate(
-        radians
+        currentRoll *
+        Math.PI /
+        180
     );
 
 
     /*
        Mirror front camera.
+
+       Rear camera remains normal.
     */
 
-    if(
-        facingMode ===
-        "user"
-    ){
+    if(facingMode === "user"){
 
         ctx.scale(
             -1,
@@ -1889,312 +1511,97 @@ function drawFrame(){
     ctx.restore();
 
 
-    animationFrame =
-        requestAnimationFrame(
-            drawFrame
-        );
-}
-
-
-/* ==================================================
-   ZOOM
-================================================== */
-
-function updateZoomLabel(){
-
-    const value =
-        zoomLevel
-            .toFixed(1)
-            .replace(
-                ".0",
-                ""
-            );
-
-
-    zoomValue.textContent =
-        value + "×";
-}
-
-
-function setZoom(value){
-
-    targetZoom =
-        Math.max(
-            MIN_ZOOM,
-            Math.min(
-                MAX_ZOOM,
-                Number(value)
-            )
-        );
-
-
-    applyCameraZoom();
-}
-
-
-function zoomIn(){
-
-    setZoom(
-        zoomLevel +
-        ZOOM_STEP
-    );
-}
-
-
-function zoomOut(){
-
-    setZoom(
-        zoomLevel -
-        ZOOM_STEP
-    );
-}
-
-
-function resetZoom(){
-
-    setZoom(
-        1
-    );
-
-    showToast(
-        "Zoom 1×"
-    );
-}
-
-
-/* ==================================================
-   SMOOTH ZOOM
-================================================== */
-
-function updateZoom(){
-
-    const difference =
-        targetZoom -
-        zoomLevel;
-
-
-    if(
-        Math.abs(
-            difference
-        ) < 0.005
-    ){
-
-        zoomLevel =
-            targetZoom;
-
-    }else{
-
-        zoomLevel +=
-            difference *
-            0.18;
-    }
-
-
-    updateZoomLabel();
-
+    /*
+       Continue.
+    */
 
     requestAnimationFrame(
-        updateZoom
+        renderFrame
     );
 }
 
 
-/* ==================================================
-   NATIVE CAMERA ZOOM
-================================================== */
+/* =========================================================
+   ZOOM BUTTONS
+========================================================= */
 
-async function applyCameraZoom(){
+document
+    .querySelectorAll(".zoomButton")
+    .forEach(button => {
 
-    if(!stream){
-
-        return;
-    }
-
-
-    const track =
-        stream
-            .getVideoTracks()[0];
-
-
-    if(!track){
-
-        return;
-    }
-
-
-    try{
-
-        const capabilities =
-            track.getCapabilities();
-
-
-        if(
-            capabilities &&
-            capabilities.zoom
-        ){
-
-            const min =
-                capabilities.zoom.min ??
-                1;
-
-            const max =
-                capabilities.zoom.max ??
-                5;
-
-
-            const nativeZoom =
-                Math.max(
-                    min,
-                    Math.min(
-                        max,
-                        targetZoom
-                    )
-                );
-
-
-            await track.applyConstraints({
-
-                advanced:[
-                    {
-                        zoom:
-                            nativeZoom
-                    }
-                ]
-
-            });
-        }
-
-    }catch(error){
-
-        /*
-           Digital canvas zoom still works
-           if native zoom isn't supported.
-        */
-
-        console.warn(
-            "Native zoom unavailable",
-            error
-        );
-    }
-}
-
-
-/* ==================================================
-   START CAMERA
-================================================== */
-
-async function startCamera(){
-
-    try{
-
-        if(stream){
-
-            stream
-                .getTracks()
-                .forEach(
-                    track =>
-                        track.stop()
-                );
-        }
-
-
-        stream =
-            await navigator
-                .mediaDevices
-                .getUserMedia({
-
-                    video:{
-
-                        facingMode:{
-                            ideal:
-                                facingMode
-                        },
-
-                        width:{
-                            ideal:
-                                1920
-                        },
-
-                        height:{
-                            ideal:
-                                1080
-                        },
-
-                        frameRate:{
-                            ideal:30,
-                            max:60
-                        }
-                    },
-
-                    audio:true
-                });
-
-
-        video.srcObject =
-            stream;
-
-
-        await video.play();
-
-
-        setupCanvas();
-
-
-        video.onloadedmetadata =
+        button.addEventListener(
+            "click",
             () => {
 
-                setupCanvas();
-
-            };
-
-
-        await applyCameraZoom();
+                zoomLevel =
+                    Number(
+                        button.dataset.zoom
+                    );
 
 
-        /*
-           Start motion sensor.
-        */
+                document
+                    .querySelectorAll(
+                        ".zoomButton"
+                    )
+                    .forEach(b => {
 
-        await startOrientation();
+                        b.classList.remove(
+                            "active"
+                        );
+                    });
 
 
-        setStatus(
-            "Camera ready"
+                button.classList.add(
+                    "active"
+                );
+            }
         );
+    });
 
 
-    }catch(error){
+/* =========================================================
+   MODE BUTTONS
+========================================================= */
 
-        console.error(
-            error
+document
+    .querySelectorAll(".modeButton")
+    .forEach(button => {
+
+        button.addEventListener(
+            "click",
+            () => {
+
+                mode =
+                    button.dataset.mode;
+
+
+                document
+                    .querySelectorAll(
+                        ".modeButton"
+                    )
+                    .forEach(b => {
+
+                        b.classList.remove(
+                            "active"
+                        );
+                    });
+
+
+                button.classList.add(
+                    "active"
+                );
+            }
         );
+    });
 
 
-        setStatus(
-            "Camera permission required"
-        );
-
-
-        showToast(
-            "Allow camera access"
-        );
-    }
-}
-
-
-/* ==================================================
+/* =========================================================
    RECORDING
-================================================== */
+========================================================= */
 
 function startRecording(){
 
-    if(
-        !canvas.captureStream
-    ){
-
-        showToast(
-            "Recording not supported"
-        );
+    if(!cameraStarted){
 
         return;
     }
@@ -2204,101 +1611,88 @@ function startRecording(){
 
 
     /*
-       IMPORTANT:
-       Record the corrected canvas,
-       not the raw camera stream.
+       Record the PROCESSED canvas.
+
+       This means the recorded video contains:
+
+       • portrait output
+       • horizon correction
+       • selected zoom
     */
 
-    const canvasStream =
-        canvas.captureStream(
-            30
-        );
+    const videoStream =
+        canvas.captureStream(30);
 
 
     /*
-       Keep microphone audio.
+       Add microphone audio.
     */
 
     if(stream){
 
         stream
             .getAudioTracks()
-            .forEach(
-                track => {
+            .forEach(track => {
 
-                    canvasStream.addTrack(
-                        track
-                    );
+                videoStream.addTrack(
+                    track
+                );
 
-                }
-            );
+            });
     }
 
 
     let mimeType =
-        "video/webm;codecs=vp9";
+        "";
 
 
-    if(
-        !MediaRecorder
-            .isTypeSupported(
-                mimeType
+    const types = [
+
+        "video/webm;codecs=vp9,opus",
+
+        "video/webm;codecs=vp8,opus",
+
+        "video/webm"
+
+    ];
+
+
+    for(const type of types){
+
+        if(
+            MediaRecorder.isTypeSupported(
+                type
             )
-    ){
+        ){
 
-        mimeType =
-            "video/webm;codecs=vp8";
-    }
-
-
-    if(
-        !MediaRecorder
-            .isTypeSupported(
-                mimeType
-            )
-    ){
-
-        mimeType =
-            "video/webm";
+            mimeType = type;
+            break;
+        }
     }
 
 
     try{
 
-        recorder =
+        mediaRecorder =
             new MediaRecorder(
-                canvasStream,
-                {
-                    mimeType:
-                        mimeType,
-
-                    videoBitsPerSecond:
-                        6000000
-                }
+                videoStream,
+                mimeType
+                    ? {mimeType}
+                    : undefined
             );
-
 
     }catch(error){
 
-        console.error(
-            error
-        );
-
-        showToast(
-            "Recorder unavailable"
-        );
+        console.error(error);
 
         return;
     }
 
 
-    recorder.ondataavailable =
+    mediaRecorder.ondataavailable =
         event => {
 
-            if(
-                event.data &&
-                event.data.size > 0
-            ){
+            if(event.data.size > 0){
 
                 recordedChunks.push(
                     event.data
@@ -2307,663 +1701,185 @@ function startRecording(){
         };
 
 
-    recorder.onstop =
-        finishRecording;
+    mediaRecorder.onstop =
+        saveRecording;
 
 
-    recorder.start(
-        250
-    );
+    mediaRecorder.start();
 
 
     recording = true;
 
-
-    shutter.classList.add(
+    recordButton.classList.add(
         "recording"
     );
 
-
     setStatus(
-        "Recording"
+        "RECORDING",
+        "ready"
     );
 }
 
 
-/* ==================================================
+/* =========================================================
    STOP RECORDING
-================================================== */
+========================================================= */
 
 function stopRecording(){
 
     if(
-        recorder &&
-        recorder.state !==
-        "inactive"
+        mediaRecorder &&
+        mediaRecorder.state !== "inactive"
     ){
 
-        recorder.stop();
+        mediaRecorder.stop();
     }
-
 
     recording = false;
 
-
-    shutter.classList.remove(
+    recordButton.classList.remove(
         "recording"
     );
 
-
     setStatus(
-        "Processing video…"
+        "CAMERA READY",
+        "ready"
     );
 }
 
 
-/* ==================================================
-   FINISH RECORDING
-================================================== */
+/* =========================================================
+   SAVE RECORDING
+========================================================= */
 
-function finishRecording(){
+function saveRecording(){
+
+    if(!recordedChunks.length){
+
+        return;
+    }
+
 
     const blob =
         new Blob(
             recordedChunks,
             {
-                type:
-                    recorder.mimeType ||
-                    "video/webm"
+                type:"video/webm"
             }
         );
 
 
-    if(lastRecordingURL){
-
-        URL.revokeObjectURL(
-            lastRecordingURL
-        );
-    }
+    const url =
+        URL.createObjectURL(blob);
 
 
-    lastRecordingURL =
-        URL.createObjectURL(
-            blob
-        );
+    const a =
+        document.createElement("a");
+
+    a.href = url;
+
+    a.download =
+        "horizon-video-" +
+        Date.now() +
+        ".webm";
 
 
-    previewVideo.src =
-        lastRecordingURL;
+    document.body.appendChild(a);
+
+    a.click();
+
+    a.remove();
 
 
-    setStatus(
-        "Recording ready"
-    );
+    setTimeout(() => {
 
+        URL.revokeObjectURL(url);
 
-    showPreview();
+    }, 2000);
 }
 
 
-/* ==================================================
-   SHUTTER
-================================================== */
+/* =========================================================
+   BUTTON EVENTS
+========================================================= */
 
-shutter.addEventListener(
+startButton.addEventListener(
+    "click",
+    async () => {
+
+        await enableSensors();
+
+        await startCamera();
+
+    }
+);
+
+
+recordButton.addEventListener(
     "click",
     () => {
 
-        if(recording){
+        if(!recording){
 
-            stopRecording();
+            startRecording();
 
         }else{
 
-            startRecording();
-        }
+            stopRecording();
 
+        }
     }
 );
 
 
-/* ==================================================
-   FLIP CAMERA
-================================================== */
-
-document
-    .getElementById(
-        "flipBtn"
-    )
-    .addEventListener(
-        "click",
-        async () => {
-
-            facingMode =
-                facingMode ===
-                "environment"
-                    ? "user"
-                    : "environment";
-
-
-            await startCamera();
-
-
-            showToast(
-                facingMode ===
-                "user"
-                    ? "Front camera"
-                    : "Back camera"
-            );
-        }
-    );
-
-
-/* ==================================================
-   ZOOM BUTTONS
-================================================== */
-
-document
-    .getElementById(
-        "zoomMinus"
-    )
-    .addEventListener(
-        "click",
-        zoomOut
-    );
-
-
-document
-    .getElementById(
-        "zoomPlus"
-    )
-    .addEventListener(
-        "click",
-        zoomIn
-    );
-
-
-document
-    .getElementById(
-        "zoomReset"
-    )
-    .addEventListener(
-        "click",
-        resetZoom
-    );
-
-
-/* ==================================================
-   CALIBRATION BUTTON
-================================================== */
-
-document
-    .getElementById(
-        "orientationBtn"
-    )
-    .addEventListener(
-        "click",
-        recalibrateHorizon
-    );
-
-
-/* ==================================================
-   MODES
-================================================== */
-
-function updateMode(){
-
-    currentMode =
-        modes[modeIndex];
-
-
-    modeLabel.textContent =
-        currentMode.toUpperCase();
-
-
-    if(
-        currentMode ===
-        "locked"
-    ){
-
-        horizonGuide.style.opacity =
-            "0.25";
-
-    }else{
-
-        horizonGuide.style.opacity =
-            "0.9";
-    }
-
-
-    showToast(
-        currentMode.toUpperCase()
-    );
-}
-
-
-document
-    .getElementById(
-        "modeBtn"
-    )
-    .addEventListener(
-        "click",
-        () => {
-
-            modeIndex++;
-
-
-            if(
-                modeIndex >=
-                modes.length
-            ){
-
-                modeIndex = 0;
-            }
-
-
-            updateMode();
-        }
-    );
-
-
-/* ==================================================
-   SETTINGS
-================================================== */
-
-const settingsModal =
-    document.getElementById(
-        "settingsModal"
-    );
-
-
-document
-    .getElementById(
-        "settingsBtn"
-    )
-    .addEventListener(
-        "click",
-        () => {
-
-            settingsModal
-                .classList
-                .add("show");
-
-        }
-    );
-
-
-document
-    .getElementById(
-        "settingsClose"
-    )
-    .addEventListener(
-        "click",
-        () => {
-
-            settingsModal
-                .classList
-                .remove("show");
-
-        }
-    );
-
-
-/* ==================================================
-   HELP
-================================================== */
-
-const helpModal =
-    document.getElementById(
-        "helpModal"
-    );
-
-
-document
-    .getElementById(
-        "helpBtn"
-    )
-    .addEventListener(
-        "click",
-        () => {
-
-            helpModal
-                .classList
-                .add("show");
-
-        }
-    );
-
-
-document
-    .getElementById(
-        "helpClose"
-    )
-    .addEventListener(
-        "click",
-        () => {
-
-            helpModal
-                .classList
-                .remove("show");
-
-        }
-    );
-
-
-/* ==================================================
-   PREVIEW
-================================================== */
-
-const previewModal =
-    document.getElementById(
-        "previewModal"
-    );
-
-
-function showPreview(){
-
-    previewModal
-        .classList
-        .add("show");
-}
-
-
-document
-    .getElementById(
-        "previewBtn"
-    )
-    .addEventListener(
-        "click",
-        () => {
-
-            if(!lastRecordingURL){
-
-                showToast(
-                    "No recording yet"
-                );
-
-                return;
-            }
-
-
-            showPreview();
-        }
-    );
-
-
-document
-    .getElementById(
-        "previewClose"
-    )
-    .addEventListener(
-        "click",
-        () => {
-
-            previewModal
-                .classList
-                .remove("show");
-
-        }
-    );
-
-
-/* ==================================================
-   SAVE / SHARE
-================================================== */
-
-document
-    .getElementById(
-        "saveBtn"
-    )
-    .addEventListener(
-        "click",
-        async () => {
-
-            if(!lastRecordingURL){
-
-                return;
-            }
-
-
-            try{
-
-                const response =
-                    await fetch(
-                        lastRecordingURL
-                    );
-
-
-                const blob =
-                    await response.blob();
-
-
-                const file =
-                    new File(
-                        [blob],
-                        "horizon-video.webm",
-                        {
-                            type:
-                                blob.type ||
-                                "video/webm"
-                        }
-                    );
-
-
-                if(
-                    navigator.share &&
-                    navigator.canShare &&
-                    navigator.canShare({
-                        files:[file]
-                    })
-                ){
-
-                    await navigator.share({
-
-                        title:
-                            "Horizon Video",
-
-                        files:[
-                            file
-                        ]
-                    });
-
-                }else{
-
-                    const link =
-                        document.createElement(
-                            "a"
-                        );
-
-
-                    link.href =
-                        lastRecordingURL;
-
-
-                    link.download =
-                        "horizon-video.webm";
-
-
-                    link.click();
-                }
-
-
-            }catch(error){
-
-                console.error(
-                    error
-                );
-            }
-
-        }
-    );
-
-
-/* ==================================================
-   CLOSE CAMERA
-================================================== */
-
-document
-    .getElementById(
-        "closeBtn"
-    )
-    .addEventListener(
-        "click",
-        () => {
-
-            if(recording){
-
-                stopRecording();
-            }
-
-
-            if(stream){
-
-                stream
-                    .getTracks()
-                    .forEach(
-                        track =>
-                            track.stop()
-                    );
-            }
-
-
-            if(animationFrame){
-
-                cancelAnimationFrame(
-                    animationFrame
-                );
-
-                animationFrame =
-                    null;
-            }
-
-
-            setStatus(
-                "Camera stopped"
-            );
-        }
-    );
-
-
-/* ==================================================
-   MODAL BACKGROUND
-================================================== */
-
-[
-    settingsModal,
-    helpModal,
-    previewModal
-
-].forEach(
-    modal => {
-
-        modal.addEventListener(
-            "click",
-            event => {
-
-                if(
-                    event.target ===
-                    modal
-                ){
-
-                    modal
-                        .classList
-                        .remove(
-                            "show"
-                        );
-                }
-            }
-        );
-
-    }
+cameraButton.addEventListener(
+    "click",
+    switchCamera
 );
 
 
-/* ==================================================
-   SCREEN ORIENTATION CHANGE
-================================================== */
+calibrateButton.addEventListener(
+    "click",
+    calibrate
+);
 
-window.addEventListener(
-    "orientationchange",
+
+closeCalibration.addEventListener(
+    "click",
     () => {
 
-        /*
-           DO NOT reset sensorAngle here.
-
-           Resetting it causes the horizon
-           to jump when the screen rotates.
-        */
-
-        setTimeout(
-            () => {
-
-                setupCanvas();
-
-            },
-            150
+        calibration.classList.remove(
+            "show"
         );
+
     }
 );
 
 
-if(
-    screen.orientation
-){
+/* =========================================================
+   INITIAL UI
+========================================================= */
 
-    screen.orientation.addEventListener(
-        "change",
-        () => {
-
-            /*
-               Again, don't reset the
-               sensor state here.
-            */
-
-            setupCanvas();
-
-        }
-    );
-}
+setStatus(
+    "CAMERA OFF"
+);
 
 
-/* ==================================================
-   INITIALIZE
-================================================== */
+/*
+   Prevent accidental page scrolling.
+*/
 
-async function init(){
+document.addEventListener(
+    "touchmove",
+    event => {
 
-    zoomLevel =
-        1.0;
+        event.preventDefault();
 
-    targetZoom =
-        1.0;
-
-
-    updateZoomLabel();
-
-
-    await startCamera();
-
-
-    if(!animationFrame){
-
-        animationFrame =
-            requestAnimationFrame(
-                drawFrame
-            );
+    },
+    {
+        passive:false
     }
-
-
-    updateZoom();
-
-
-    setStatus(
-        "Camera ready"
-    );
-}
-
-
-init();
-
+);
 </script>
 
 </body>
