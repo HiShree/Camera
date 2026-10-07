@@ -3,142 +3,158 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Web Page</title>
+    <title>Web Horizon Camera</title>
     <style>
-        :root {
-            --primary: #4f46e5;
-            --primary-hover: #4338ca;
-            --bg-color: #f8fafc;
-            --card-bg: #ffffff;
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-            --border-color: #e2e8f0;
-        }
-
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            font-family: system-ui, -apple-system, sans-serif;
         }
 
         body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            line-height: 1.6;
+            background-color: #0f172a;
+            color: #f8fafc;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-        }
-
-        header {
-            background-color: var(--card-bg);
-            border-bottom: 1px solid var(--border-color);
-            padding: 1rem 2rem;
-            display: flex;
-            justify-content: space-between;
             align-items: center;
+            justify-content: center;
+            overflow: hidden;
         }
 
-        .logo {
-            font-weight: 700;
-            font-size: 1.25rem;
-            color: var(--primary);
-        }
-
-        nav a {
-            color: var(--text-muted);
-            text-decoration: none;
-            margin-left: 1.5rem;
-            font-weight: 500;
-            transition: color 0.2s;
-        }
-
-        nav a:hover {
-            color: var(--primary);
-        }
-
-        main {
-            flex: 1;
-            max-width: 800px;
+        .camera-container {
+            position: relative;
             width: 100%;
-            margin: 2rem auto;
-            padding: 0 1rem;
+            max-width: 480px;
+            height: 70vh;
+            background: #000;
+            overflow: hidden;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 2.5rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-            text-align: center;
+        /* The viewfinder element that auto-levels based on device tilt */
+        #viewfinder {
+            width: 150%;
+            height: 150%;
+            object-fit: cover;
+            position: absolute;
+            transition: transform 0.05s linear;
         }
 
-        h1 {
-            font-size: 2.25rem;
-            margin-bottom: 1rem;
-            color: var(--text-main);
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
-        p {
-            color: var(--text-muted);
-            font-size: 1.1rem;
-            margin-bottom: 2rem;
+        .horizon-leveler {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.6);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .controls {
+            margin-top: 1.5rem;
+            display: flex;
+            gap: 1rem;
         }
 
         .btn {
-            background-color: var(--primary);
+            background-color: #4f46e5;
             color: white;
             border: none;
-            padding: 0.75rem 1.75rem;
+            padding: 0.75rem 1.5rem;
             font-size: 1rem;
             font-weight: 600;
             border-radius: 8px;
             cursor: pointer;
-            transition: background-color 0.2s, transform 0.1s;
+            transition: background-color 0.2s;
         }
 
         .btn:hover {
-            background-color: var(--primary-hover);
-        }
-
-        .btn:active {
-            transform: scale(0.98);
-        }
-
-        footer {
-            text-align: center;
-            padding: 1.5rem;
-            color: var(--text-muted);
-            font-size: 0.875rem;
-            border-top: 1px solid var(--border-color);
-            background-color: var(--card-bg);
+            background-color: #4338ca;
         }
     </style>
 </head>
 <body>
 
-    <header>
-        <div class="logo">BrandName</div>
-        <nav>
-            <a href="#">Home</a>
-            <a href="#">About</a>
-            <a href="#">Contact</a>
-        </nav>
-    </header>
-
-    <main>
-        <div class="card">
-            <h1>Welcome to Your Web Page</h1>
-            <p>This is a clean, modern, and fully responsive HTML template ready for your projects.</p>
-            <button class="btn" onclick="alert('Button clicked!')">Click Me</button>
+    <div class="camera-container" id="frameBox">
+        <div id="viewfinder">
+            <video id="webcam" autoplay playsinline muted></video>
         </div>
-    </main>
+        <div class="horizon-leveler" id="statusText">Level: 0°</div>
+    </div>
 
-    <footer>
-        &copy; 2026 My Website. All rights reserved.
-    </footer>
+    <div class="controls">
+        <button class="btn" id="startCam">Start Camera</button>
+        <button class="btn" id="permissionBtn" style="display:none;">Enable Gyroscope</button>
+    </div>
 
+    <script>
+        const video = document.getElementById('webcam');
+        const viewfinder = document.getElementById('viewfinder');
+        const statusText = document.getElementById('statusText');
+        const startCamBtn = document.getElementById('startCam');
+        const permissionBtn = document.getElementById('permissionBtn');
+
+        // Start webcam stream
+        startCamBtn.addEventListener('click', async () => {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: 'environment' }, 
+                    audio: false 
+                });
+                video.srcObject = stream;
+                startCamBtn.style.display = 'none';
+
+                // Check if device orientation permission is needed (iOS 13+)
+                if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                    permissionBtn.style.display = 'inline-block';
+                } else {
+                    initOrientationListener();
+                }
+            } catch (err) {
+                alert('Camera access denied or not supported.');
+            }
+        });
+
+        // Handle iOS permission request
+        permissionBtn.addEventListener('click', async () => {
+            const response = await DeviceOrientationEvent.requestPermission();
+            if (response === 'granted') {
+                permissionBtn.style.display = 'none';
+                initOrientationListener();
+            } else {
+                alert('Gyroscope permission is required for horizon leveling.');
+            }
+        });
+
+        function initOrientationListener() {
+            window.addEventListener('deviceorientation', (event) => {
+                // Gamma represents left-to-right tilt (-90 to 90 degrees)
+                let tilt = event.gamma || 0;
+                
+                // Clamp the tilt to prevent extreme rotation cutoffs
+                if (tilt > 45) tilt = 45;
+                if (tilt < -45) tilt = -45;
+
+                // Apply dynamic counter-rotation to simulate horizon stabilization
+                viewfinder.style.transform = `rotate(${-tilt}deg)`;
+                statusText.innerText = `Level: ${Math.round(tilt)}°`;
+            });
+        }
+    </script>
 </body>
 </html>
