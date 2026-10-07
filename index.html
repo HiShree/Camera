@@ -10,7 +10,7 @@
                user-scalable=no,
                viewport-fit=cover">
 
-<title>Horizon Camera VNext</title>
+<title>Horizon Camera</title>
 
 <style>
 *{
@@ -18,12 +18,13 @@
     -webkit-tap-highlight-color:transparent;
 }
 
-html,body{
-    margin:0;
+html,
+body{
     width:100%;
     height:100%;
+    margin:0;
     overflow:hidden;
-    background:#05070b;
+    background:#000;
     font-family:Arial,Helvetica,sans-serif;
 }
 
@@ -42,7 +43,9 @@ body{
     background:#000;
 }
 
-/* CAMERA */
+/* =====================================================
+   CAMERA
+===================================================== */
 
 #camera{
     display:none;
@@ -51,204 +54,296 @@ body{
 #outputCanvas{
     position:absolute;
     inset:0;
+
     width:100%;
     height:100%;
+
     display:block;
+
     background:#000;
 }
 
-/* TOP BAR */
+/* =====================================================
+   TOP BAR
+===================================================== */
 
 .topBar{
     position:absolute;
+
     top:0;
     left:0;
     right:0;
-    z-index:10;
-
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-
-    padding:
-        calc(env(safe-area-inset-top) + 14px)
-        16px
-        12px;
-
-    background:linear-gradient(
-        to bottom,
-        rgba(0,0,0,.72),
-        rgba(0,0,0,0)
-    );
-}
-
-.logo{
-    color:white;
-    font-size:18px;
-    font-weight:800;
-    letter-spacing:.5px;
-}
-
-.status{
-    padding:7px 11px;
-    border-radius:20px;
-
-    color:#fff;
-    background:rgba(0,0,0,.45);
-    border:1px solid rgba(255,255,255,.15);
-
-    font-size:11px;
-    font-weight:700;
-    backdrop-filter:blur(10px);
-}
-
-.status.ready{
-    color:#7dffae;
-}
-
-.status.error{
-    color:#ff7777;
-}
-
-/* HORIZON INDICATOR */
-
-.horizonIndicator{
-    position:absolute;
-    top:50%;
-    left:50%;
-
-    width:150px;
-    height:2px;
-
-    transform:translate(-50%,-50%);
-
-    background:rgba(255,255,255,.8);
-    box-shadow:
-        0 0 8px rgba(255,255,255,.4);
-
-    opacity:.5;
-    pointer-events:none;
-}
-
-.horizonIndicator::before,
-.horizonIndicator::after{
-    content:"";
-    position:absolute;
-    top:50%;
-    width:2px;
-    height:12px;
-    transform:translateY(-50%);
-    background:white;
-}
-
-.horizonIndicator::before{
-    left:0;
-}
-
-.horizonIndicator::after{
-    right:0;
-}
-
-/* ANGLE */
-
-.angleBadge{
-    position:absolute;
-    top:calc(env(safe-area-inset-top) + 70px);
-    left:50%;
-    transform:translateX(-50%);
-
-    z-index:9;
-
-    padding:6px 10px;
-    border-radius:14px;
-
-    background:rgba(0,0,0,.42);
-    color:white;
-
-    font-size:11px;
-    font-weight:700;
-
-    backdrop-filter:blur(8px);
-}
-
-/* ZOOM */
-
-.zoomBar{
-    position:absolute;
-    left:50%;
-    bottom:128px;
-
-    transform:translateX(-50%);
 
     z-index:20;
 
     display:flex;
-    gap:7px;
+    justify-content:space-between;
+    align-items:center;
 
-    padding:7px;
+    padding:
+        calc(env(safe-area-inset-top) + 14px)
+        16px
+        18px;
+
+    background:
+        linear-gradient(
+            to bottom,
+            rgba(0,0,0,.75),
+            rgba(0,0,0,0)
+        );
+}
+
+.logo{
+    color:white;
+
+    font-size:18px;
+    font-weight:900;
+    letter-spacing:1px;
+}
+
+.status{
+    padding:7px 11px;
+
+    border-radius:20px;
+
+    background:rgba(0,0,0,.45);
+    border:1px solid rgba(255,255,255,.15);
+
+    color:white;
+
+    font-size:10px;
+    font-weight:800;
+
+    backdrop-filter:blur(12px);
+}
+
+.status.ready{
+    color:#75ffac;
+}
+
+.status.recording{
+    color:#ff5360;
+}
+
+/* =====================================================
+   ANGLE
+===================================================== */
+
+.angleBadge{
+    position:absolute;
+
+    top:calc(env(safe-area-inset-top) + 67px);
+    left:50%;
+
+    transform:translateX(-50%);
+
+    z-index:15;
+
+    padding:6px 11px;
+
+    border-radius:20px;
+
+    background:rgba(0,0,0,.42);
+
+    color:white;
+
+    font-size:11px;
+    font-weight:800;
+
+    backdrop-filter:blur(10px);
+}
+
+/* =====================================================
+   HORIZON GUIDE
+===================================================== */
+
+.horizonGuide{
+    position:absolute;
+
+    top:50%;
+    left:50%;
+
+    width:160px;
+    height:2px;
+
+    transform:translate(-50%,-50%);
+
+    z-index:12;
+
+    background:rgba(255,255,255,.72);
+
+    box-shadow:
+        0 0 8px rgba(255,255,255,.35);
+
+    opacity:.48;
+
+    pointer-events:none;
+}
+
+.horizonGuide::before,
+.horizonGuide::after{
+    content:"";
+
+    position:absolute;
+
+    top:50%;
+
+    width:2px;
+    height:12px;
+
+    transform:translateY(-50%);
+
+    background:#fff;
+}
+
+.horizonGuide::before{
+    left:0;
+}
+
+.horizonGuide::after{
+    right:0;
+}
+
+/* =====================================================
+   MODE BAR
+===================================================== */
+
+.modeBar{
+    position:absolute;
+
+    left:50%;
+    bottom:213px;
+
+    transform:translateX(-50%);
+
+    z-index:25;
+
+    display:flex;
+
+    padding:5px;
 
     border-radius:30px;
 
     background:rgba(0,0,0,.48);
-    border:1px solid rgba(255,255,255,.14);
+
+    border:1px solid rgba(255,255,255,.12);
+
+    backdrop-filter:blur(14px);
+}
+
+.modeButton{
+    border:0;
+
+    background:transparent;
+
+    color:rgba(255,255,255,.6);
+
+    padding:8px 13px;
+
+    border-radius:22px;
+
+    font-size:10px;
+    font-weight:900;
+}
+
+.modeButton.active{
+    background:rgba(255,255,255,.2);
+
+    color:#fff;
+}
+
+/* =====================================================
+   ZOOM BAR
+===================================================== */
+
+.zoomBar{
+    position:absolute;
+
+    left:50%;
+    bottom:125px;
+
+    transform:translateX(-50%);
+
+    z-index:25;
+
+    display:flex;
+    gap:6px;
+
+    padding:6px;
+
+    border-radius:30px;
+
+    background:rgba(0,0,0,.5);
+
+    border:1px solid rgba(255,255,255,.12);
 
     backdrop-filter:blur(14px);
 }
 
 .zoomButton{
-    width:48px;
-    height:36px;
+    width:50px;
+    height:34px;
 
     border:0;
+
     border-radius:20px;
 
     background:transparent;
+
     color:white;
 
-    font-size:13px;
-    font-weight:800;
+    font-size:12px;
+    font-weight:900;
 }
 
 .zoomButton.active{
     background:white;
+
     color:#111;
 }
 
-/* BOTTOM */
+/* =====================================================
+   BOTTOM CONTROLS
+===================================================== */
 
 .bottomControls{
     position:absolute;
+
     left:0;
     right:0;
     bottom:0;
 
-    z-index:20;
+    z-index:25;
 
     padding:
         12px
         18px
         calc(env(safe-area-inset-bottom) + 18px);
 
-    background:linear-gradient(
-        to top,
-        rgba(0,0,0,.85),
-        rgba(0,0,0,0)
-    );
+    background:
+        linear-gradient(
+            to top,
+            rgba(0,0,0,.88),
+            rgba(0,0,0,0)
+        );
 }
 
 .controlRow{
     display:flex;
+
     align-items:center;
+
     justify-content:space-between;
 }
 
-.sideControls{
+.side{
+    width:85px;
+
     display:flex;
-    gap:10px;
-    width:90px;
+    gap:9px;
 }
 
-.sideControls.right{
+.side.right{
     justify-content:flex-end;
 }
 
@@ -257,14 +352,16 @@ body{
     height:48px;
 
     border-radius:50%;
+
     border:1px solid rgba(255,255,255,.18);
 
-    background:rgba(0,0,0,.5);
-    color:white;
+    background:rgba(0,0,0,.48);
+
+    color:#fff;
 
     font-size:18px;
 
-    backdrop-filter:blur(10px);
+    backdrop-filter:blur(12px);
 }
 
 .recordButton{
@@ -273,116 +370,91 @@ body{
 
     border-radius:50%;
 
-    background:white;
-
     border:7px solid rgba(255,255,255,.35);
+
+    background:#fff;
 
     box-shadow:
         0 0 0 2px rgba(255,255,255,.5);
 }
 
 .recordButton.recording{
-    background:#ff3344;
+    background:#ff3345;
 }
 
-/* MODE */
-
-.modeBar{
-    position:absolute;
-
-    left:50%;
-    bottom:215px;
-
-    transform:translateX(-50%);
-
-    z-index:20;
-
-    display:flex;
-
-    padding:5px;
-
-    border-radius:25px;
-
-    background:rgba(0,0,0,.45);
-    backdrop-filter:blur(12px);
-}
-
-.modeButton{
-    border:0;
-    background:transparent;
-
-    color:rgba(255,255,255,.65);
-
-    padding:7px 12px;
-
-    border-radius:18px;
-
-    font-size:11px;
-    font-weight:800;
-}
-
-.modeButton.active{
-    background:rgba(255,255,255,.18);
-    color:white;
-}
-
-/* START SCREEN */
+/* =====================================================
+   START SCREEN
+===================================================== */
 
 #startScreen{
     position:absolute;
+
     inset:0;
 
-    z-index:50;
+    z-index:100;
 
     display:flex;
+
     flex-direction:column;
 
-    align-items:center;
     justify-content:center;
+    align-items:center;
 
     padding:30px;
+
+    text-align:center;
+
+    color:#fff;
 
     background:
         radial-gradient(
             circle at 50% 30%,
-            #18243c,
-            #05070b 65%
+            #1b2d4c,
+            #05070b 68%
         );
-
-    color:white;
-
-    text-align:center;
 }
 
 #startScreen h1{
     margin:0 0 8px;
-    font-size:32px;
+
+    font-size:34px;
+    font-weight:900;
 }
 
 #startScreen p{
-    margin:0 0 25px;
-    color:#aeb7c8;
-    font-size:14px;
-    line-height:1.5;
+    max-width:310px;
+
+    margin:0 0 26px;
+
+    color:#b9c2d0;
+
+    font-size:13px;
+
+    line-height:1.6;
 }
 
 .startButton{
     width:230px;
+
     padding:15px;
 
     border:0;
+
     border-radius:30px;
 
-    background:white;
+    background:#fff;
+
     color:#111;
 
-    font-size:15px;
-    font-weight:800;
+    font-size:14px;
+    font-weight:900;
 }
 
-/* CALIBRATION MESSAGE */
+/* =====================================================
+   CALIBRATION POPUP
+===================================================== */
 
-#calibration{
+#calibrationPopup{
     position:absolute;
 
     left:50%;
@@ -390,67 +462,79 @@ body{
 
     transform:translate(-50%,-50%);
 
-    z-index:30;
+    z-index:80;
 
-    width:280px;
+    display:none;
 
-    padding:18px;
+    width:285px;
+
+    padding:20px;
 
     border-radius:20px;
 
-    background:rgba(10,12,18,.88);
-    border:1px solid rgba(255,255,255,.15);
+    background:rgba(10,12,18,.92);
 
-    color:white;
+    border:1px solid rgba(255,255,255,.14);
+
+    color:#fff;
 
     text-align:center;
 
-    backdrop-filter:blur(16px);
-
-    display:none;
+    backdrop-filter:blur(18px);
 }
 
-#calibration.show{
+#calibrationPopup.show{
     display:block;
 }
 
-#calibration strong{
+#calibrationPopup strong{
     display:block;
+
     margin-bottom:8px;
+
+    font-size:16px;
 }
 
-#calibration span{
+#calibrationPopup span{
     display:block;
-    color:#b7bfce;
+
+    color:#b9c0cc;
+
     font-size:12px;
+
     line-height:1.5;
 }
 
 .smallButton{
     margin-top:14px;
 
+    padding:9px 17px;
+
     border:0;
+
     border-radius:20px;
 
-    padding:9px 16px;
+    background:#fff;
 
-    background:white;
     color:#111;
 
-    font-weight:700;
+    font-weight:800;
 }
 
-/* ERROR */
+/* =====================================================
+   ERROR
+===================================================== */
 
 #errorBox{
     position:absolute;
+
     left:20px;
     right:20px;
     top:50%;
 
     transform:translateY(-50%);
 
-    z-index:100;
+    z-index:200;
 
     display:none;
 
@@ -459,7 +543,8 @@ body{
     border-radius:20px;
 
     background:#15171d;
-    color:white;
+
+    color:#fff;
 
     text-align:center;
 }
@@ -469,19 +554,32 @@ body{
 }
 
 #errorBox p{
-    color:#bfc4ce;
+    color:#b9bec8;
+
     font-size:13px;
+
     line-height:1.5;
 }
 
-@media (max-height:700px){
-    .zoomBar{
-        bottom:108px;
-    }
+/* =====================================================
+   SMALL SCREEN
+===================================================== */
+
+@media(max-height:700px){
 
     .modeBar{
         bottom:180px;
     }
+
+    .zoomBar{
+        bottom:105px;
+    }
+
+    .recordButton{
+        width:66px;
+        height:66px;
+    }
+
 }
 </style>
 </head>
@@ -490,6 +588,10 @@ body{
 
 <div id="app">
 
+    <!-- =================================================
+         RAW CAMERA
+    ================================================== -->
+
     <video
         id="camera"
         autoplay
@@ -497,84 +599,152 @@ body{
         muted>
     </video>
 
+
+    <!-- =================================================
+         PROCESSED CAMERA
+    ================================================== -->
+
     <canvas id="outputCanvas"></canvas>
 
+
+    <!-- =================================================
+         TOP
+    ================================================== -->
+
     <div class="topBar">
-        <div class="logo">HORIZON</div>
-        <div id="status" class="status">CAMERA OFF</div>
+
+        <div class="logo">
+            HORIZON
+        </div>
+
+        <div
+            id="status"
+            class="status">
+            CAMERA OFF
+        </div>
+
     </div>
 
-    <div id="angleBadge" class="angleBadge">
+
+    <!-- =================================================
+         ANGLE
+    ================================================== -->
+
+    <div
+        id="angleBadge"
+        class="angleBadge">
         0.0°
     </div>
 
-    <div class="horizonIndicator"></div>
+
+    <!-- =================================================
+         HORIZON GUIDE
+    ================================================== -->
+
+    <div class="horizonGuide"></div>
+
+
+    <!-- =================================================
+         MODES
+    ================================================== -->
 
     <div class="modeBar">
 
         <button
             class="modeButton active"
             data-mode="flex">
+
             FLEX
+
+        </button>
+
+        <button
+            class="modeButton"
+            data-mode="rotate">
+
+            ROTATE
+
         </button>
 
         <button
             class="modeButton"
             data-mode="locked">
+
             LOCKED
+
         </button>
 
     </div>
+
+
+    <!-- =================================================
+         ZOOM
+    ================================================== -->
 
     <div class="zoomBar">
 
         <button
             class="zoomButton active"
             data-zoom="1">
+
             1×
+
         </button>
 
         <button
             class="zoomButton"
             data-zoom="1.5">
+
             1.5×
+
         </button>
 
         <button
             class="zoomButton"
             data-zoom="2">
+
             2×
+
         </button>
 
     </div>
+
+
+    <!-- =================================================
+         BOTTOM
+    ================================================== -->
 
     <div class="bottomControls">
 
         <div class="controlRow">
 
-            <div class="sideControls">
+            <div class="side">
 
                 <button
                     id="calibrateButton"
-                    class="circleButton"
-                    title="Calibrate">
+                    class="circleButton">
+
                     ◎
+
                 </button>
 
             </div>
+
 
             <button
                 id="recordButton"
                 class="recordButton">
             </button>
 
-            <div class="sideControls right">
+
+            <div class="side right">
 
                 <button
                     id="cameraButton"
-                    class="circleButton"
-                    title="Camera">
+                    class="circleButton">
+
                     ↻
+
                 </button>
 
             </div>
@@ -583,43 +753,69 @@ body{
 
     </div>
 
-    <div id="calibration">
 
-        <strong>Horizon calibrated</strong>
+    <!-- =================================================
+         CALIBRATION POPUP
+    ================================================== -->
+
+    <div id="calibrationPopup">
+
+        <strong>
+            Horizon calibrated
+        </strong>
 
         <span>
-            Keep the phone in the position you want
-            to use as level.
+            The current phone position is now
+            treated as level.
         </span>
 
         <button
             id="closeCalibration"
             class="smallButton">
+
             Done
+
         </button>
 
     </div>
 
+
+    <!-- =================================================
+         START
+    ================================================== -->
+
     <div id="startScreen">
 
-        <h1>Horizon</h1>
+        <h1>
+            Horizon
+        </h1>
 
         <p>
-            Portrait camera with smooth horizon
-            stabilization and normal 1× / 1.5× / 2× zoom.
+            Portrait horizon camera with gyro
+            stabilization, 1× / 1.5× / 2× zoom,
+            and smooth horizon correction.
         </p>
 
         <button
             id="startButton"
             class="startButton">
+
             START CAMERA
+
         </button>
 
     </div>
 
+
+    <!-- =================================================
+         ERROR
+    ================================================== -->
+
     <div id="errorBox">
 
-        <strong>Camera unavailable</strong>
+        <strong>
+            Camera unavailable
+        </strong>
 
         <p id="errorText">
             Please allow camera access and try again.
@@ -629,18 +825,24 @@ body{
 
 </div>
 
+
 <script>
 "use strict";
 
-/* =========================================================
+/* =====================================================
    ELEMENTS
-========================================================= */
+===================================================== */
 
-const video = document.getElementById("camera");
-const canvas = document.getElementById("outputCanvas");
-const ctx = canvas.getContext("2d", {
-    alpha:false
-});
+const video =
+    document.getElementById("camera");
+
+const canvas =
+    document.getElementById("outputCanvas");
+
+const ctx =
+    canvas.getContext("2d", {
+        alpha:false
+    });
 
 const startScreen =
     document.getElementById("startScreen");
@@ -651,6 +853,9 @@ const startButton =
 const status =
     document.getElementById("status");
 
+const angleBadge =
+    document.getElementById("angleBadge");
+
 const recordButton =
     document.getElementById("recordButton");
 
@@ -660,14 +865,11 @@ const cameraButton =
 const calibrateButton =
     document.getElementById("calibrateButton");
 
-const calibration =
-    document.getElementById("calibration");
+const calibrationPopup =
+    document.getElementById("calibrationPopup");
 
 const closeCalibration =
     document.getElementById("closeCalibration");
-
-const angleBadge =
-    document.getElementById("angleBadge");
 
 const errorBox =
     document.getElementById("errorBox");
@@ -676,121 +878,11 @@ const errorText =
     document.getElementById("errorText");
 
 
-/* =========================================================
-   CAMERA STATE
-========================================================= */
+/* =====================================================
+   OUTPUT SIZE
 
-let stream = null;
-
-let facingMode = "environment";
-
-let cameraStarted = false;
-
-let recording = false;
-
-let mediaRecorder = null;
-
-let recordedChunks = [];
-
-
-/* =========================================================
-   ZOOM
-========================================================= */
-
-/*
-   IMPORTANT:
-
-   We intentionally DO NOT use:
-
-   track.applyConstraints({
-       advanced:[{zoom:...}]
-   });
-
-   That caused the previous version to apply
-   native zoom + canvas zoom simultaneously.
-
-   This version uses canvas zoom only.
-
-   Therefore:
-
-       1×  = original camera image
-       1.5× = 1.5 digital crop
-       2×  = 2 digital crop
-*/
-
-let zoomLevel = 1;
-
-
-/* =========================================================
-   HORIZON STATE
-========================================================= */
-
-let mode = "flex";
-
-/*
-   Maximum correction.
-
-   The image can NEVER be rotated more than
-   45 degrees in either direction.
-*/
-
-const MAX_ROLL = 45;
-
-
-/*
-   Reference angle.
-
-   When calibration happens, the current
-   phone roll becomes the new zero position.
-*/
-
-let referenceRoll = 0;
-
-
-/*
-   Sensor values.
-*/
-
-let currentRoll = 0;
-
-let targetRoll = 0;
-
-let sensorReady = false;
-
-
-/*
-   Smoothing.
-
-   Lower = smoother/slower.
-*/
-
-const SENSOR_SMOOTHING = 0.15;
-
-const OUTPUT_SMOOTHING = 0.12;
-
-
-/*
-   Small dead zone prevents tiny sensor noise
-   from constantly moving the image.
-*/
-
-const DEAD_ZONE = 1.0;
-
-
-/* =========================================================
-   SENSOR FILTER
-========================================================= */
-
-let filteredGamma = 0;
-
-let calibrationSamples = [];
-
-let calibratingAutomatically = false;
-
-
-/* =========================================================
-   CANVAS
-========================================================= */
+   Portrait video.
+===================================================== */
 
 const OUTPUT_WIDTH = 720;
 const OUTPUT_HEIGHT = 1280;
@@ -799,15 +891,158 @@ canvas.width = OUTPUT_WIDTH;
 canvas.height = OUTPUT_HEIGHT;
 
 
-/* =========================================================
-   UTILITIES
-========================================================= */
+/* =====================================================
+   CAMERA
+===================================================== */
 
-function clamp(value, min, max){
+let stream = null;
+
+let facingMode = "environment";
+
+let cameraStarted = false;
+
+
+/* =====================================================
+   ZOOM
+
+   IMPORTANT:
+
+   There is NO track.applyConstraints({zoom})
+   anywhere in this version.
+
+   Therefore 1× is the unzoomed camera frame.
+===================================================== */
+
+let zoomLevel = 1;
+
+
+/* =====================================================
+   MODES
+===================================================== */
+
+let mode = "flex";
+
+
+/*
+   FLEX:
+   Full horizon correction with ±45° limit.
+
+   ROTATE:
+   Horizon correction follows the phone smoothly,
+   while the crop is kept stable.
+
+   LOCKED:
+   No sensor correction.
+*/
+
+
+/* =====================================================
+   HORIZON LIMIT
+===================================================== */
+
+const MAX_ROLL = 45;
+
+
+/* =====================================================
+   SENSOR FILTER
+===================================================== */
+
+/*
+   The main sensor pipeline is:
+
+       Gyroscope angular velocity
+                    +
+             Gravity vector
+                    ↓
+           Complementary filter
+                    ↓
+              Roll angle
+                    ↓
+             ±45° limiter
+                    ↓
+                Canvas
+*/
+
+
+let gyroRoll = 0;
+
+let filteredRoll = 0;
+
+let targetRoll = 0;
+
+let outputRoll = 0;
+
+
+/*
+   Calibration offset.
+*/
+
+let calibrationOffset = 0;
+
+
+/*
+   Gravity-derived roll.
+
+   Used to correct gyro drift.
+*/
+
+let gravityRoll = 0;
+
+
+/*
+   Sensor timestamps.
+*/
+
+let lastSensorTime = null;
+
+
+/*
+   Whether the sensor has started.
+*/
+
+let sensorStarted = false;
+
+
+/*
+   If DeviceMotion is unavailable,
+   DeviceOrientation becomes fallback.
+*/
+
+let usingOrientationFallback = false;
+
+
+/* =====================================================
+   SENSOR TUNING
+===================================================== */
+
+const GYRO_WEIGHT = 0.985;
+
+const GRAVITY_WEIGHT = 0.015;
+
+
+/*
+   Output smoothing.
+*/
+
+const OUTPUT_SMOOTHING = 0.13;
+
+
+/*
+   Small dead zone.
+*/
+
+const DEAD_ZONE = 0.7;
+
+
+/* =====================================================
+   UTILITIES
+===================================================== */
+
+function clamp(value,min,max){
 
     return Math.max(
         min,
-        Math.min(max, value)
+        Math.min(max,value)
     );
 }
 
@@ -826,7 +1061,19 @@ function normalizeAngle(angle){
 }
 
 
-function setStatus(text, type=""){
+function smoothAngle(current,target,factor){
+
+    let difference =
+        normalizeAngle(
+            target - current
+        );
+
+    return current +
+        difference * factor;
+}
+
+
+function setStatus(text,type=""){
 
     status.textContent = text;
 
@@ -835,9 +1082,9 @@ function setStatus(text, type=""){
 }
 
 
-/* =========================================================
+/* =====================================================
    PORTRAIT LOCK
-========================================================= */
+===================================================== */
 
 async function lockPortrait(){
 
@@ -856,10 +1103,10 @@ async function lockPortrait(){
     }catch(error){
 
         /*
-           Some browsers only allow
-           orientation.lock in fullscreen/PWA.
+           Normal browsers may reject this
+           unless the page is fullscreen/PWA.
 
-           Failure is harmless.
+           The rest of the app continues normally.
         */
 
         console.log(
@@ -870,9 +1117,9 @@ async function lockPortrait(){
 }
 
 
-/* =========================================================
-   CAMERA
-========================================================= */
+/* =====================================================
+   CAMERA START
+===================================================== */
 
 async function startCamera(){
 
@@ -889,10 +1136,13 @@ async function startCamera(){
 
 
         setStatus(
-            "STARTING...",
-            ""
+            "STARTING..."
         );
 
+
+        /*
+           Deliberately no zoom constraint.
+        */
 
         stream =
             await navigator.mediaDevices.getUserMedia({
@@ -917,6 +1167,7 @@ async function startCamera(){
                 },
 
                 audio:true
+
             });
 
 
@@ -927,9 +1178,14 @@ async function startCamera(){
 
         cameraStarted = true;
 
-        startScreen.style.display = "none";
 
-        errorBox.classList.remove("show");
+        startScreen.style.display =
+            "none";
+
+
+        errorBox.classList.remove(
+            "show"
+        );
 
 
         setStatus(
@@ -942,19 +1198,20 @@ async function startCamera(){
 
 
         /*
-           Start automatic sensor calibration.
+           Start sensor pipeline.
         */
 
-        beginInitialCalibration();
+        resetSensorState();
 
 
         /*
-           Start rendering.
+           Render.
         */
 
         requestAnimationFrame(
             renderFrame
         );
+
 
     }catch(error){
 
@@ -970,14 +1227,16 @@ async function startCamera(){
         errorText.textContent =
             "Camera permission was denied or the camera could not be opened.";
 
-        errorBox.classList.add("show");
+        errorBox.classList.add(
+            "show"
+        );
     }
 }
 
 
-/* =========================================================
+/* =====================================================
    CAMERA SWITCH
-========================================================= */
+===================================================== */
 
 async function switchCamera(){
 
@@ -996,97 +1255,320 @@ async function switchCamera(){
 }
 
 
-/* =========================================================
-   INITIAL CALIBRATION
-========================================================= */
+/* =====================================================
+   SENSOR RESET
+===================================================== */
 
-function beginInitialCalibration(){
+function resetSensorState(){
 
-    calibrationSamples = [];
+    gyroRoll = 0;
 
-    calibratingAutomatically = true;
+    filteredRoll = 0;
 
-    sensorReady = false;
-
-
-    /*
-       Wait for several sensor readings.
-       This avoids using one noisy reading.
-    */
-
-    setTimeout(() => {
-
-        if(
-            calibrationSamples.length > 0
-        ){
-
-            const sum =
-                calibrationSamples.reduce(
-                    (a,b) => a + b,
-                    0
-                );
-
-            referenceRoll =
-                sum /
-                calibrationSamples.length;
-
-            currentRoll = 0;
-            targetRoll = 0;
-
-            sensorReady = true;
-        }
-
-        calibratingAutomatically = false;
-
-    }, 1000);
-}
-
-
-/* =========================================================
-   MANUAL CALIBRATION
-========================================================= */
-
-function calibrate(){
-
-    /*
-       Current filtered sensor position
-       becomes the new zero.
-    */
-
-    referenceRoll =
-        filteredGamma;
-
-    currentRoll = 0;
     targetRoll = 0;
 
-    calibration.classList.add("show");
+    outputRoll = 0;
 
-    setTimeout(() => {
+    gravityRoll = 0;
 
-        calibration.classList.remove("show");
+    calibrationOffset = 0;
 
-    }, 1500);
+    lastSensorTime = null;
+
+    sensorStarted = false;
 }
 
 
-/* =========================================================
-   DEVICE ORIENTATION
-========================================================= */
+/* =====================================================
+   GRAVITY ROLL
 
-/*
-   We use gamma ONLY.
+   Portrait coordinate system.
 
-   gamma represents left/right roll
-   while the phone is held in portrait.
+   x = left/right gravity
+   y = up/down gravity
+===================================================== */
 
-   We intentionally do NOT switch to beta
-   when the phone becomes landscape.
+function calculateGravityRoll(gx,gy){
 
-   That was one of the causes of the previous
-   90°/180° jumps.
-*/
+    if(
+        !Number.isFinite(gx) ||
+        !Number.isFinite(gy)
+    ){
+
+        return null;
+    }
+
+
+    let angle =
+        Math.atan2(
+            gx,
+            -gy
+        ) *
+        180 /
+        Math.PI;
+
+
+    angle =
+        normalizeAngle(angle);
+
+
+    /*
+       Gravity roll is only used as a
+       correction reference.
+
+       It is NEVER allowed to directly
+       rotate the camera 90°/180°.
+    */
+
+    return angle;
+}
+
+
+/* =====================================================
+   DEVICE MOTION
+
+   MAIN SENSOR SYSTEM
+===================================================== */
+
+function handleDeviceMotion(event){
+
+    if(!cameraStarted){
+
+        return;
+    }
+
+
+    const rotation =
+        event.rotationRate;
+
+
+    const acceleration =
+        event.accelerationIncludingGravity;
+
+
+    if(!rotation){
+
+        return;
+    }
+
+
+    /*
+       DeviceMotion rotationRate.gamma is
+       the roll angular velocity for the
+       portrait device coordinate system.
+
+       Units:
+       degrees per second.
+    */
+
+    let gyroSpeed =
+        Number(rotation.gamma);
+
+
+    if(!Number.isFinite(gyroSpeed)){
+
+        return;
+    }
+
+
+    /*
+       Gravity reference.
+    */
+
+    if(acceleration){
+
+        const gx =
+            Number(acceleration.x);
+
+        const gy =
+            Number(acceleration.y);
+
+
+        const calculated =
+            calculateGravityRoll(
+                gx,
+                gy
+            );
+
+
+        if(
+            calculated !== null
+        ){
+
+            gravityRoll =
+                smoothAngle(
+                    gravityRoll,
+                    calculated,
+                    0.08
+                );
+        }
+    }
+
+
+    const now =
+        performance.now();
+
+
+    if(lastSensorTime === null){
+
+        lastSensorTime = now;
+
+        sensorStarted = true;
+
+        /*
+           Initialize the integrated gyro
+           to the gravity reference.
+        */
+
+        gyroRoll =
+            gravityRoll;
+
+        filteredRoll =
+            gravityRoll;
+
+        return;
+    }
+
+
+    let dt =
+        (now - lastSensorTime) /
+        1000;
+
+
+    lastSensorTime = now;
+
+
+    /*
+       Protect against browser pauses.
+    */
+
+    dt =
+        clamp(
+            dt,
+            0,
+            0.1
+        );
+
+
+    /*
+       Integrate gyroscope.
+
+       Positive/negative direction may differ
+       between devices, so the resulting value
+       is normalized below.
+    */
+
+    gyroRoll +=
+        gyroSpeed * dt;
+
+
+    gyroRoll =
+        normalizeAngle(
+            gyroRoll
+        );
+
+
+    /*
+       COMPLEMENTARY FILTER
+
+       Gyroscope:
+       - fast
+       - smooth movement
+       - does not know absolute level
+
+       Gravity:
+       - absolute level
+       - noisy during movement
+
+       Combining them gives much better
+       horizon tracking than using gamma alone.
+    */
+
+    let fused =
+        gyroRoll * GYRO_WEIGHT +
+        gravityRoll * GRAVITY_WEIGHT;
+
+
+    /*
+       Keep the filter from suddenly choosing
+       another 180° equivalent angle.
+    */
+
+    fused =
+        normalizeAngle(
+            fused
+        );
+
+
+    filteredRoll =
+        smoothAngle(
+            filteredRoll,
+            fused,
+            0.20
+        );
+
+
+    /*
+       Relative to calibration.
+    */
+
+    let relative =
+        normalizeAngle(
+            filteredRoll -
+            calibrationOffset
+        );
+
+
+    /*
+       HARD LIMIT.
+
+       This is the important protection
+       against the previous huge rotations.
+    */
+
+    relative =
+        clamp(
+            relative,
+            -MAX_ROLL,
+            MAX_ROLL
+        );
+
+
+    /*
+       Dead zone.
+    */
+
+    if(
+        Math.abs(relative) <
+        DEAD_ZONE
+    ){
+
+        relative = 0;
+    }
+
+
+    targetRoll = relative;
+}
+
+
+/* =====================================================
+   DEVICE ORIENTATION FALLBACK
+===================================================== */
 
 function handleOrientation(event){
+
+    /*
+       DeviceMotion is preferred.
+
+       This function is only used if
+       rotationRate is unavailable.
+    */
+
+    if(!usingOrientationFallback){
+
+        return;
+    }
+
 
     if(!cameraStarted){
 
@@ -1104,10 +1586,6 @@ function handleOrientation(event){
     }
 
 
-    /*
-       Keep gamma inside a sensible range.
-    */
-
     gamma =
         clamp(
             gamma,
@@ -1117,212 +1595,92 @@ function handleOrientation(event){
 
 
     /*
-       Smooth raw sensor.
+       Calibrated relative angle.
     */
 
-    filteredGamma =
-        filteredGamma +
-        (gamma - filteredGamma) *
-        SENSOR_SMOOTHING;
-
-
-    /*
-       During startup, collect samples
-       instead of moving the camera.
-    */
-
-    if(calibratingAutomatically){
-
-        calibrationSamples.push(
-            filteredGamma
-        );
-
-        return;
-    }
-
-
-    if(!sensorReady){
-
-        return;
-    }
-
-
-    /*
-       Difference from calibrated level.
-    */
-
-    let delta =
+    let relative =
         normalizeAngle(
-            filteredGamma -
-            referenceRoll
+            gamma -
+            calibrationOffset
         );
 
 
-    /*
-       NEVER allow the horizon correction
-       to exceed ±45°.
-    */
-
-    delta =
+    relative =
         clamp(
-            delta,
+            relative,
             -MAX_ROLL,
             MAX_ROLL
         );
 
 
-    /*
-       Dead zone.
-    */
+    if(
+        Math.abs(relative) <
+        DEAD_ZONE
+    ){
 
-    if(Math.abs(delta) < DEAD_ZONE){
-
-        delta = 0;
+        relative = 0;
     }
 
 
-    targetRoll = delta;
+    targetRoll = relative;
 }
 
 
-/* =========================================================
-   DEVICE MOTION FALLBACK
-========================================================= */
-
-function handleMotion(event){
-
-    /*
-       OrientationEvent is preferred.
-
-       This fallback is only used when
-       orientation data is unavailable.
-    */
-
-    if(
-        "DeviceOrientationEvent" in window
-    ){
-
-        return;
-    }
-
-
-    const acceleration =
-        event.accelerationIncludingGravity;
-
-
-    if(!acceleration){
-
-        return;
-    }
-
-
-    const gx =
-        Number(acceleration.x || 0);
-
-    const gy =
-        Number(acceleration.y || 0);
-
-
-    if(
-        !Number.isFinite(gx) ||
-        !Number.isFinite(gy)
-    ){
-
-        return;
-    }
-
-
-    /*
-       Portrait-only gravity roll.
-
-       We do NOT rotate the coordinate system
-       based on screen orientation.
-    */
-
-    const roll =
-        Math.atan2(
-            gx,
-            -gy
-        ) *
-        180 /
-        Math.PI;
-
-
-    filteredGamma =
-        filteredGamma +
-        (roll - filteredGamma) *
-        SENSOR_SMOOTHING;
-
-
-    if(calibratingAutomatically){
-
-        calibrationSamples.push(
-            filteredGamma
-        );
-
-        return;
-    }
-
-
-    let delta =
-        normalizeAngle(
-            filteredGamma -
-            referenceRoll
-        );
-
-
-    delta =
-        clamp(
-            delta,
-            -MAX_ROLL,
-            MAX_ROLL
-        );
-
-
-    if(Math.abs(delta) < DEAD_ZONE){
-
-        delta = 0;
-    }
-
-
-    targetRoll = delta;
-}
-
-
-/* =========================================================
+/* =====================================================
    SENSOR PERMISSION
-========================================================= */
+===================================================== */
 
 async function enableSensors(){
 
     try{
 
         /*
-           iOS requires permission.
-
-           Android normally does not.
+           iOS requires explicit permission.
         */
+
+        if(
+            typeof DeviceMotionEvent !==
+            "undefined" &&
+
+            typeof DeviceMotionEvent.requestPermission ===
+            "function"
+        ){
+
+            const result =
+                await DeviceMotionEvent
+                    .requestPermission();
+
+
+            if(result !== "granted"){
+
+                console.warn(
+                    "Motion permission denied"
+                );
+            }
+        }
+
 
         if(
             typeof DeviceOrientationEvent !==
             "undefined" &&
+
             typeof DeviceOrientationEvent.requestPermission ===
             "function"
         ){
 
-            const permission =
+            const result =
                 await DeviceOrientationEvent
                     .requestPermission();
 
-            if(permission !== "granted"){
+
+            if(result !== "granted"){
 
                 console.warn(
-                    "Device orientation permission denied."
+                    "Orientation permission denied"
                 );
-
-                return;
             }
         }
+
 
     }catch(error){
 
@@ -1333,6 +1691,21 @@ async function enableSensors(){
     }
 
 
+    /*
+       Detect whether DeviceMotion can
+       actually provide rotationRate.
+    */
+
+    usingOrientationFallback = false;
+
+
+    window.addEventListener(
+        "devicemotion",
+        handleDeviceMotion,
+        true
+    );
+
+
     window.addEventListener(
         "deviceorientation",
         handleOrientation,
@@ -1340,17 +1713,72 @@ async function enableSensors(){
     );
 
 
-    window.addEventListener(
-        "devicemotion",
-        handleMotion,
-        true
-    );
+    /*
+       Wait briefly.
+
+       If no motion sensor arrives,
+       orientation becomes fallback.
+    */
+
+    setTimeout(() => {
+
+        if(!sensorStarted){
+
+            usingOrientationFallback = true;
+
+            console.log(
+                "Using DeviceOrientation fallback"
+            );
+        }
+
+    },1500);
 }
 
 
-/* =========================================================
-   RENDER CAMERA FRAME
-========================================================= */
+/* =====================================================
+   CALIBRATION
+===================================================== */
+
+function calibrate(){
+
+    /*
+       Current fused roll becomes zero.
+
+       This is a relative calibration,
+       not a new sensor system.
+    */
+
+    calibrationOffset =
+        filteredRoll;
+
+
+    gyroRoll =
+        filteredRoll;
+
+
+    targetRoll = 0;
+
+    outputRoll = 0;
+
+
+    calibrationPopup.classList.add(
+        "show"
+    );
+
+
+    setTimeout(() => {
+
+        calibrationPopup.classList.remove(
+            "show"
+        );
+
+    },1500);
+}
+
+
+/* =====================================================
+   CANVAS DRAWING
+===================================================== */
 
 function renderFrame(){
 
@@ -1386,44 +1814,53 @@ function renderFrame(){
 
 
     /*
-       Smooth final horizon angle.
+       Mode handling.
     */
+
+    let desiredRoll;
+
 
     if(mode === "locked"){
 
-        currentRoll +=
-            (0 - currentRoll) *
-            OUTPUT_SMOOTHING;
+        desiredRoll = 0;
 
     }else{
 
-        currentRoll +=
-            (targetRoll - currentRoll) *
-            OUTPUT_SMOOTHING;
+        desiredRoll =
+            targetRoll;
     }
 
 
     /*
-       Safety clamp.
-
-       Even after smoothing,
-       the value can NEVER exceed ±45°.
+       Smooth output.
     */
 
-    currentRoll =
+    outputRoll =
+        smoothAngle(
+            outputRoll,
+            desiredRoll,
+            OUTPUT_SMOOTHING
+        );
+
+
+    /*
+       Absolute safety limit.
+    */
+
+    outputRoll =
         clamp(
-            currentRoll,
+            outputRoll,
             -MAX_ROLL,
             MAX_ROLL
         );
 
 
     angleBadge.textContent =
-        currentRoll.toFixed(1) + "°";
+        outputRoll.toFixed(1) + "°";
 
 
     /*
-       Clear frame.
+       Clear.
     */
 
     ctx.setTransform(
@@ -1441,10 +1878,11 @@ function renderFrame(){
 
 
     /*
-       Calculate a portrait camera crop.
+       BASE CAMERA SCALE.
 
-       At 1× this is the BASE camera frame.
-       There is no hidden native zoom.
+       This represents 1×.
+
+       There is no hidden zoom.
     */
 
     const baseScale =
@@ -1454,22 +1892,73 @@ function renderFrame(){
         );
 
 
-    const scale =
-        baseScale * zoomLevel;
+    /*
+       User-selected zoom.
+
+       Only:
+       1
+       1.5
+       2
+    */
+
+    const finalScale =
+        baseScale *
+        zoomLevel;
 
 
-    const drawW =
-        vw * scale;
+    const drawWidth =
+        vw *
+        finalScale;
 
-    const drawH =
-        vh * scale;
+    const drawHeight =
+        vh *
+        finalScale;
 
 
     /*
-       Rotate around the center.
+       FLEX MODE
+
+       Add a small amount of dynamic
+       framing so rotation does not
+       immediately expose black corners.
+    */
+
+    let framingScale = 1;
+
+
+    if(mode === "flex"){
+
+        const rotationAmount =
+            Math.abs(outputRoll) /
+            MAX_ROLL;
+
+
+        /*
+           Maximum extra framing:
+           approximately 12%.
+        */
+
+        framingScale =
+            1 +
+            rotationAmount * 0.12;
+    }
+
+
+    const finalWidth =
+        drawWidth *
+        framingScale;
+
+    const finalHeight =
+        drawHeight *
+        framingScale;
+
+
+    /*
+       Draw from center.
     */
 
     ctx.save();
+
 
     ctx.translate(
         OUTPUT_WIDTH / 2,
@@ -1477,17 +1966,25 @@ function renderFrame(){
     );
 
 
+    /*
+       Horizon compensation.
+
+       The negative sign means:
+
+       Phone rolls clockwise
+       →
+       image compensates counter-clockwise.
+    */
+
     ctx.rotate(
-        currentRoll *
+        -outputRoll *
         Math.PI /
         180
     );
 
 
     /*
-       Mirror front camera.
-
-       Rear camera remains normal.
+       Front camera mirror.
     */
 
     if(facingMode === "user"){
@@ -1501,19 +1998,17 @@ function renderFrame(){
 
     ctx.drawImage(
         video,
-        -drawW / 2,
-        -drawH / 2,
-        drawW,
-        drawH
+
+        -finalWidth / 2,
+        -finalHeight / 2,
+
+        finalWidth,
+        finalHeight
     );
 
 
     ctx.restore();
 
-
-    /*
-       Continue.
-    */
 
     requestAnimationFrame(
         renderFrame
@@ -1521,9 +2016,9 @@ function renderFrame(){
 }
 
 
-/* =========================================================
+/* =====================================================
    ZOOM BUTTONS
-========================================================= */
+===================================================== */
 
 document
     .querySelectorAll(".zoomButton")
@@ -1533,35 +2028,56 @@ document
             "click",
             () => {
 
-                zoomLevel =
+                const value =
                     Number(
                         button.dataset.zoom
                     );
+
+
+                /*
+                   Only these three values
+                   are accepted.
+                */
+
+                if(
+                    value !== 1 &&
+                    value !== 1.5 &&
+                    value !== 2
+                ){
+
+                    return;
+                }
+
+
+                zoomLevel = value;
 
 
                 document
                     .querySelectorAll(
                         ".zoomButton"
                     )
-                    .forEach(b => {
+                    .forEach(item => {
 
-                        b.classList.remove(
+                        item.classList.remove(
                             "active"
                         );
+
                     });
 
 
                 button.classList.add(
                     "active"
                 );
+
             }
         );
+
     });
 
 
-/* =========================================================
+/* =====================================================
    MODE BUTTONS
-========================================================= */
+===================================================== */
 
 document
     .querySelectorAll(".modeButton")
@@ -1579,25 +2095,35 @@ document
                     .querySelectorAll(
                         ".modeButton"
                     )
-                    .forEach(b => {
+                    .forEach(item => {
 
-                        b.classList.remove(
+                        item.classList.remove(
                             "active"
                         );
+
                     });
 
 
                 button.classList.add(
                     "active"
                 );
+
             }
         );
+
     });
 
 
-/* =========================================================
+/* =====================================================
    RECORDING
-========================================================= */
+===================================================== */
+
+let mediaRecorder = null;
+
+let recordedChunks = [];
+
+let recording = false;
+
 
 function startRecording(){
 
@@ -1611,21 +2137,20 @@ function startRecording(){
 
 
     /*
-       Record the PROCESSED canvas.
+       IMPORTANT:
 
-       This means the recorded video contains:
+       We record the processed canvas.
 
-       • portrait output
-       • horizon correction
-       • selected zoom
+       So the recorded video contains
+       the corrected horizon and zoom.
     */
 
-    const videoStream =
+    const processedStream =
         canvas.captureStream(30);
 
 
     /*
-       Add microphone audio.
+       Add microphone.
     */
 
     if(stream){
@@ -1634,7 +2159,7 @@ function startRecording(){
             .getAudioTracks()
             .forEach(track => {
 
-                videoStream.addTrack(
+                processedStream.addTrack(
                     track
                 );
 
@@ -1642,11 +2167,7 @@ function startRecording(){
     }
 
 
-    let mimeType =
-        "";
-
-
-    const types = [
+    const supportedTypes = [
 
         "video/webm;codecs=vp9,opus",
 
@@ -1657,7 +2178,12 @@ function startRecording(){
     ];
 
 
-    for(const type of types){
+    let selectedType = "";
+
+
+    for(
+        const type of supportedTypes
+    ){
 
         if(
             MediaRecorder.isTypeSupported(
@@ -1665,7 +2191,8 @@ function startRecording(){
             )
         ){
 
-            mimeType = type;
+            selectedType = type;
+
             break;
         }
     }
@@ -1675,15 +2202,23 @@ function startRecording(){
 
         mediaRecorder =
             new MediaRecorder(
-                videoStream,
-                mimeType
-                    ? {mimeType}
+                processedStream,
+
+                selectedType
+                    ? {
+                        mimeType:
+                            selectedType
+                    }
                     : undefined
             );
 
+
     }catch(error){
 
-        console.error(error);
+        console.error(
+            "MediaRecorder error:",
+            error
+        );
 
         return;
     }
@@ -1692,7 +2227,10 @@ function startRecording(){
     mediaRecorder.ondataavailable =
         event => {
 
-            if(event.data.size > 0){
+            if(
+                event.data &&
+                event.data.size > 0
+            ){
 
                 recordedChunks.push(
                     event.data
@@ -1705,41 +2243,49 @@ function startRecording(){
         saveRecording;
 
 
-    mediaRecorder.start();
+    mediaRecorder.start(
+        200
+    );
 
 
     recording = true;
+
 
     recordButton.classList.add(
         "recording"
     );
 
+
     setStatus(
         "RECORDING",
-        "ready"
+        "recording"
     );
 }
 
 
-/* =========================================================
-   STOP RECORDING
-========================================================= */
+/* =====================================================
+   STOP
+===================================================== */
 
 function stopRecording(){
 
     if(
         mediaRecorder &&
-        mediaRecorder.state !== "inactive"
+        mediaRecorder.state !==
+        "inactive"
     ){
 
         mediaRecorder.stop();
     }
 
+
     recording = false;
+
 
     recordButton.classList.remove(
         "recording"
     );
+
 
     setStatus(
         "CAMERA READY",
@@ -1748,13 +2294,15 @@ function stopRecording(){
 }
 
 
-/* =========================================================
-   SAVE RECORDING
-========================================================= */
+/* =====================================================
+   SAVE
+===================================================== */
 
 function saveRecording(){
 
-    if(!recordedChunks.length){
+    if(
+        !recordedChunks.length
+    ){
 
         return;
     }
@@ -1764,44 +2312,56 @@ function saveRecording(){
         new Blob(
             recordedChunks,
             {
-                type:"video/webm"
+                type:
+                    "video/webm"
             }
         );
 
 
     const url =
-        URL.createObjectURL(blob);
+        URL.createObjectURL(
+            blob
+        );
 
 
-    const a =
-        document.createElement("a");
+    const link =
+        document.createElement(
+            "a"
+        );
 
-    a.href = url;
 
-    a.download =
-        "horizon-video-" +
+    link.href = url;
+
+    link.download =
+        "horizon-" +
         Date.now() +
         ".webm";
 
 
-    document.body.appendChild(a);
+    document.body.appendChild(
+        link
+    );
 
-    a.click();
 
-    a.remove();
+    link.click();
+
+
+    link.remove();
 
 
     setTimeout(() => {
 
-        URL.revokeObjectURL(url);
+        URL.revokeObjectURL(
+            url
+        );
 
-    }, 2000);
+    },3000);
 }
 
 
-/* =========================================================
-   BUTTON EVENTS
-========================================================= */
+/* =====================================================
+   START BUTTON
+===================================================== */
 
 startButton.addEventListener(
     "click",
@@ -1815,28 +2375,41 @@ startButton.addEventListener(
 );
 
 
+/* =====================================================
+   RECORD BUTTON
+===================================================== */
+
 recordButton.addEventListener(
     "click",
     () => {
 
-        if(!recording){
-
-            startRecording();
-
-        }else{
+        if(recording){
 
             stopRecording();
 
+        }else{
+
+            startRecording();
+
         }
+
     }
 );
 
+
+/* =====================================================
+   CAMERA SWITCH
+===================================================== */
 
 cameraButton.addEventListener(
     "click",
     switchCamera
 );
 
+
+/* =====================================================
+   CALIBRATION
+===================================================== */
 
 calibrateButton.addEventListener(
     "click",
@@ -1848,7 +2421,7 @@ closeCalibration.addEventListener(
     "click",
     () => {
 
-        calibration.classList.remove(
+        calibrationPopup.classList.remove(
             "show"
         );
 
@@ -1856,18 +2429,18 @@ closeCalibration.addEventListener(
 );
 
 
-/* =========================================================
-   INITIAL UI
-========================================================= */
+/* =====================================================
+   INITIAL STATUS
+===================================================== */
 
 setStatus(
     "CAMERA OFF"
 );
 
 
-/*
-   Prevent accidental page scrolling.
-*/
+/* =====================================================
+   PREVENT SCROLL
+===================================================== */
 
 document.addEventListener(
     "touchmove",
@@ -1880,6 +2453,7 @@ document.addEventListener(
         passive:false
     }
 );
+
 </script>
 
 </body>
