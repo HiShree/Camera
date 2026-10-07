@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web Camera Studio - Smoothed Gimbal Lock</title>
+    <title>Web Camera Studio - True Horizon Lock</title>
     <!-- Tailwind CSS for modern styling -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <!-- FontAwesome for icons -->
@@ -58,22 +58,22 @@
             <!-- Flash Overlay -->
             <div id="flashOverlay" class="absolute inset-0 bg-white opacity-0 pointer-events-none z-10"></div>
 
-            <!-- Area Focus Gimbal Box -->
-            <div id="gimbalBoxOverlay" class="absolute inset-0 flex items-center justify-center pointer-events-none hidden z-15">
-                <div id="gimbalInnerFrame" class="relative w-[55%] h-[70%] border-2 border-white bg-white/5 rounded-lg shadow-2xl flex items-center justify-center transition-transform duration-75">
+            <!-- Fixed Upright Horizon Box (Matches Horizon App Style) -->
+            <div id="horizonBoxOverlay" class="absolute inset-0 flex items-center justify-center pointer-events-none hidden z-15">
+                <div class="relative w-[50%] h-[75%] border-2 border-white bg-white/5 rounded-lg shadow-2xl flex items-center justify-center">
                     <div class="absolute -top-1.5 -left-1.5 w-5 h-5 border-t-4 border-l-4 border-white"></div>
                     <div class="absolute -top-1.5 -right-1.5 w-5 h-5 border-t-4 border-r-4 border-white"></div>
                     <div class="absolute -bottom-1.5 -left-1.5 w-5 h-5 border-b-4 border-l-4 border-white"></div>
                     <div class="absolute -bottom-1.5 -right-1.5 w-5 h-5 border-b-4 border-r-4 border-white"></div>
                     <div class="absolute top-2 bg-black/70 backdrop-blur-md px-2.5 py-0.5 rounded-full border border-amber-400/30 flex items-center space-x-1.5 shadow">
                         <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-                        <span class="text-[10px] font-mono tracking-wider text-amber-400 font-bold">STABLE GIMBAL LOCK</span>
+                        <span class="text-[10px] font-mono tracking-wider text-amber-400 font-bold">HORIZON LOCK</span>
                     </div>
                 </div>
             </div>
 
             <!-- Horizon Leveler Indicator Overlay -->
-            <div id="horizonOverlay" class="absolute inset-x-0 top-1/2 -translate-y-1/2 flex flex-col items-center pointer-events-none opacity-0 transition-opacity duration-300 z-20">
+            <div id="horizonLevelIndicator" class="absolute inset-x-0 top-1/2 -translate-y-1/2 flex flex-col items-center pointer-events-none opacity-0 transition-opacity duration-300 z-20">
                 <div class="relative w-3/4 max-w-xs h-6 flex items-center justify-center">
                     <div class="absolute w-0.5 h-6 bg-white shadow z-10"></div>
                     <div class="w-full h-1 bg-black/40 backdrop-blur-sm rounded-full overflow-hidden border border-white/20">
@@ -135,7 +135,7 @@
                 <div id="shutterInner" class="w-12 h-12 bg-white rounded-full transition-all duration-200"></div>
             </button>
 
-            <button id="gimbalToggleBtn" class="w-11 h-11 bg-gray-800 hover:bg-gray-700 rounded-full flex items-center justify-center transition border border-gray-700 text-gray-400 hidden shadow" title="Toggle Stable Gimbal Lock">
+            <button id="gimbalToggleBtn" class="w-11 h-11 bg-gray-800 hover:bg-gray-700 rounded-full flex items-center justify-center transition border border-gray-700 text-gray-400 hidden shadow" title="Toggle Horizon App Mode">
                 <i class="fa-solid fa-cube text-sm"></i>
             </button>
         </div>
@@ -206,13 +206,12 @@
         const deleteMediaBtn = document.getElementById('deleteMediaBtn');
 
         const horizonToggleBtn = document.getElementById('horizonToggleBtn');
-        const horizonOverlay = document.getElementById('horizonOverlay');
+        const horizonLevelIndicator = document.getElementById('horizonLevelIndicator');
         const horizonIndicatorBar = document.getElementById('horizonIndicatorBar');
         const horizonAngleText = document.getElementById('horizonAngleText');
 
         const gimbalToggleBtn = document.getElementById('gimbalToggleBtn');
-        const gimbalBoxOverlay = document.getElementById('gimbalBoxOverlay');
-        const gimbalInnerFrame = document.getElementById('gimbalInnerFrame');
+        const horizonBoxOverlay = document.getElementById('horizonBoxOverlay');
 
         let currentFacingMode = 'user';
         let mediaStream = null;
@@ -225,10 +224,10 @@
         let galleryItems = [];
         let activePreviewIndex = null;
         let isHorizonEnabled = false;
-        let isGimbalEnabled = false;
+        let isHorizonAppMode = false;
 
         let rawRoll = 0;
-        let smoothedRoll = 0; // Damped rotation value for jitter-free stability
+        let smoothedRoll = 0;
         let canvasStream = null;
 
         async function initCamera() {
@@ -272,11 +271,11 @@
         });
 
         gimbalToggleBtn.addEventListener('click', () => {
-            isGimbalEnabled = !isGimbalEnabled;
-            if (isGimbalEnabled) {
-                requestOrientationPermission(() => activateGimbalMode());
+            isHorizonAppMode = !isHorizonAppMode;
+            if (isHorizonAppMode) {
+                requestOrientationPermission(() => activateHorizonAppMode());
             } else {
-                deactivateGimbalMode();
+                deactivateHorizonAppMode();
             }
         });
 
@@ -285,7 +284,7 @@
                 DeviceOrientationEvent.requestPermission()
                     .then(response => {
                         if (response === 'granted') onGranted();
-                        else alert("Orientation permission is required for stabilization features.");
+                        else alert("Orientation permission is required for horizon locking.");
                     }).catch(console.error);
             } else {
                 onGranted();
@@ -295,29 +294,28 @@
         function activateHorizonSensor() {
             horizonToggleBtn.classList.remove('text-gray-400');
             horizonToggleBtn.classList.add('text-amber-400', 'bg-gray-800', 'ring-1', 'ring-amber-400/50');
-            horizonOverlay.classList.remove('opacity-0');
+            horizonLevelIndicator.classList.remove('opacity-0');
             window.addEventListener('deviceorientation', handleOrientation, true);
         }
 
         function deactivateHorizonSensor() {
             horizonToggleBtn.classList.add('text-gray-400');
             horizonToggleBtn.classList.remove('text-amber-400', 'bg-gray-800', 'ring-1', 'ring-amber-400/50');
-            horizonOverlay.classList.add('opacity-0');
+            horizonLevelIndicator.classList.add('opacity-0');
             window.removeEventListener('deviceorientation', handleOrientation, true);
         }
 
-        function activateGimbalMode() {
+        function activateHorizonAppMode() {
             gimbalToggleBtn.classList.remove('text-gray-400', 'border-gray-700');
             gimbalToggleBtn.classList.add('text-amber-400', 'bg-gray-800', 'border-amber-400/50', 'ring-1', 'ring-amber-400/50');
-            gimbalBoxOverlay.classList.remove('hidden');
+            horizonBoxOverlay.classList.remove('hidden');
             window.addEventListener('deviceorientation', handleOrientation, true);
         }
 
-        function deactivateGimbalMode() {
+        function deactivateHorizonAppMode() {
             gimbalToggleBtn.classList.add('text-gray-400', 'border-gray-700');
             gimbalToggleBtn.classList.remove('text-amber-400', 'bg-gray-800', 'border-amber-400/50', 'ring-1', 'ring-amber-400/50');
-            gimbalBoxOverlay.classList.add('hidden');
-            gimbalInnerFrame.style.transform = 'rotate(0deg)';
+            horizonBoxOverlay.classList.add('hidden');
             rawRoll = 0;
             smoothedRoll = 0;
             if (!isHorizonEnabled) {
@@ -327,9 +325,7 @@
 
         function handleOrientation(event) {
             rawRoll = event.gamma || 0;
-            
-            // Low-pass damping filter (removes jitter and sudden shaking)
-            const smoothingFactor = 0.15;
+            const smoothingFactor = 0.12;
             smoothedRoll += (rawRoll - smoothedRoll) * smoothingFactor;
 
             if (isHorizonEnabled) {
@@ -344,11 +340,6 @@
                     horizonIndicatorBar.className = "w-full h-full bg-amber-400 transition-all duration-75 origin-left";
                     horizonAngleText.className = "mt-1 text-[10px] font-mono tracking-widest bg-black/60 px-2 py-0.5 rounded text-amber-400 border border-amber-500/30 shadow";
                 }
-            }
-
-            if (isGimbalEnabled) {
-                // Smoothly counter-rotate the specific framing box so content inside remains steady
-                gimbalInnerFrame.style.transform = `rotate(${-smoothedRoll}deg)`;
             }
         }
 
@@ -369,7 +360,7 @@
             photoModeBtn.className = "px-4 py-1.5 rounded-full text-xs font-bold bg-amber-500 text-gray-950 transition";
             videoModeBtn.className = "px-4 py-1.5 rounded-full text-xs font-bold text-gray-400 hover:text-white transition";
             shutterInner.className = "w-12 h-12 bg-white rounded-full transition-all duration-200";
-            if (isGimbalEnabled) deactivateGimbalMode();
+            if (isHorizonAppMode) deactivateHorizonAppMode();
             gimbalToggleBtn.classList.add('hidden');
             initCamera();
         });
@@ -415,9 +406,9 @@
             const vWidth = videoElement.videoWidth || 1280;
             const vHeight = videoElement.videoHeight || 720;
 
-            if (isGimbalEnabled) {
-                canvas.width = vWidth * 0.55;
-                canvas.height = vHeight * 0.7;
+            if (isHorizonAppMode) {
+                canvas.width = vWidth * 0.5;
+                canvas.height = vHeight * 0.75;
             } else {
                 canvas.width = vWidth;
                 canvas.height = vHeight;
@@ -426,14 +417,20 @@
             const ctx = canvas.getContext('2d');
             if (currentFilter) ctx.filter = getComputedStyle(videoElement).filter;
 
+            ctx.save();
             ctx.translate(canvas.width / 2, canvas.height / 2);
-            if (isGimbalEnabled) {
+
+            // TRUE HORIZON LOCK: Counter-rotate source video around center so content remains upright
+            if (isHorizonAppMode) {
                 ctx.rotate((-smoothedRoll * Math.PI) / 180);
             }
+
             if (currentFacingMode === 'user') {
                 ctx.scale(-1, 1);
             }
+
             ctx.drawImage(videoElement, -vWidth / 2, -vHeight / 2, vWidth, vHeight);
+            ctx.restore();
 
             addToGallery({ type: 'image', url: canvas.toDataURL('image/jpeg', 0.9), timestamp: new Date().toLocaleTimeString() });
         }
@@ -447,33 +444,34 @@
             recordedChunks = [];
             let recordStream = mediaStream;
 
-            if (isGimbalEnabled) {
+            if (isHorizonAppMode) {
                 const recordCanvas = document.createElement('canvas');
                 const vWidth = videoElement.videoWidth || 1280;
                 const vHeight = videoElement.videoHeight || 720;
-                recordCanvas.width = vWidth * 0.55;
-                recordCanvas.height = vHeight * 0.7;
+                recordCanvas.width = vWidth * 0.5;
+                recordCanvas.height = vHeight * 0.75;
                 const rCtx = recordCanvas.getContext('2d');
 
-                const renderStabilizedArea = () => {
+                const renderHorizonLockedFrame = () => {
                     if (!mediaRecorder || mediaRecorder.state === 'inactive') return;
                     rCtx.save();
                     rCtx.clearRect(0, 0, recordCanvas.width, recordCanvas.height);
                     if (currentFilter) rCtx.filter = getComputedStyle(videoElement).filter;
 
                     rCtx.translate(recordCanvas.width / 2, recordCanvas.height / 2);
+                    // Counter-rotate the video frames to lock horizon perfectly upright in file
                     rCtx.rotate((-smoothedRoll * Math.PI) / 180);
                     rCtx.drawImage(videoElement, -vWidth / 2, -vHeight / 2, vWidth, vHeight);
                     rCtx.restore();
 
-                    requestAnimationFrame(renderStabilizedArea);
+                    requestAnimationFrame(renderHorizonLockedFrame);
                 };
 
                 canvasStream = recordCanvas.captureStream(30);
                 const audioTracks = mediaStream.getAudioTracks();
                 if (audioTracks.length > 0) canvasStream.addTrack(audioTracks[0]);
                 recordStream = canvasStream;
-                requestAnimationFrame(renderStabilizedArea);
+                requestAnimationFrame(renderHorizonLockedFrame);
             }
 
             try {
