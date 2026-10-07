@@ -2,265 +2,502 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Horizon Camera Clone</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Filmic Horizon Studio - Pro Edition</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        .filter-grayscale { filter: grayscale(100%); }
+        .filter-sepia { filter: sepia(100%); }
+        .filter-noir { filter: grayscale(100%) contrast(160%) brightness(85%); }
+        .filter-teal-orange { filter: contrast(125%) saturate(145%) hue-rotate(15deg) sepia(25%); }
+        .filter-bleach { filter: contrast(170%) saturate(50%) brightness(115%); }
+        .filter-cyberpunk { filter: contrast(160%) saturate(220%) hue-rotate(270deg); }
+
+        @keyframes flashAnim {
+            0% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+        .flash-effect {
+            animation: flashAnim 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
         }
 
-        body {
-            background-color: #000;
-            color: #fff;
-            height: 100vh;
-            width: 100vw;
-            display: flex;
-            overflow: hidden;
-            position: relative;
-        }
-
-        /* Left Sidebar Controls */
-        .sidebar-left {
-            width: 70px;
-            background: rgba(0, 0, 0, 0.9);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: space-around;
-            padding: 20px 0;
-            z-index: 20;
-            border-right: 1px solid #222;
-        }
-
-        .icon-btn {
-            background: none;
-            border: none;
-            color: #ff9800;
-            font-size: 1.4rem;
-            cursor: pointer;
-            padding: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        /* Center Viewport Area */
-        .viewport {
-            flex: 1;
-            position: relative;
-            background: #111;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
-
-        /* The actual rotating viewfinder box matching the screenshot */
-        .viewfinder-frame {
-            position: absolute;
-            width: 75%;
-            height: 75%;
-            border: 2px dashed rgba(255, 255, 255, 0.4);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            background: #000;
-            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.7); /* Darkens everything outside the frame */
-        }
-
-        /* Corner markers like in the original app */
-        .corner {
-            position: absolute;
-            width: 20px;
-            height: 20px;
-            border-color: #fff;
-            border-style: solid;
-            z-index: 5;
-        }
-        .top-left { top: 10px; left: 10px; border-width: 3px 0 0 3px; }
-        .top-right { top: 10px; right: 10px; border-width: 3px 3px 0 0; }
-        .bottom-left { bottom: 10px; left: 10px; border-width: 0 0 3px 3px; }
-        .bottom-right { bottom: 10px; right: 10px; border-width: 0 3px 3px 0; }
-
-        #rotator {
-            position: absolute;
-            width: 140%;
-            height: 140%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: transform 0.05s linear;
-        }
-
-        video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        /* Right Sidebar Action Buttons (Shutter / Mode) */
-        .sidebar-right {
-            width: 90px;
-            background: rgba(0, 0, 0, 0.9);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 25px;
-            z-index: 20;
-            border-left: 1px solid #222;
-        }
-
-        .shutter-btn {
-            width: 65px;
-            height: 65px;
-            border-radius: 50%;
-            background: #ff5722;
-            border: 4px solid #fff;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-        }
-
-        .shutter-inner {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            background: #ff5722;
-        }
-
-        .mode-btn {
-            width: 50px;
-            height: 50px;
-            border-radius: 12px;
-            background: #333;
-            border: 2px solid #ff9800;
-            color: #ff9800;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            cursor: pointer;
-        }
-
-        /* Overlay Start Button for Permissions */
-        #startOverlay {
-            position: absolute;
-            inset: 0;
-            background: rgba(0,0,0,0.85);
-            z-index: 100;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 20px;
-        }
-
-        .btn-main {
-            background: #ff5722;
-            color: white;
-            border: none;
-            padding: 14px 28px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            border-radius: 30px;
-            cursor: pointer;
-        }
+        /* Custom Scrollbar for sleek preset bar */
+        ::-webkit-scrollbar { height: 4px; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
     </style>
 </head>
-<body>
+<body class="bg-black text-amber-500 min-h-screen flex flex-col justify-between overflow-x-hidden font-mono select-none">
 
-    <!-- Start / Permission Overlay -->
-    <div id="startOverlay">
-        <h2>Horizon Camera Web</h2>
-        <p>Allow camera and motion access to begin leveling.</p>
-        <button class="btn-main" id="initBtn">Start Camera</button>
-    </div>
+    <!-- Cinema Top HUD -->
+    <header class="w-full px-4 py-2.5 flex justify-between items-center bg-neutral-900/95 backdrop-blur-md border-b border-neutral-800/80 z-20 text-xs">
+        <div class="flex items-center space-x-3">
+            <span class="bg-neutral-800/90 px-2.5 py-1 rounded-md text-amber-400 font-bold tracking-wider border border-neutral-700/50 shadow-inner">4K 60FPS</span>
+            <div class="hidden sm:flex items-center space-x-1.5 text-emerald-400 bg-neutral-950/60 px-2 py-1 rounded border border-neutral-800">
+                <i class="fa-solid fa-microphone text-[10px] animate-pulse"></i>
+                <span id="audioMeterText">-18dB</span>
+            </div>
+        </div>
+        <div class="flex items-center space-x-2.5">
+            <button id="gridToggleBtn" class="bg-neutral-800 hover:bg-neutral-700 p-2 rounded-lg transition text-neutral-400 hover:text-amber-400 shadow" title="Toggle Grid Lines">
+                <i class="fa-solid fa-table-cells"></i>
+            </button>
+            <button id="horizonToggleBtn" class="bg-neutral-800 hover:bg-neutral-700 p-2 rounded-lg transition text-neutral-400 hover:text-amber-400 shadow" title="Toggle Horizon Leveler">
+                <i class="fa-solid fa-compass"></i>
+            </button>
+            <button id="switchCameraBtn" class="bg-neutral-800 hover:bg-neutral-700 p-2 rounded-lg transition text-neutral-300 shadow">
+                <i class="fa-solid fa-camera-rotate"></i>
+            </button>
+            <button id="galleryBtn" class="relative bg-neutral-800 hover:bg-neutral-700 p-2 rounded-lg transition text-neutral-300 shadow">
+                <i class="fa-solid fa-photo-film"></i>
+                <span id="galleryBadge" class="absolute -top-1 -right-1 bg-amber-500 text-black font-bold text-[10px] w-4 h-4 rounded-full flex items-center justify-center hidden shadow">0</span>
+            </button>
+        </div>
+    </header>
 
-    <!-- Left Toolbar (Settings, Flash, Rotate) -->
-    <div class="sidebar-left">
-        <button class="icon-btn">⚙️</button>
-        <button class="icon-btn">⚡</button>
-        <button class="icon-btn">🔄</button>
-        <button class="icon-btn">📐</button>
-    </div>
-
-    <!-- Center Viewfinder matching the app layout -->
-    <div class="viewport">
-        <div class="viewfinder-frame">
-            <div class="corner top-left"></div>
-            <div class="corner top-right"></div>
-            <div class="corner bottom-left"></div>
-            <div class="corner bottom-right"></div>
+    <!-- Main Viewport Area -->
+    <main class="relative flex-1 flex flex-col items-center justify-center w-full max-w-3xl mx-auto p-2 my-auto">
+        <div id="viewFinder" class="relative w-full aspect-[16/9] max-h-[68vh] bg-neutral-950 rounded-2xl overflow-hidden shadow-2xl border border-neutral-800 flex items-center justify-center">
             
-            <div id="rotator">
-                <video id="cameraStream" autoplay playsinline muted></video>
+            <!-- Video Stream -->
+            <video id="videoElement" autoplay playsinline muted class="w-full h-full object-cover transition-transform duration-150"></video>
+            
+            <!-- Flash Overlay -->
+            <div id="flashOverlay" class="absolute inset-0 bg-white opacity-0 pointer-events-none z-10"></div>
+
+            <!-- Cinematic Letterbox Guides -->
+            <div class="absolute inset-x-0 top-0 h-10 bg-black/80 pointer-events-none z-15 backdrop-blur-[2px] border-b border-white/10"></div>
+            <div class="absolute inset-x-0 bottom-0 h-10 bg-black/80 pointer-events-none z-15 backdrop-blur-[2px] border-t border-white/10"></div>
+
+            <!-- Composition Grid Lines (Hidden by default) -->
+            <div id="gridOverlay" class="absolute inset-x-0 top-10 bottom-10 grid grid-cols-3 grid-rows-3 pointer-events-none opacity-30 z-12 hidden">
+                <div class="border-r border-b border-white"></div>
+                <div class="border-r border-b border-white"></div>
+                <div class="border-b border-white"></div>
+                <div class="border-r border-b border-white"></div>
+                <div class="border-r border-b border-white"></div>
+                <div class="border-b border-white"></div>
+                <div class="border-r border-white"></div>
+                <div class="border-r border-white"></div>
+                <div></div>
+            </div>
+
+            <!-- Horizon Leveler Indicator Overlay -->
+            <div id="horizonOverlay" class="absolute inset-x-0 top-1/2 -translate-y-1/2 flex flex-col items-center pointer-events-none opacity-0 transition-opacity duration-300 z-20">
+                <div class="relative w-2/3 max-w-xs h-5 flex items-center justify-center">
+                    <div class="absolute w-0.5 h-5 bg-amber-400 shadow z-10"></div>
+                    <div class="w-full h-1 bg-black/70 rounded-full overflow-hidden border border-neutral-700 shadow-inner">
+                        <div id="horizonIndicatorBar" class="w-full h-full bg-emerald-400 transition-all duration-75 origin-left" style="transform: translateX(0px);"></div>
+                    </div>
+                </div>
+                <span id="horizonAngleText" class="mt-1 text-[9px] tracking-widest bg-black/80 px-2 py-0.5 rounded text-emerald-400 border border-neutral-800 shadow">0.0° LEVEL</span>
+            </div>
+
+            <!-- Recording Timer Badge -->
+            <div id="recordTimer" class="absolute top-12 left-4 bg-red-600 text-white px-3 py-1 rounded-md text-[10px] font-bold tracking-widest flex items-center space-x-2 hidden z-20 shadow-lg">
+                <span class="w-2.5 h-2.5 bg-white rounded-full animate-ping"></span>
+                <span id="timerText">00:00:00</span>
+            </div>
+
+            <!-- Focus Reticle Box -->
+            <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-50 z-10">
+                <div class="w-20 h-20 border border-amber-400/70 rounded-sm flex items-center justify-center shadow">
+                    <div class="w-1.5 h-1.5 bg-amber-400 rounded-full animate-pulse"></div>
+                </div>
+            </div>
+
+            <!-- Error Banner -->
+            <div id="errorMsg" class="absolute inset-0 bg-neutral-900 flex flex-col items-center justify-center p-6 text-center z-30 hidden">
+                <i class="fa-solid fa-triangle-exclamation text-amber-500 text-3xl mb-2"></i>
+                <h3 class="text-sm font-bold mb-1 text-white">Camera Permission Needed</h3>
+                <p class="text-xs text-neutral-400 mb-3">Please enable camera access in browser settings.</p>
+                <button id="retryBtn" class="bg-amber-500 text-black text-xs font-bold px-4 py-2 rounded-lg shadow">Grant Access</button>
+            </div>
+        </div>
+
+        <!-- Color Grade Preset Bar -->
+        <div class="w-full mt-3 overflow-x-auto py-1.5 flex space-x-2 px-1 text-xs no-scrollbar">
+            <button onclick="setFilter('', event)" class="preset-btn bg-neutral-900 hover:bg-neutral-800 px-3 py-1.5 rounded-lg text-amber-400 border border-amber-500 whitespace-nowrap shadow transition">Standard</button>
+            <button onclick="setFilter('filter-teal-orange', event)" class="preset-btn bg-neutral-900 hover:bg-neutral-800 px-3 py-1.5 rounded-lg text-neutral-400 border border-neutral-800 whitespace-nowrap shadow transition">Teal & Orange</button>
+            <button onclick="setFilter('filter-noir', event)" class="preset-btn bg-neutral-900 hover:bg-neutral-800 px-3 py-1.5 rounded-lg text-neutral-400 border border-neutral-800 whitespace-nowrap shadow transition">Cine Noir</button>
+            <button onclick="setFilter('filter-bleach', event)" class="preset-btn bg-neutral-900 hover:bg-neutral-800 px-3 py-1.5 rounded-lg text-neutral-400 border border-neutral-800 whitespace-nowrap shadow transition">Bleach Bypass</button>
+            <button onclick="setFilter('filter-cyberpunk', event)" class="preset-btn bg-neutral-900 hover:bg-neutral-800 px-3 py-1.5 rounded-lg text-neutral-400 border border-neutral-800 whitespace-nowrap shadow transition">Cyberpunk</button>
+        </div>
+    </main>
+
+    <!-- Bottom Controls HUD -->
+    <footer class="w-full p-4 bg-neutral-900/95 border-t border-neutral-800/80 flex flex-col items-center z-20">
+        <div class="w-full max-w-md flex justify-around items-center">
+            
+            <!-- Mode Switcher -->
+            <div class="flex bg-neutral-950 p-1 rounded-xl border border-neutral-800 shadow-inner">
+                <button id="photoModeBtn" class="px-4 py-1.5 rounded-lg text-[11px] font-bold bg-amber-500 text-black transition shadow">PHOTO</button>
+                <button id="videoModeBtn" class="px-4 py-1.5 rounded-lg text-[11px] font-bold text-neutral-400 hover:text-white transition">VIDEO</button>
+            </div>
+
+            <!-- Cinema Shutter Button -->
+            <button id="captureBtn" class="w-16 h-16 rounded-full border-4 border-amber-500/80 flex items-center justify-center bg-neutral-900 hover:bg-neutral-800 transition transform active:scale-95 shadow-xl">
+                <div id="shutterInner" class="w-10 h-10 bg-amber-500 rounded-full transition-all duration-200 shadow-inner"></div>
+            </button>
+
+            <!-- Pro Readout HUD -->
+            <div class="text-[10px] text-neutral-400 text-right space-y-0.5 bg-neutral-950/60 px-3 py-1.5 rounded-xl border border-neutral-800">
+                <div class="text-amber-400 font-bold">ISO 100</div>
+                <div>WB 5600K</div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Gallery Drawer -->
+    <div id="galleryModal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex flex-col justify-end transition-opacity duration-300 opacity-0 pointer-events-none">
+        <div class="bg-neutral-900 w-full h-[85vh] rounded-t-3xl border-t border-neutral-800 flex flex-col overflow-hidden shadow-2xl">
+            <div class="p-4 border-b border-neutral-800 flex justify-between items-center text-sm">
+                <h2 class="font-bold text-amber-400 flex items-center space-x-2">
+                    <i class="fa-solid fa-photo-film"></i>
+                    <span>Captured Takes (<span id="galleryCount">0</span>)</span>
+                </h2>
+                <button id="closeGalleryBtn" class="bg-neutral-800 hover:bg-neutral-700 w-9 h-9 rounded-full flex items-center justify-center text-neutral-300 transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div id="galleryGrid" class="flex-1 p-4 overflow-y-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3"></div>
+            <div id="emptyGallery" class="flex-1 flex flex-col items-center justify-center text-neutral-500 p-6 text-center text-xs">
+                <i class="fa-regular fa-images text-4xl mb-2"></i>
+                <p>No takes recorded yet.</p>
             </div>
         </div>
     </div>
 
-    <!-- Right Toolbar (Shutter and Modes) -->
-    <div class="sidebar-right">
-        <button class="mode-btn">📷</button>
-        <div class="shutter-btn" id="shutterBtn">
-            <div class="shutter-inner"></div>
+    <!-- Media Preview Modal -->
+    <div id="previewModal" class="fixed inset-0 bg-black/95 z-50 flex flex-col items-center justify-center p-4 hidden">
+        <button id="closePreviewBtn" class="absolute top-4 right-4 bg-neutral-800 hover:bg-neutral-700 w-10 h-10 rounded-full flex items-center justify-center text-white text-lg z-10 transition">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        <div id="previewContainer" class="w-full max-w-3xl max-h-[75vh] flex items-center justify-center overflow-hidden rounded-xl mb-4 shadow-2xl"></div>
+        <div class="flex space-x-4 text-xs">
+            <a id="downloadLink" download="take.jpg" class="bg-amber-500 hover:bg-amber-400 text-black font-bold px-6 py-2.5 rounded-xl flex items-center space-x-2 shadow transition">
+                <i class="fa-solid fa-download"></i>
+                <span>Export Media</span>
+            </a>
+            <button id="deleteMediaBtn" class="bg-red-600/90 hover:bg-red-600 text-white font-bold px-5 py-2.5 rounded-xl flex items-center space-x-2 shadow transition">
+                <i class="fa-solid fa-trash"></i>
+                <span>Delete Take</span>
+            </button>
         </div>
     </div>
 
+    <!-- Application Script -->
     <script>
-        const video = document.getElementById('cameraStream');
-        const rotator = document.getElementById('rotator');
-        const initBtn = document.getElementById('initBtn');
-        const startOverlay = document.getElementById('startOverlay');
-        const shutterBtn = document.getElementById('shutterBtn');
+        const videoElement = document.getElementById('videoElement');
+        const captureBtn = document.getElementById('captureBtn');
+        const shutterInner = document.getElementById('shutterInner');
+        const switchCameraBtn = document.getElementById('switchCameraBtn');
+        const flashOverlay = document.getElementById('flashOverlay');
+        const errorMsg = document.getElementById('errorMsg');
+        const retryBtn = document.getElementById('retryBtn');
+        const photoModeBtn = document.getElementById('photoModeBtn');
+        const videoModeBtn = document.getElementById('videoModeBtn');
+        const recordTimer = document.getElementById('recordTimer');
+        const timerText = document.getElementById('timerText');
+        const galleryBtn = document.getElementById('galleryBtn');
+        const galleryBadge = document.getElementById('galleryBadge');
+        const galleryModal = document.getElementById('galleryModal');
+        const closeGalleryBtn = document.getElementById('closeGalleryBtn');
+        const galleryGrid = document.getElementById('galleryGrid');
+        const emptyGallery = document.getElementById('emptyGallery');
+        const galleryCount = document.getElementById('galleryCount');
+        const previewModal = document.getElementById('previewModal');
+        const closePreviewBtn = document.getElementById('closePreviewBtn');
+        const previewContainer = document.getElementById('previewContainer');
+        const downloadLink = document.getElementById('downloadLink');
+        const deleteMediaBtn = document.getElementById('deleteMediaBtn');
 
-        initBtn.addEventListener('click', async () => {
+        const horizonToggleBtn = document.getElementById('horizonToggleBtn');
+        const horizonOverlay = document.getElementById('horizonOverlay');
+        const horizonIndicatorBar = document.getElementById('horizonIndicatorBar');
+        const horizonAngleText = document.getElementById('horizonAngleText');
+        const gridToggleBtn = document.getElementById('gridToggleBtn');
+        const gridOverlay = document.getElementById('gridOverlay');
+        const audioMeterText = document.getElementById('audioMeterText');
+
+        let currentFacingMode = 'environment';
+        let mediaStream = null;
+        let currentFilter = '';
+        let mode = 'photo';
+        let mediaRecorder = null;
+        let recordedChunks = [];
+        let recordingTimerInterval = null;
+        let recordingSeconds = 0;
+        let galleryItems = [];
+        let activePreviewIndex = null;
+        let isHorizonEnabled = false;
+        let isGridEnabled = false;
+
+        // Satisfying mechanical audio click generator
+        function playClickSound(freq = 400) {
             try {
-                // Request camera stream
-                const stream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: { exact: "environment" } },
-                    audio: false
-                }).catch(() => navigator.mediaDevices.getUserMedia({ video: true, audio: false }));
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 0.04);
+                gain.gain.setValueAtTime(0.15, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.04);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.04);
+            } catch (e) {}
+        }
 
-                video.srcObject = stream;
-                startOverlay.style.display = 'none';
+        // Live Audio Meter Simulation
+        setInterval(() => {
+            const db = -24 + Math.floor(Math.random() * 14);
+            audioMeterText.innerText = `${db}dB`;
+        }, 300);
 
-                // Request iOS 13+ motion permission if needed
-                if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-                    const response = await DeviceOrientationEvent.requestPermission();
-                    if (response === 'granted') {
-                        enableGyro();
-                    }
-                } else {
-                    enableGyro();
-                }
+        async function initCamera() {
+            if (mediaStream) mediaStream.getTracks().forEach(track => track.stop());
+            try {
+                mediaStream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: currentFacingMode, width: { ideal: 3840 }, height: { ideal: 2160 } },
+                    audio: mode === 'video'
+                });
+                videoElement.srcObject = mediaStream;
+                errorMsg.classList.add('hidden');
             } catch (err) {
-                alert('Camera error or permission denied.');
+                errorMsg.classList.remove('hidden');
+            }
+        }
+
+        retryBtn.addEventListener('click', initCamera);
+        
+        switchCameraBtn.addEventListener('click', () => {
+            playClickSound(600);
+            currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
+            initCamera();
+        });
+
+        gridToggleBtn.addEventListener('click', () => {
+            playClickSound(500);
+            isGridEnabled = !isGridEnabled;
+            gridOverlay.classList.toggle('hidden', !isGridEnabled);
+            gridToggleBtn.classList.toggle('text-amber-400', isGridEnabled);
+            gridToggleBtn.classList.toggle('bg-neutral-800', isGridEnabled);
+        });
+
+        horizonToggleBtn.addEventListener('click', () => {
+            playClickSound(500);
+            isHorizonEnabled = !isHorizonEnabled;
+            if (isHorizonEnabled) {
+                if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                    DeviceOrientationEvent.requestPermission().then(resp => {
+                        if (resp === 'granted') activateHorizon();
+                    });
+                } else {
+                    activateHorizon();
+                }
+            } else {
+                deactivateHorizon();
             }
         });
 
-        function enableGyro() {
-            window.addEventListener('deviceorientation', (event) => {
-                let tilt = event.gamma || 0; // Roll angle
-                
-                // Limit range to prevent UI spilling out of bounds
-                if (tilt > 45) tilt = 45;
-                if (tilt < -45) tilt = -45;
+        function activateHorizon() {
+            horizonToggleBtn.classList.add('text-amber-400', 'bg-neutral-800');
+            horizonOverlay.classList.remove('opacity-0');
+            window.addEventListener('deviceorientation', handleOrientation, true);
+        }
 
-                // Counter-rotate the inner video feed to keep the horizon perfectly flat
-                rotator.style.transform = `rotate(${-tilt}deg)`;
+        function deactivateHorizon() {
+            horizonToggleBtn.classList.remove('text-amber-400', 'bg-neutral-800');
+            horizonOverlay.classList.add('opacity-0');
+            window.removeEventListener('deviceorientation', handleOrientation, true);
+        }
+
+        function handleOrientation(event) {
+            if (!isHorizonEnabled) return;
+            const roll = event.gamma || 0;
+            const translateX = Math.max(-50, Math.min(50, (roll / 45) * 50));
+            horizonIndicatorBar.style.transform = `translateX(${translateX}px)`;
+            horizonAngleText.innerText = `${roll.toFixed(1)}° LEVEL`;
+            if (Math.abs(roll) <= 1.5) {
+                horizonIndicatorBar.className = "w-full h-full bg-emerald-400 transition-all duration-75 origin-left";
+                horizonAngleText.className = "mt-1 text-[9px] tracking-widest bg-black/80 px-2 py-0.5 rounded text-emerald-400 border border-emerald-500/30 shadow";
+            } else {
+                horizonIndicatorBar.className = "w-full h-full bg-amber-400 transition-all duration-75 origin-left";
+                horizonAngleText.className = "mt-1 text-[9px] tracking-widest bg-black/80 px-2 py-0.5 rounded text-amber-400 border border-amber-500/30 shadow";
+            }
+        }
+
+        function setFilter(filterClass, event) {
+            playClickSound(450);
+            currentFilter = filterClass;
+            videoElement.className = `w-full h-full object-cover ${filterClass} transition-transform duration-150`;
+            document.querySelectorAll('.preset-btn').forEach(btn => {
+                btn.classList.remove('text-amber-400', 'border-amber-500');
+                btn.classList.add('text-neutral-400', 'border-neutral-800');
+            });
+            event.target.classList.add('text-amber-400', 'border-amber-500');
+            event.target.classList.remove('text-neutral-400', 'border-neutral-800');
+        }
+
+        photoModeBtn.addEventListener('click', () => {
+            if (mediaRecorder && mediaRecorder.state === 'recording') return;
+            playClickSound(700);
+            mode = 'photo';
+            photoModeBtn.className = "px-4 py-1.5 rounded-lg text-[11px] font-bold bg-amber-500 text-black transition shadow";
+            videoModeBtn.className = "px-4 py-1.5 rounded-lg text-[11px] font-bold text-neutral-400 hover:text-white transition";
+            shutterInner.className = "w-10 h-10 bg-amber-500 rounded-full transition-all duration-200 shadow-inner";
+            initCamera();
+        });
+
+        videoModeBtn.addEventListener('click', () => {
+            playClickSound(300);
+            mode = 'video';
+            videoModeBtn.className = "px-4 py-1.5 rounded-lg text-[11px] font-bold bg-red-600 text-white transition shadow";
+            photoModeBtn.className = "px-4 py-1.5 rounded-lg text-[11px] font-bold text-neutral-400 hover:text-white transition";
+            shutterInner.className = "w-4 h-4 bg-red-600 rounded-sm transition-all duration-200 shadow-inner";
+            initCamera();
+        });
+
+        captureBtn.addEventListener('click', () => {
+            playClickSound(mode === 'photo' ? 900 : 250);
+            if (mode === 'photo') takeSnapshot();
+            else toggleRecording();
+        });
+
+        function takeSnapshot() {
+            flashOverlay.classList.remove('flash-effect');
+            void flashOverlay.offsetWidth;
+            flashOverlay.classList.add('flash-effect');
+
+            const canvas = document.createElement('canvas');
+            canvas.width = videoElement.videoWidth || 1920;
+            canvas.height = videoElement.videoHeight || 1080;
+            const ctx = canvas.getContext('2d');
+            if (currentFilter) ctx.filter = getComputedStyle(videoElement).filter;
+            if (currentFacingMode === 'user') {
+                ctx.translate(canvas.width, 0);
+                ctx.scale(-1, 1);
+            }
+            ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+            addToGallery({ type: 'image', url: canvas.toDataURL('image/jpeg', 0.95) });
+        }
+
+        function toggleRecording() {
+            if (!mediaRecorder || mediaRecorder.state === 'inactive') startRecording();
+            else stopRecording();
+        }
+
+        function startRecording() {
+            recordedChunks = [];
+            try {
+                mediaRecorder = new MediaRecorder(mediaStream, { mimeType: 'video/webm;codecs=vp9' });
+            } catch (e) {
+                mediaRecorder = new MediaRecorder(mediaStream);
+            }
+
+            mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
+            mediaRecorder.onstop = () => {
+                const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                addToGallery({ type: 'video', url: URL.createObjectURL(blob), blob: blob });
+            };
+
+            mediaRecorder.start();
+            shutterInner.className = "w-4 h-4 bg-white rounded-full animate-pulse shadow-inner";
+            recordTimer.classList.remove('hidden');
+            
+            recordingSeconds = 0;
+            recordingTimerInterval = setInterval(() => {
+                recordingSeconds++;
+                const hrs = String(Math.floor(recordingSeconds / 3600)).padStart(2, '0');
+                const mins = String(Math.floor((recordingSeconds % 3600) / 60)).padStart(2, '0');
+                const secs = String(recordingSeconds % 60).padStart(2, '0');
+                timerText.innerText = `${hrs}:${mins}:${secs}`;
+            }, 1000);
+        }
+
+        function stopRecording() {
+            mediaRecorder.stop();
+            clearInterval(recordingTimerInterval);
+            recordTimer.classList.add('hidden');
+            shutterInner.className = "w-4 h-4 bg-red-600 rounded-sm transition-all duration-200 shadow-inner";
+        }
+
+        function addToGallery(item) {
+            galleryItems.unshift(item);
+            galleryBadge.innerText = galleryItems.length;
+            galleryBadge.classList.remove('hidden');
+            emptyGallery.classList.add('hidden');
+
+            galleryGrid.innerHTML = '';
+            galleryItems.forEach((it, idx) => {
+                const card = document.createElement('div');
+                card.className = "relative aspect-video bg-neutral-950 rounded-xl overflow-hidden cursor-pointer border border-neutral-800 hover:border-amber-500 shadow transition group";
+                if (it.type === 'image') {
+                    card.innerHTML = `<img src="${it.url}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">`;
+                } else {
+                    card.innerHTML = `<video src="${it.url}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300"></video><div class="absolute inset-0 flex items-center justify-center bg-black/40"><i class="fa-solid fa-play text-white text-lg drop-shadow"></i></div>`;
+                }
+                card.addEventListener('click', () => openPreview(idx));
+                galleryGrid.appendChild(card);
             });
         }
 
-        shutterBtn.addEventListener('click', () => {
-            alert('Snapshot captured!');
+        galleryBtn.addEventListener('click', () => {
+            playClickSound(400);
+            galleryModal.classList.remove('opacity-0', 'pointer-events-none');
         });
+
+        closeGalleryBtn.addEventListener('click', () => {
+            playClickSound(400);
+            galleryModal.classList.add('opacity-0', 'pointer-events-none');
+        });
+
+        function openPreview(idx) {
+            playClickSound(450);
+            activePreviewIndex = idx;
+            const item = galleryItems[idx];
+            previewContainer.innerHTML = '';
+            if (item.type === 'image') {
+                const img = document.createElement('img');
+                img.src = item.url;
+                img.className = "max-w-full max-h-[75vh] object-contain rounded-xl";
+                previewContainer.appendChild(img);
+                downloadLink.href = item.url;
+                downloadLink.download = `take_${Date.now()}.jpg`;
+            } else {
+                const vid = document.createElement('video');
+                vid.src = item.url;
+                vid.controls = true;
+                vid.autoplay = true;
+                vid.className = "max-w-full max-h-[75vh] object-contain rounded-xl";
+                previewContainer.appendChild(vid);
+                downloadLink.href = item.url;
+                downloadLink.download = `take_${Date.now()}.webm`;
+            }
+            previewModal.classList.remove('hidden');
+        }
+
+        closePreviewBtn.addEventListener('click', () => {
+            playClickSound(400);
+            previewModal.classList.add('hidden');
+        });
+
+        deleteMediaBtn.addEventListener('click', () => {
+            playClickSound(200);
+            if (activePreviewIndex !== null) {
+                galleryItems.splice(activePreviewIndex, 1);
+                previewModal.classList.add('hidden');
+                galleryBadge.innerText = galleryItems.length;
+                if(galleryItems.length === 0) galleryBadge.classList.add('hidden');
+            }
+        });
+
+        window.addEventListener('load', initCamera);
     </script>
 </body>
 </html>
