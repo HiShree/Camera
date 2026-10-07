@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web Camera Studio</title>
+    <title>Web Camera Studio - Horizon Edition</title>
     <!-- Tailwind CSS for modern styling -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <!-- FontAwesome for icons -->
@@ -35,6 +35,10 @@
             <h1 class="text-lg font-bold tracking-wide">WebCam Studio</h1>
         </div>
         <div class="flex items-center space-x-3">
+            <!-- Horizon Level Toggle -->
+            <button id="horizonToggleBtn" class="bg-gray-800 hover:bg-gray-700 p-2.5 rounded-full transition text-sm flex items-center justify-center w-10 h-10 shadow text-gray-400" title="Toggle Horizon Leveler">
+                <i class="fa-solid fa-compass"></i>
+            </button>
             <button id="switchCameraBtn" class="bg-gray-800 hover:bg-gray-700 p-2.5 rounded-full transition text-sm flex items-center justify-center w-10 h-10 shadow">
                 <i class="fa-solid fa-camera-rotate"></i>
             </button>
@@ -54,6 +58,19 @@
             
             <!-- Flash Overlay -->
             <div id="flashOverlay" class="absolute inset-0 bg-white opacity-0 pointer-events-none z-10"></div>
+
+            <!-- Horizon Leveler Indicator Overlay -->
+            <div id="horizonOverlay" class="absolute inset-x-0 top-1/2 -translate-y-1/2 flex flex-col items-center pointer-events-none opacity-0 transition-opacity duration-300 z-20">
+                <div class="relative w-3/4 max-w-xs h-6 flex items-center justify-center">
+                    <!-- Center alignment tick -->
+                    <div class="absolute w-0.5 h-6 bg-white shadow z-10"></div>
+                    <!-- Level Bar Track -->
+                    <div class="w-full h-1 bg-black/40 backdrop-blur-sm rounded-full overflow-hidden border border-white/20">
+                        <div id="horizonIndicatorBar" class="w-full h-full bg-emerald-400 transition-all duration-75 origin-left" style="transform: translateX(0px);"></div>
+                    </div>
+                </div>
+                <span id="horizonAngleText" class="mt-1 text-[10px] font-mono tracking-widest bg-black/60 px-2 py-0.5 rounded text-emerald-400 border border-white/10 shadow">0.0° LEVEL</span>
+            </div>
 
             <!-- Recording Timer Badge -->
             <div id="recordTimer" class="absolute top-4 left-4 bg-red-600/90 text-white px-3 py-1 rounded-full text-xs font-semibold tracking-wider flex items-center space-x-2 hidden z-10 backdrop-blur-sm shadow">
@@ -185,6 +202,12 @@
         const downloadLink = document.getElementById('downloadLink');
         const deleteMediaBtn = document.getElementById('deleteMediaBtn');
 
+        // Horizon Level Elements
+        const horizonToggleBtn = document.getElementById('horizonToggleBtn');
+        const horizonOverlay = document.getElementById('horizonOverlay');
+        const horizonIndicatorBar = document.getElementById('horizonIndicatorBar');
+        const horizonAngleText = document.getElementById('horizonAngleText');
+
         let currentFacingMode = 'user'; // 'user' (front) or 'environment' (back)
         let mediaStream = null;
         let currentFilter = '';
@@ -195,6 +218,7 @@
         let recordingSeconds = 0;
         let galleryItems = [];
         let activePreviewIndex = null;
+        let isHorizonEnabled = false;
 
         // Initialize Camera Stream
         async function initCamera() {
@@ -228,6 +252,69 @@
             currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
             initCamera();
         });
+
+        // Horizon Leveler Toggle & Sensors
+        horizonToggleBtn.addEventListener('click', () => {
+            isHorizonEnabled = !isHorizonEnabled;
+            if (isHorizonEnabled) {
+                // Request permission for iOS 13+ devices if required
+                if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                    DeviceOrientationEvent.requestPermission()
+                        .then(response => {
+                            if (response === 'granted') {
+                                activateHorizonSensor();
+                            } else {
+                                alert("Orientation permission denied.");
+                                isHorizonEnabled = false;
+                            }
+                        }).catch(console.error);
+                } else {
+                    activateHorizonSensor();
+                }
+            } else {
+                deactivateHorizonSensor();
+            }
+        });
+
+        function activateHorizonSensor() {
+            horizonToggleBtn.classList.remove('text-gray-400');
+            horizonToggleBtn.classList.add('text-amber-400', 'bg-gray-800', 'ring-1', 'ring-amber-400/50');
+            horizonOverlay.classList.remove('opacity-0');
+            window.addEventListener('deviceorientation', handleOrientation, true);
+        }
+
+        function deactivateHorizonSensor() {
+            horizonToggleBtn.classList.add('text-gray-400');
+            horizonToggleBtn.classList.remove('text-amber-400', 'bg-gray-800', 'ring-1', 'ring-amber-400/50');
+            horizonOverlay.classList.add('opacity-0');
+            window.removeEventListener('deviceorientation', handleOrientation, true);
+        }
+
+        function handleOrientation(event) {
+            if (!isHorizonEnabled) return;
+
+            // event.gamma represents left-to-right tilt (roll) in degrees [-90, 90]
+            let roll = event.gamma || 0;
+            
+            // Handle portrait vs landscape adjustments if needed, gamma handles phone roll nicely in portrait
+            const absRoll = Math.abs(roll);
+            const maxOffset = 60; // Max visual translation pixel limit
+            let translateX = (roll / 45) * 50; // Map degrees to pixel offset scale
+            translateX = Math.max(-maxOffset, Math.min(maxOffset, translateX));
+
+            horizonIndicatorBar.style.transform = `translateX(${translateX}px)`;
+            horizonAngleText.innerText = `${roll.toFixed(1)}° LEVEL`;
+
+            if (absRoll <= 1.5) {
+                // Perfectly Level
+                horizonIndicatorBar.className = "w-full h-full bg-emerald-400 transition-all duration-75 origin-left";
+                horizonAngleText.className = "mt-1 text-[10px] font-mono tracking-widest bg-black/60 px-2 py-0.5 rounded text-emerald-400 border border-emerald-500/30 shadow";
+            } else {
+                // Tilted
+                horizonIndicatorBar.className = "w-full h-full bg-amber-400 transition-all duration-75 origin-left";
+                horizonAngleText.className = "mt-1 text-[10px] font-mono tracking-widest bg-black/60 px-2 py-0.5 rounded text-amber-400 border border-amber-500/30 shadow";
+            }
+        }
 
         // Filter selection
         function setFilter(filterClass) {
