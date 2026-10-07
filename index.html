@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web Camera Studio - Gimbal Edition</title>
+    <title>Web Camera Studio - True Gimbal Horizon Lock</title>
     <!-- Tailwind CSS for modern styling -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <!-- FontAwesome for icons -->
@@ -59,18 +59,16 @@
             <!-- Flash Overlay -->
             <div id="flashOverlay" class="absolute inset-0 bg-white opacity-0 pointer-events-none z-10"></div>
 
-            <!-- Virtual Horizon Gimbal Framing Box (matches your screenshot style) -->
+            <!-- Virtual Horizon Gimbal Framing Box -->
             <div id="gimbalBoxOverlay" class="absolute inset-0 flex items-center justify-center pointer-events-none hidden z-15 transition-transform duration-75">
                 <div class="relative w-[70%] h-[70%] border-2 border-amber-400/80 bg-amber-400/5 rounded-xl shadow-2xl flex items-center justify-center">
-                    <!-- Corner Brackets -->
                     <div class="absolute -top-1 -left-1 w-4 h-4 border-t-4 border-l-4 border-amber-400"></div>
                     <div class="absolute -top-1 -right-1 w-4 h-4 border-t-4 border-r-4 border-amber-400"></div>
                     <div class="absolute -bottom-1 -left-1 w-4 h-4 border-b-4 border-l-4 border-amber-400"></div>
                     <div class="absolute -bottom-1 -right-1 w-4 h-4 border-b-4 border-r-4 border-amber-400"></div>
-                    <!-- Center Gimbal Status Tag -->
                     <div class="absolute top-2 bg-black/70 backdrop-blur-md px-2.5 py-0.5 rounded-full border border-amber-400/30 flex items-center space-x-1.5 shadow">
                         <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-                        <span id="gimbalStatusText" class="text-[10px] font-mono tracking-wider text-amber-400 font-bold">GIMBAL 0.0°</span>
+                        <span id="gimbalStatusText" class="text-[10px] font-mono tracking-wider text-amber-400 font-bold">GIMBAL LOCK</span>
                     </div>
                 </div>
             </div>
@@ -218,21 +216,19 @@
         const downloadLink = document.getElementById('downloadLink');
         const deleteMediaBtn = document.getElementById('deleteMediaBtn');
 
-        // Horizon Level Elements
         const horizonToggleBtn = document.getElementById('horizonToggleBtn');
         const horizonOverlay = document.getElementById('horizonOverlay');
         const horizonIndicatorBar = document.getElementById('horizonIndicatorBar');
         const horizonAngleText = document.getElementById('horizonAngleText');
 
-        // Gimbal Box Elements
         const gimbalToggleBtn = document.getElementById('gimbalToggleBtn');
         const gimbalBoxOverlay = document.getElementById('gimbalBoxOverlay');
         const gimbalStatusText = document.getElementById('gimbalStatusText');
 
-        let currentFacingMode = 'user'; // 'user' (front) or 'environment' (back)
+        let currentFacingMode = 'user';
         let mediaStream = null;
         let currentFilter = '';
-        let mode = 'photo'; // 'photo' or 'video'
+        let mode = 'photo';
         let mediaRecorder = null;
         let recordedChunks = [];
         let recordingTimerInterval = null;
@@ -242,7 +238,10 @@
         let isHorizonEnabled = false;
         let isGimbalEnabled = false;
 
-        // Initialize Camera Stream
+        let currentRoll = 0; // Tracks current tilt angle for canvas rendering
+        let canvasStream = null;
+        let stabilizationInterval = null;
+
         async function initCamera() {
             if (mediaStream) {
                 mediaStream.getTracks().forEach(track => track.stop());
@@ -269,13 +268,11 @@
 
         retryBtn.addEventListener('click', initCamera);
 
-        // Switch Camera (Front/Back)
         switchCameraBtn.addEventListener('click', () => {
             currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
             initCamera();
         });
 
-        // Horizon Leveler Toggle & Sensors
         horizonToggleBtn.addEventListener('click', () => {
             isHorizonEnabled = !isHorizonEnabled;
             if (isHorizonEnabled) {
@@ -285,7 +282,6 @@
             }
         });
 
-        // Gimbal Mode Toggle Button
         gimbalToggleBtn.addEventListener('click', () => {
             isGimbalEnabled = !isGimbalEnabled;
             if (isGimbalEnabled) {
@@ -336,23 +332,23 @@
             gimbalToggleBtn.classList.remove('text-amber-400', 'bg-gray-800', 'border-amber-400/50', 'ring-1', 'ring-amber-400/50');
             gimbalBoxOverlay.classList.add('hidden');
             gimbalBoxOverlay.style.transform = 'rotate(0deg)';
+            currentRoll = 0;
             if (!isHorizonEnabled) {
                 window.removeEventListener('deviceorientation', handleOrientation, true);
             }
         }
 
         function handleOrientation(event) {
-            let roll = event.gamma || 0; // Left-right tilt [-90, 90]
+            currentRoll = event.gamma || 0; // Left-right tilt angle
 
-            // 1. Update Horizon Bar if active
             if (isHorizonEnabled) {
-                const absRoll = Math.abs(roll);
+                const absRoll = Math.abs(currentRoll);
                 const maxOffset = 60;
-                let translateX = (roll / 45) * 50;
+                let translateX = (currentRoll / 45) * 50;
                 translateX = Math.max(-maxOffset, Math.min(maxOffset, translateX));
 
                 horizonIndicatorBar.style.transform = `translateX(${translateX}px)`;
-                horizonAngleText.innerText = `${roll.toFixed(1)}° LEVEL`;
+                horizonAngleText.innerText = `${currentRoll.toFixed(1)}° LEVEL`;
 
                 if (absRoll <= 1.5) {
                     horizonIndicatorBar.className = "w-full h-full bg-emerald-400 transition-all duration-75 origin-left";
@@ -363,15 +359,12 @@
                 }
             }
 
-            // 2. Update Gimbal Box Rotation Counter-balancing
             if (isGimbalEnabled) {
-                // Counter-rotate the gimbal box to lock the horizon visually
-                gimbalBoxOverlay.style.transform = `rotate(${-roll}deg)`;
-                gimbalStatusText.innerText = `GIMBAL ${Math.abs(roll).toFixed(1)}°`;
+                gimbalBoxOverlay.style.transform = `rotate(${-currentRoll}deg)`;
+                gimbalStatusText.innerText = `GIMBAL LOCK`;
             }
         }
 
-        // Filter selection
         function setFilter(filterClass) {
             currentFilter = filterClass;
             videoElement.className = `w-full h-full object-cover ${filterClass}`;
@@ -384,7 +377,6 @@
             event.target.classList.remove('border-transparent');
         }
 
-        // Mode Switching (Photo vs Video)
         photoModeBtn.addEventListener('click', () => {
             if (mediaRecorder && mediaRecorder.state === 'recording') return;
             mode = 'photo';
@@ -392,7 +384,6 @@
             videoModeBtn.className = "px-4 py-1.5 rounded-full text-xs font-bold text-gray-400 hover:text-white transition";
             shutterInner.className = "w-12 h-12 bg-white rounded-full transition-all duration-200";
             
-            // Hide gimbal toggle in photo mode
             if (isGimbalEnabled) {
                 deactivateGimbalMode();
             }
@@ -406,12 +397,10 @@
             photoModeBtn.className = "px-4 py-1.5 rounded-full text-xs font-bold text-gray-400 hover:text-white transition";
             shutterInner.className = "w-6 h-6 bg-red-600 rounded-sm transition-all duration-200";
             
-            // Show gimbal toggle in video mode
             gimbalToggleBtn.classList.remove('hidden');
             initCamera();
         });
 
-        // Shutter Sound Generator using Web Audio API
         function playShutterSound() {
             try {
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -426,12 +415,9 @@
                 gain.connect(audioCtx.destination);
                 osc.start();
                 osc.stop(audioCtx.currentTime + 0.1);
-            } catch (e) {
-                // AudioContext prevented or unsupported
-            }
+            } catch (e) {}
         }
 
-        // Capture Action
         captureBtn.addEventListener('click', () => {
             if (mode === 'photo') {
                 takeSnapshot();
@@ -440,11 +426,10 @@
             }
         });
 
-        // Take Snapshot
         function takeSnapshot() {
             playShutterSound();
             flashOverlay.classList.remove('flash-effect');
-            void flashOverlay.offsetWidth; // trigger reflow
+            void flashOverlay.offsetWidth;
             flashOverlay.classList.add('flash-effect');
 
             const canvas = document.createElement('canvas');
@@ -461,6 +446,13 @@
                 ctx.scale(-1, 1);
             }
 
+            if (isGimbalEnabled) {
+                const rad = (-currentRoll * Math.PI) / 180;
+                ctx.translate(canvas.width / 2, canvas.height / 2);
+                ctx.rotate(rad);
+                ctx.translate(-canvas.width / 2, -canvas.height / 2);
+            }
+
             ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
             const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
 
@@ -471,7 +463,6 @@
             });
         }
 
-        // Toggle Video Recording
         function toggleVideoRecording() {
             if (!mediaRecorder || mediaRecorder.state === 'inactive') {
                 startRecording();
@@ -482,11 +473,52 @@
 
         function startRecording() {
             recordedChunks = [];
+            
+            let recordStream = mediaStream;
+
+            // If Gimbal Mode is active, generate a stabilized video stream from a canvas
+            if (isGimbalEnabled) {
+                const recordCanvas = document.createElement('canvas');
+                recordCanvas.width = videoElement.videoWidth || 1280;
+                recordCanvas.height = videoElement.videoHeight || 720;
+                const rCtx = recordCanvas.getContext('2d');
+
+                const renderStabilizedFrame = () => {
+                    if (!mediaRecorder || mediaRecorder.state === 'inactive') return;
+                    rCtx.save();
+                    rCtx.clearRect(0, 0, recordCanvas.width, recordCanvas.height);
+                    
+                    if (currentFilter) {
+                        rCtx.filter = getComputedStyle(videoElement).filter;
+                    }
+
+                    // Apply counter-rotation to lock horizon in the final video file
+                    rCtx.translate(recordCanvas.width / 2, recordCanvas.height / 2);
+                    rCtx.rotate((-currentRoll * Math.PI) / 180);
+                    rCtx.translate(-recordCanvas.width / 2, -recordCanvas.height / 2);
+
+                    rCtx.drawImage(videoElement, 0, 0, recordCanvas.width, recordCanvas.height);
+                    rCtx.restore();
+                    
+                    requestAnimationFrame(renderStabilizedFrame);
+                };
+
+                canvasStream = recordCanvas.captureStream(30); // 30 FPS stream
+                
+                // Combine canvas video track with microphone audio track if present
+                const audioTracks = mediaStream.getAudioTracks();
+                if (audioTracks.length > 0) {
+                    canvasStream.addTrack(audioTracks[0]);
+                }
+                recordStream = canvasStream;
+                requestAnimationFrame(renderStabilizedFrame);
+            }
+
             try {
-                mediaRecorder = new MediaRecorder(mediaStream, { mimeType: 'video/webm;codecs=vp9' });
+                mediaRecorder = new MediaRecorder(recordStream, { mimeType: 'video/webm;codecs=vp9' });
             } catch (e) {
                 try {
-                    mediaRecorder = new MediaRecorder(mediaStream);
+                    mediaRecorder = new MediaRecorder(recordStream);
                 } catch (err) {
                     alert("Video recording is not supported on your browser.");
                     return;
@@ -531,7 +563,6 @@
             captureBtn.classList.remove('border-red-600');
         }
 
-        // Gallery Management
         function addToGallery(item) {
             galleryItems.unshift(item);
             updateGalleryUI();
@@ -598,7 +629,7 @@
                 downloadLink.href = item.url;
                 downloadLink.download = `video_${Date.now()}.webm`;
             }
-            previewModal.classList.remove('hidden');
+            previewModal.classList.add('hidden');
         }
 
         closePreviewBtn.addEventListener('click', () => {
