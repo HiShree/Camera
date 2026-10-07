@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web Camera Studio - Area Gimbal Lock</title>
+    <title>Web Camera Studio - Smoothed Gimbal Lock</title>
     <!-- Tailwind CSS for modern styling -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <!-- FontAwesome for icons -->
@@ -58,16 +58,16 @@
             <!-- Flash Overlay -->
             <div id="flashOverlay" class="absolute inset-0 bg-white opacity-0 pointer-events-none z-10"></div>
 
-            <!-- Area Focus Gimbal Box (Matches your reference image) -->
+            <!-- Area Focus Gimbal Box -->
             <div id="gimbalBoxOverlay" class="absolute inset-0 flex items-center justify-center pointer-events-none hidden z-15">
-                <div id="gimbalInnerFrame" class="relative w-[50%] h-[75%] border-2 border-white bg-white/5 rounded-lg shadow-2xl flex items-center justify-center transition-transform duration-75">
+                <div id="gimbalInnerFrame" class="relative w-[55%] h-[70%] border-2 border-white bg-white/5 rounded-lg shadow-2xl flex items-center justify-center transition-transform duration-75">
                     <div class="absolute -top-1.5 -left-1.5 w-5 h-5 border-t-4 border-l-4 border-white"></div>
                     <div class="absolute -top-1.5 -right-1.5 w-5 h-5 border-t-4 border-r-4 border-white"></div>
                     <div class="absolute -bottom-1.5 -left-1.5 w-5 h-5 border-b-4 border-l-4 border-white"></div>
                     <div class="absolute -bottom-1.5 -right-1.5 w-5 h-5 border-b-4 border-r-4 border-white"></div>
                     <div class="absolute top-2 bg-black/70 backdrop-blur-md px-2.5 py-0.5 rounded-full border border-amber-400/30 flex items-center space-x-1.5 shadow">
                         <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-                        <span class="text-[10px] font-mono tracking-wider text-amber-400 font-bold">AREA GIMBAL LOCK</span>
+                        <span class="text-[10px] font-mono tracking-wider text-amber-400 font-bold">STABLE GIMBAL LOCK</span>
                     </div>
                 </div>
             </div>
@@ -126,20 +126,16 @@
     <!-- Bottom Controls -->
     <footer class="w-full p-4 bg-gray-900/90 backdrop-blur-md border-t border-gray-800 flex flex-col items-center z-20">
         <div class="w-full max-w-md flex justify-around items-center">
-            
-            <!-- Mode Switcher (Photo / Video) -->
             <div class="flex bg-gray-800 p-1 rounded-full shadow-inner">
                 <button id="photoModeBtn" class="px-4 py-1.5 rounded-full text-xs font-bold bg-amber-500 text-gray-950 transition">Photo</button>
                 <button id="videoModeBtn" class="px-4 py-1.5 rounded-full text-xs font-bold text-gray-400 hover:text-white transition">Video</button>
             </div>
 
-            <!-- Shutter / Record Button -->
             <button id="captureBtn" class="w-16 h-16 rounded-full border-4 border-white flex items-center justify-center bg-white/20 hover:bg-white/40 transition transform active:scale-95 shadow-lg">
                 <div id="shutterInner" class="w-12 h-12 bg-white rounded-full transition-all duration-200"></div>
             </button>
 
-            <!-- Gimbal Stabilization Toggle (Video Mode Only) -->
-            <button id="gimbalToggleBtn" class="w-11 h-11 bg-gray-800 hover:bg-gray-700 rounded-full flex items-center justify-center transition border border-gray-700 text-gray-400 hidden shadow" title="Toggle Area Gimbal Lock">
+            <button id="gimbalToggleBtn" class="w-11 h-11 bg-gray-800 hover:bg-gray-700 rounded-full flex items-center justify-center transition border border-gray-700 text-gray-400 hidden shadow" title="Toggle Stable Gimbal Lock">
                 <i class="fa-solid fa-cube text-sm"></i>
             </button>
         </div>
@@ -230,7 +226,9 @@
         let activePreviewIndex = null;
         let isHorizonEnabled = false;
         let isGimbalEnabled = false;
-        let currentRoll = 0;
+
+        let rawRoll = 0;
+        let smoothedRoll = 0; // Damped rotation value for jitter-free stability
         let canvasStream = null;
 
         async function initCamera() {
@@ -320,20 +318,25 @@
             gimbalToggleBtn.classList.remove('text-amber-400', 'bg-gray-800', 'border-amber-400/50', 'ring-1', 'ring-amber-400/50');
             gimbalBoxOverlay.classList.add('hidden');
             gimbalInnerFrame.style.transform = 'rotate(0deg)';
-            currentRoll = 0;
+            rawRoll = 0;
+            smoothedRoll = 0;
             if (!isHorizonEnabled) {
                 window.removeEventListener('deviceorientation', handleOrientation, true);
             }
         }
 
         function handleOrientation(event) {
-            currentRoll = event.gamma || 0;
+            rawRoll = event.gamma || 0;
+            
+            // Low-pass damping filter (removes jitter and sudden shaking)
+            const smoothingFactor = 0.15;
+            smoothedRoll += (rawRoll - smoothedRoll) * smoothingFactor;
 
             if (isHorizonEnabled) {
-                const absRoll = Math.abs(currentRoll);
-                let translateX = Math.max(-60, Math.min(60, (currentRoll / 45) * 50));
+                const absRoll = Math.abs(smoothedRoll);
+                let translateX = Math.max(-60, Math.min(60, (smoothedRoll / 45) * 50));
                 horizonIndicatorBar.style.transform = `translateX(${translateX}px)`;
-                horizonAngleText.innerText = `${currentRoll.toFixed(1)}° LEVEL`;
+                horizonAngleText.innerText = `${smoothedRoll.toFixed(1)}° LEVEL`;
                 if (absRoll <= 1.5) {
                     horizonIndicatorBar.className = "w-full h-full bg-emerald-400 transition-all duration-75 origin-left";
                     horizonAngleText.className = "mt-1 text-[10px] font-mono tracking-widest bg-black/60 px-2 py-0.5 rounded text-emerald-400 border border-emerald-500/30 shadow";
@@ -344,8 +347,8 @@
             }
 
             if (isGimbalEnabled) {
-                // Counter-rotate the viewfinder frame box to lock the horizon visually
-                gimbalInnerFrame.style.transform = `rotate(${-currentRoll}deg)`;
+                // Smoothly counter-rotate the specific framing box so content inside remains steady
+                gimbalInnerFrame.style.transform = `rotate(${-smoothedRoll}deg)`;
             }
         }
 
@@ -413,8 +416,8 @@
             const vHeight = videoElement.videoHeight || 720;
 
             if (isGimbalEnabled) {
-                canvas.width = vWidth * 0.5;
-                canvas.height = vHeight * 0.75;
+                canvas.width = vWidth * 0.55;
+                canvas.height = vHeight * 0.7;
             } else {
                 canvas.width = vWidth;
                 canvas.height = vHeight;
@@ -425,7 +428,7 @@
 
             ctx.translate(canvas.width / 2, canvas.height / 2);
             if (isGimbalEnabled) {
-                ctx.rotate((-currentRoll * Math.PI) / 180);
+                ctx.rotate((-smoothedRoll * Math.PI) / 180);
             }
             if (currentFacingMode === 'user') {
                 ctx.scale(-1, 1);
@@ -448,8 +451,8 @@
                 const recordCanvas = document.createElement('canvas');
                 const vWidth = videoElement.videoWidth || 1280;
                 const vHeight = videoElement.videoHeight || 720;
-                recordCanvas.width = vWidth * 0.5;
-                recordCanvas.height = vHeight * 0.75;
+                recordCanvas.width = vWidth * 0.55;
+                recordCanvas.height = vHeight * 0.7;
                 const rCtx = recordCanvas.getContext('2d');
 
                 const renderStabilizedArea = () => {
@@ -459,7 +462,7 @@
                     if (currentFilter) rCtx.filter = getComputedStyle(videoElement).filter;
 
                     rCtx.translate(recordCanvas.width / 2, recordCanvas.height / 2);
-                    rCtx.rotate((-currentRoll * Math.PI) / 180);
+                    rCtx.rotate((-smoothedRoll * Math.PI) / 180);
                     rCtx.drawImage(videoElement, -vWidth / 2, -vHeight / 2, vWidth, vHeight);
                     rCtx.restore();
 
