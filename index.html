@@ -39,9 +39,7 @@ body {
     background: #000;
 }
 
-#camera {
-    display: none;
-}
+#camera { display: none; }
 
 #outputCanvas {
     position: absolute;
@@ -165,7 +163,7 @@ body {
     transform: translateX(-50%);
     z-index: 25;
     display: flex;
-    gap: 6px;
+    gap: 4px;
     padding: 6px;
     border-radius: 30px;
     background: rgba(0,0,0,.5);
@@ -174,8 +172,9 @@ body {
 }
 
 .zoomButton {
-    width: 50px;
+    min-width: 43px;
     height: 34px;
+    padding: 0 7px;
     border: 0;
     border-radius: 20px;
     background: transparent;
@@ -343,6 +342,7 @@ body {
     .modeBar { bottom: 180px; }
     .zoomBar { bottom: 105px; }
     .recordButton { width: 66px; height: 66px; }
+    .zoomButton { min-width: 39px; }
 }
 </style>
 </head>
@@ -368,6 +368,7 @@ body {
     </div>
 
     <div class="zoomBar">
+        <button class="zoomButton" data-zoom="0.5">0.5×</button>
         <button class="zoomButton active" data-zoom="1">1×</button>
         <button class="zoomButton" data-zoom="1.5">1.5×</button>
         <button class="zoomButton" data-zoom="2">2×</button>
@@ -395,7 +396,7 @@ body {
 
     <div id="startScreen">
         <h1>Horizon</h1>
-        <p>Portrait horizon camera with gyro stabilization, 1× / 1.5× / 2× zoom, and smooth horizon correction.</p>
+        <p>Portrait horizon camera with gyro stabilization, 0.5× / 1× / 1.5× / 2× zoom, and smooth horizon correction.</p>
         <button id="startButton" class="startButton">START CAMERA</button>
     </div>
 
@@ -456,35 +457,29 @@ const MAX_ROLL = 45;
 
 /* =====================================================
    SENSOR STATE
-
-   alpha = rotation around the device Z axis.
-   For a portrait phone, this is normally the
-   screen-normal axis used for horizon roll.
-
-   Sensor conventions can differ between browsers.
 ===================================================== */
 
-let gyroRoll = 0;
 let filteredRoll = 0;
 let targetRoll = 0;
 let outputRoll = 0;
-let gravityRoll = 0;
 let calibrationOffset = 0;
+let gravityRoll = null;
+let gyroRate = 0;
+let lastMotionTime = 0;
 
-let lastSensorTime = null;
 let sensorStarted = false;
-let usingOrientationFallback = false;
 let sensorsEnabled = false;
+let usingOrientationFallback = false;
 let lastMotionReceived = 0;
 let sensorCheckTimer = null;
+
 let motionListener = null;
 let orientationListener = null;
 
-const GRAVITY_CORRECTION = 0.025;
-const OUTPUT_SMOOTHING = 0.30;
 const DEAD_ZONE = 0.35;
 const MAX_SENSOR_DT = 0.05;
 const SENSOR_TIMEOUT = 1500;
+const OUTPUT_SMOOTHING = 0.30;
 
 /* =====================================================
    RECORDING STATE
@@ -510,8 +505,8 @@ function normalizeAngle(angle) {
 }
 
 function smoothAngle(current, target, factor) {
-    const difference = normalizeAngle(target - current);
-    return current + difference * factor;
+    return current +
+        normalizeAngle(target - current) * factor;
 }
 
 function setStatus(text, type = "") {
@@ -525,7 +520,8 @@ function setStatus(text, type = "") {
 
 async function lockPortrait() {
     try {
-        if (screen.orientation && screen.orientation.lock) {
+        if (screen.orientation &&
+            screen.orientation.lock) {
             await screen.orientation.lock("portrait");
         }
     } catch (error) {
@@ -538,39 +534,46 @@ async function lockPortrait() {
 ===================================================== */
 
 function resetSensorState() {
-    gyroRoll = 0;
     filteredRoll = 0;
     targetRoll = 0;
     outputRoll = 0;
-    gravityRoll = 0;
     calibrationOffset = 0;
-    lastSensorTime = null;
+    gravityRoll = null;
+    gyroRate = 0;
+    lastMotionTime = 0;
     sensorStarted = false;
 }
 
 /* =====================================================
-   GRAVITY MEASUREMENT
+   GRAVITY ANGLE
 
-   Gravity is used as a slow reference only.
-   It can be noisy while the phone accelerates.
+   Gravity is an absolute reference, but this projection
+   is reliable only when the phone's orientation makes
+   the X/Y gravity projection large enough.
 ===================================================== */
 
-function calculateGravityRoll(gx, gy) {
-    if (!Number.isFinite(gx) || !Number.isFinite(gy)) {
+function calculateGravityRoll(x, y, z) {
+    if (![x, y, z].every(Number.isFinite)) {
         return null;
     }
 
-    const magnitude = Math.hypot(gx, gy);
+    const magnitude = Math.hypot(x, y, z);
 
-    if (magnitude < 1) return null;
+    if (magnitude < 7 || magnitude > 12.5) {
+        return null;
+    }
 
-    return normalizeAngle(
-        Math.atan2(gx, -gy) * 180 / Math.PI
-    );
+    const projectedMagnitude = Math.hypot(x, y);
+
+    if (projectedMagnitude < magnitude * 0.15) {
+        return null;
+    }
+
+    return Math.atan2(x, -y) * 180 / Math.PI;
 }
 
 /* =====================================================
-   UPDATE CORRECTION TARGET
+   TARGET ANGLE
 ===================================================== */
 
 function updateTargetRoll() {
@@ -584,93 +587,75 @@ function updateTargetRoll() {
 }
 
 /* =====================================================
-   DEVICE MOTION HANDLER
+   DEVICE MOTION
 
-   Integrate rotationRate.alpha for screen-normal
-   roll, then apply a small gravity correction.
-
-   NOTE: The exact axis/sign can vary by device.
+   Uses gravity for an absolute reference and gyro
+   integration for smoother movement between samples.
 ===================================================== */
 
 function handleDeviceMotion(event) {
     if (!cameraStarted || mode === "locked") return;
 
     const now = performance.now();
+    const dt = lastMotionTime
+        ? Math.min((now - lastMotionTime) / 1000, MAX_SENSOR_DT)
+        : 0;
+
+    lastMotionTime = now;
+
     const rotation = event.rotationRate;
     const acceleration = event.accelerationIncludingGravity;
+
+    if (rotation && Number.isFinite(rotation.alpha)) {
+        gyroRate = rotation.alpha;
+    } else {
+        gyroRate = 0;
+    }
 
     if (acceleration) {
         const measured = calculateGravityRoll(
             Number(acceleration.x),
-            Number(acceleration.y)
+            Number(acceleration.y),
+            Number(acceleration.z)
         );
 
         if (measured !== null) {
-            // Do not force the gravity angle into the filter
-            // while movement makes the measurement unreliable.
-            const gravityMagnitude = Math.hypot(
-                Number(acceleration.x),
-                Number(acceleration.y)
-            );
-
-            if (gravityMagnitude > 4 && gravityMagnitude < 12) {
-                gravityRoll = smoothAngle(
-                    gravityRoll,
-                    measured,
-                    0.08
-                );
-            }
+            gravityRoll = measured;
         }
     }
 
-    if (!rotation) return;
+    if (gravityRoll !== null) {
+        if (!sensorStarted) {
+            filteredRoll = gravityRoll;
+            sensorStarted = true;
+        } else {
+            const gyroPrediction = normalizeAngle(
+                filteredRoll + gyroRate * dt
+            );
 
-    const speed = Number(rotation.alpha);
+            filteredRoll = smoothAngle(
+                gyroPrediction,
+                gravityRoll,
+                0.22
+            );
+        }
 
-    if (!Number.isFinite(speed)) return;
+        updateTargetRoll();
+    } else if (sensorStarted && dt > 0) {
+        filteredRoll = normalizeAngle(
+            filteredRoll + gyroRate * dt
+        );
 
-    if (lastSensorTime === null) {
-        lastSensorTime = now;
-        gyroRoll = filteredRoll;
-        sensorStarted = true;
-        return;
+        updateTargetRoll();
     }
-
-    const elapsed = (now - lastSensorTime) / 1000;
-    lastSensorTime = now;
-
-    // Ignore stale samples after browser pauses.
-    if (elapsed <= 0 || elapsed > 0.25) {
-        gyroRoll = filteredRoll;
-        return;
-    }
-
-    const dt = Math.min(elapsed, MAX_SENSOR_DT);
-
-    // Fast response from the gyroscope.
-    gyroRoll = normalizeAngle(
-        gyroRoll + speed * dt
-    );
-
-    // Slowly reduce gyro drift when the gravity
-    // reference is trustworthy.
-    const difference = normalizeAngle(
-        gravityRoll - gyroRoll
-    );
-
-    filteredRoll = normalizeAngle(
-        gyroRoll + difference * GRAVITY_CORRECTION
-    );
-
-    gyroRoll = filteredRoll;
-
-    updateTargetRoll();
 }
 
 /* =====================================================
-   DEVICE ORIENTATION FALLBACK
+   ORIENTATION FALLBACK
 
-   Used only if DeviceMotion does not arrive.
+   Gamma is not guaranteed to equal horizon roll on
+   every phone/browser. It is used only if motion events
+   are unavailable.
 ===================================================== */
 
 function handleOrientation(event) {
@@ -681,9 +666,7 @@ function handleOrientation(event) {
 
     if (!Number.isFinite(gamma)) return;
 
-    // This fallback is a direct tilt measurement, not
-    // a gyroscope integration.
-    filteredRoll = normalizeAngle(gamma);
+    filteredRoll = clamp(gamma, -90, 90);
     sensorStarted = true;
 
     updateTargetRoll();
@@ -691,9 +674,6 @@ function handleOrientation(event) {
 
 /* =====================================================
    ENABLE SENSORS
-
-   Listeners are installed once to avoid duplicate
-   events after camera switching.
 ===================================================== */
 
 async function enableSensors() {
@@ -702,10 +682,11 @@ async function enableSensors() {
             typeof DeviceMotionEvent !== "undefined" &&
             typeof DeviceMotionEvent.requestPermission === "function"
         ) {
-            const result = await DeviceMotionEvent.requestPermission();
+            const permission =
+                await DeviceMotionEvent.requestPermission();
 
-            if (result !== "granted") {
-                throw new Error("Motion permission denied");
+            if (permission !== "granted") {
+                throw new Error("Motion permission denied.");
             }
         }
 
@@ -713,11 +694,11 @@ async function enableSensors() {
             typeof DeviceOrientationEvent !== "undefined" &&
             typeof DeviceOrientationEvent.requestPermission === "function"
         ) {
-            const result =
+            const permission =
                 await DeviceOrientationEvent.requestPermission();
 
-            if (result !== "granted") {
-                throw new Error("Orientation permission denied");
+            if (permission !== "granted") {
+                throw new Error("Orientation permission denied.");
             }
         }
 
@@ -766,16 +747,13 @@ async function enableSensors() {
         }, SENSOR_TIMEOUT);
 
     } catch (error) {
-        console.warn("Sensor permission/setup:", error);
+        console.warn("Sensor setup failed:", error);
         setStatus("SENSOR UNAVAILABLE");
     }
 }
 
 /* =====================================================
    CAMERA START
-
-   No hardware zoom constraint is applied.
-   1× is the unzoomed source frame before canvas cropping.
 ===================================================== */
 
 async function startCamera() {
@@ -789,7 +767,9 @@ async function startCamera() {
             );
         }
 
-        if (recording) stopRecording();
+        if (recording) {
+            stopRecording();
+        }
 
         if (stream) {
             stream.getTracks().forEach(track => track.stop());
@@ -810,8 +790,6 @@ async function startCamera() {
                 audio: true
             });
 
-        // Ignore a stale request if the user switched cameras
-        // again before this request completed.
         if (requestId !== cameraRequestId) {
             newStream.getTracks().forEach(track => track.stop());
             return;
@@ -876,7 +854,6 @@ async function switchCamera() {
 function calibrate() {
     calibrationOffset = filteredRoll;
 
-    gyroRoll = filteredRoll;
     targetRoll = 0;
     outputRoll = 0;
 
@@ -892,6 +869,8 @@ calibrateButton.addEventListener("click", calibrate);
 
 /* =====================================================
    CANVAS RENDER LOOP
+
+   The corrected canvas is what the recorder captures.
 ===================================================== */
 
 function renderFrame() {
@@ -929,7 +908,14 @@ function renderFrame() {
     ctx.fillStyle = "#000";
     ctx.fillRect(0, 0, OUTPUT_WIDTH, OUTPUT_HEIGHT);
 
-    // Base cover scale: fill the portrait output.
+    /*
+       Cover the portrait canvas at 1×.
+
+       0.5× reduces the scale to show more of the source
+       frame where its aspect ratio permits. Black bars
+       may appear if the source cannot fill the canvas.
+    */
+
     const baseScale = Math.max(
         OUTPUT_WIDTH / vw,
         OUTPUT_HEIGHT / vh
@@ -957,7 +943,7 @@ function renderFrame() {
         OUTPUT_HEIGHT / 2
     );
 
-    // Opposite rotation compensates for phone roll.
+    // Apply the inverse rotation to the recorded image.
     ctx.rotate(-outputRoll * Math.PI / 180);
 
     if (facingMode === "user") {
@@ -985,7 +971,7 @@ document.querySelectorAll(".zoomButton").forEach(button => {
     button.addEventListener("click", () => {
         const value = Number(button.dataset.zoom);
 
-        if (![1, 1.5, 2].includes(value)) return;
+        if (![0.5, 1, 1.5, 2].includes(value)) return;
 
         zoomLevel = value;
 
@@ -1021,8 +1007,6 @@ document.querySelectorAll(".modeButton").forEach(button => {
 
 /* =====================================================
    RECORDING
-
-   Records the processed canvas and microphone audio.
 ===================================================== */
 
 function startRecording() {
@@ -1067,6 +1051,7 @@ function startRecording() {
     } catch (error) {
         console.error("MediaRecorder error:", error);
         setStatus("RECORDING ERROR");
+
         processedStream.getTracks().forEach(track => track.stop());
         recordedStream = null;
         return;
@@ -1109,8 +1094,7 @@ function saveRecording() {
         return;
     }
 
-    const mimeType = mediaRecorder &&
-        mediaRecorder.mimeType
+    const mimeType = mediaRecorder && mediaRecorder.mimeType
         ? mediaRecorder.mimeType
         : "video/webm";
 
