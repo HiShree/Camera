@@ -1,1180 +1,326 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport"
-      content="width=device-width, initial-scale=1,
-      maximum-scale=1, user-scalable=no, viewport-fit=cover">
-
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>Horizon Camera</title>
-
 <style>
-* {
-    box-sizing: border-box;
-    -webkit-tap-highlight-color: transparent;
-}
-
-html, body {
-    width: 100%;
-    height: 100%;
-    margin: 0;
-    overflow: hidden;
-    background: #000;
-    font-family: Arial, Helvetica, sans-serif;
-}
-
-body {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-#app {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    max-width: 540px;
-    overflow: hidden;
-    background: #000;
-}
-
-#camera { display: none; }
-
-#outputCanvas {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    display: block;
-    background: #000;
-}
-
-.topBar {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 20;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: calc(env(safe-area-inset-top) + 14px) 16px 18px;
-    background: linear-gradient(to bottom, rgba(0,0,0,.75), transparent);
-}
-
-.logo {
-    color: white;
-    font-size: 18px;
-    font-weight: 900;
-    letter-spacing: 1px;
-}
-
-.status {
-    padding: 7px 11px;
-    border-radius: 20px;
-    background: rgba(0,0,0,.45);
-    border: 1px solid rgba(255,255,255,.15);
-    color: white;
-    font-size: 10px;
-    font-weight: 800;
-    backdrop-filter: blur(12px);
-}
-
-.status.ready { color: #75ffac; }
-.status.recording { color: #ff5360; }
-
-.angleBadge {
-    position: absolute;
-    top: calc(env(safe-area-inset-top) + 67px);
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 15;
-    padding: 6px 11px;
-    border-radius: 20px;
-    background: rgba(0,0,0,.42);
-    color: white;
-    font-size: 11px;
-    font-weight: 800;
-    backdrop-filter: blur(10px);
-}
-
-.horizonGuide {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 160px;
-    height: 2px;
-    transform: translate(-50%,-50%);
-    z-index: 12;
-    background: rgba(255,255,255,.72);
-    box-shadow: 0 0 8px rgba(255,255,255,.35);
-    opacity: .48;
-    pointer-events: none;
-}
-
-.horizonGuide::before,
-.horizonGuide::after {
-    content: "";
-    position: absolute;
-    top: 50%;
-    width: 2px;
-    height: 12px;
-    transform: translateY(-50%);
-    background: #fff;
-}
-
-.horizonGuide::before { left: 0; }
-.horizonGuide::after { right: 0; }
-
-.modeBar {
-    position: absolute;
-    left: 50%;
-    bottom: 213px;
-    transform: translateX(-50%);
-    z-index: 25;
-    display: flex;
-    padding: 5px;
-    border-radius: 30px;
-    background: rgba(0,0,0,.48);
-    border: 1px solid rgba(255,255,255,.12);
-    backdrop-filter: blur(14px);
-}
-
-.modeButton {
-    border: 0;
-    background: transparent;
-    color: rgba(255,255,255,.6);
-    padding: 8px 13px;
-    border-radius: 22px;
-    font-size: 10px;
-    font-weight: 900;
-}
-
-.modeButton.active {
-    background: rgba(255,255,255,.2);
-    color: #fff;
-}
-
-.zoomBar {
-    position: absolute;
-    left: 50%;
-    bottom: 125px;
-    transform: translateX(-50%);
-    z-index: 25;
-    display: flex;
-    gap: 4px;
-    padding: 6px;
-    border-radius: 30px;
-    background: rgba(0,0,0,.5);
-    border: 1px solid rgba(255,255,255,.12);
-    backdrop-filter: blur(14px);
-}
-
-.zoomButton {
-    min-width: 43px;
-    height: 34px;
-    padding: 0 7px;
-    border: 0;
-    border-radius: 20px;
-    background: transparent;
-    color: white;
-    font-size: 12px;
-    font-weight: 900;
-}
-
-.zoomButton.active {
-    background: white;
-    color: #111;
-}
-
-.bottomControls {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 25;
-    padding: 12px 18px calc(env(safe-area-inset-bottom) + 18px);
-    background: linear-gradient(to top, rgba(0,0,0,.88), transparent);
-}
-
-.controlRow {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.side {
-    width: 85px;
-    display: flex;
-    gap: 9px;
-}
-
-.side.right { justify-content: flex-end; }
-
-.circleButton {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    border: 1px solid rgba(255,255,255,.18);
-    background: rgba(0,0,0,.48);
-    color: #fff;
-    font-size: 18px;
-    backdrop-filter: blur(12px);
-}
-
-.recordButton {
-    width: 74px;
-    height: 74px;
-    border-radius: 50%;
-    border: 7px solid rgba(255,255,255,.35);
-    background: #fff;
-    box-shadow: 0 0 0 2px rgba(255,255,255,.5);
-}
-
-.recordButton.recording { background: #ff3345; }
-
-#startScreen {
-    position: absolute;
-    inset: 0;
-    z-index: 100;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    padding: 30px;
-    text-align: center;
-    color: #fff;
-    background: radial-gradient(circle at 50% 30%, #1b2d4c, #05070b 68%);
-}
-
-#startScreen h1 {
-    margin: 0 0 8px;
-    font-size: 34px;
-    font-weight: 900;
-}
-
-#startScreen p {
-    max-width: 310px;
-    margin: 0 0 26px;
-    color: #b9c2d0;
-    font-size: 13px;
-    line-height: 1.6;
-}
-
-.startButton {
-    width: 230px;
-    padding: 15px;
-    border: 0;
-    border-radius: 30px;
-    background: #fff;
-    color: #111;
-    font-size: 14px;
-    font-weight: 900;
-}
-
-#calibrationPopup {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%,-50%);
-    z-index: 80;
-    display: none;
-    width: 285px;
-    padding: 20px;
-    border-radius: 20px;
-    background: rgba(10,12,18,.92);
-    border: 1px solid rgba(255,255,255,.14);
-    color: #fff;
-    text-align: center;
-    backdrop-filter: blur(18px);
-}
-
-#calibrationPopup.show { display: block; }
-
-#calibrationPopup strong {
-    display: block;
-    margin-bottom: 8px;
-    font-size: 16px;
-}
-
-#calibrationPopup span {
-    display: block;
-    color: #b9c0cc;
-    font-size: 12px;
-    line-height: 1.5;
-}
-
-.smallButton {
-    margin-top: 14px;
-    padding: 9px 17px;
-    border: 0;
-    border-radius: 20px;
-    background: #fff;
-    color: #111;
-    font-weight: 800;
-}
-
-#errorBox {
-    position: absolute;
-    left: 20px;
-    right: 20px;
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 200;
-    display: none;
-    padding: 20px;
-    border-radius: 20px;
-    background: #15171d;
-    color: #fff;
-    text-align: center;
-}
-
-#errorBox.show { display: block; }
-
-#errorBox p {
-    color: #b9bec8;
-    font-size: 13px;
-    line-height: 1.5;
-}
-
-@media(max-height:700px) {
-    .modeBar { bottom: 180px; }
-    .zoomBar { bottom: 105px; }
-    .recordButton { width: 66px; height: 66px; }
-    .zoomButton { min-width: 39px; }
-}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#000;font-family:Arial,Helvetica,sans-serif}
+body{display:flex;justify-content:center;align-items:center}
+#app{position:relative;width:100%;height:100%;max-width:540px;overflow:hidden;background:#000}
+#camera{display:none}#outputCanvas{position:absolute;inset:0;width:100%;height:100%;display:block;background:#000}
+.topBar{position:absolute;top:0;left:0;right:0;z-index:20;display:flex;justify-content:space-between;align-items:center;padding:calc(env(safe-area-inset-top) + 14px) 16px 18px;background:linear-gradient(to bottom,rgba(0,0,0,.75),transparent)}
+.logo{color:white;font-size:18px;font-weight:900;letter-spacing:1px}
+.status{padding:7px 11px;border-radius:20px;background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.15);color:white;font-size:10px;font-weight:800;backdrop-filter:blur(12px)}
+.status.ready{color:#75ffac}.status.recording{color:#ff5360}
+.angleBadge{position:absolute;top:calc(env(safe-area-inset-top) + 67px);left:50%;transform:translateX(-50%);z-index:15;padding:6px 11px;border-radius:20px;background:rgba(0,0,0,.42);color:white;font-size:11px;font-weight:800;backdrop-filter:blur(10px)}
+.horizonGuide{position:absolute;top:50%;left:50%;width:160px;height:2px;transform:translate(-50%,-50%);z-index:12;background:rgba(255,255,255,.72);box-shadow:0 0 8px rgba(255,255,255,.35);opacity:.48;pointer-events:none}
+.horizonGuide:before,.horizonGuide:after{content:"";position:absolute;top:50%;width:2px;height:12px;transform:translateY(-50%);background:#fff}
+.horizonGuide:before{left:0}.horizonGuide:after{right:0}
+.modeBar{position:absolute;left:50%;bottom:213px;transform:translateX(-50%);z-index:25;display:flex;padding:5px;border-radius:30px;background:rgba(0,0,0,.48);border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(14px)}
+.modeButton{border:0;background:transparent;color:rgba(255,255,255,.6);padding:8px 13px;border-radius:22px;font-size:10px;font-weight:900}
+.modeButton.active{background:rgba(255,255,255,.2);color:#fff}
+.zoomBar{position:absolute;left:50%;bottom:125px;transform:translateX(-50%);z-index:25;display:flex;gap:4px;padding:6px;border-radius:30px;background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(14px)}
+.zoomButton{min-width:43px;height:34px;padding:0 7px;border:0;border-radius:20px;background:transparent;color:white;font-size:12px;font-weight:900}
+.zoomButton.active{background:white;color:#111}
+.bottomControls{position:absolute;left:0;right:0;bottom:0;z-index:25;padding:12px 18px calc(env(safe-area-inset-bottom) + 18px);background:linear-gradient(to top,rgba(0,0,0,.88),transparent)}
+.controlRow{display:flex;align-items:center;justify-content:space-between}.side{width:85px;display:flex;gap:9px}.side.right{justify-content:flex-end}
+.circleButton{width:48px;height:48px;border-radius:50%;border:1px solid rgba(255,255,255,.18);background:rgba(0,0,0,.48);color:#fff;font-size:18px;backdrop-filter:blur(12px)}
+.recordButton{width:74px;height:74px;border-radius:50%;border:7px solid rgba(255,255,255,.35);background:#fff;box-shadow:0 0 0 2px rgba(255,255,255,.5)}
+.recordButton.recording{background:#ff3345}
+#startScreen{position:absolute;inset:0;z-index:100;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:30px;text-align:center;color:#fff;background:radial-gradient(circle at 50% 30%,#1b2d4c,#05070b 68%)}
+#startScreen h1{margin:0 0 8px;font-size:34px;font-weight:900}
+#startScreen p{max-width:310px;margin:0 0 26px;color:#b9c2d0;font-size:13px;line-height:1.6}
+.startButton{width:230px;padding:15px;border:0;border-radius:30px;background:#fff;color:#111;font-size:14px;font-weight:900}
+#calibrationPopup{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:80;display:none;width:285px;padding:20px;border-radius:20px;background:rgba(10,12,18,.92);border:1px solid rgba(255,255,255,.14);color:#fff;text-align:center;backdrop-filter:blur(18px)}
+#calibrationPopup.show{display:block}#calibrationPopup strong{display:block;margin-bottom:8px;font-size:16px}
+#calibrationPopup span{display:block;color:#b9c0cc;font-size:12px;line-height:1.5}
+.smallButton{margin-top:14px;padding:9px 17px;border:0;border-radius:20px;background:#fff;color:#111;font-weight:800}
+#errorBox{position:absolute;left:20px;right:20px;top:50%;transform:translateY(-50%);z-index:200;display:none;padding:20px;border-radius:20px;background:#15171d;color:#fff;text-align:center}
+#errorBox.show{display:block}#errorBox p{color:#b9bec8;font-size:13px;line-height:1.5}
+@media(max-height:700px){.modeBar{bottom:180px}.zoomBar{bottom:105px}.recordButton{width:66px;height:66px}.zoomButton{min-width:39px}}
 </style>
 </head>
-
 <body>
 <div id="app">
-
-    <video id="camera" autoplay playsinline muted></video>
-    <canvas id="outputCanvas"></canvas>
-
-    <div class="topBar">
-        <div class="logo">HORIZON</div>
-        <div id="status" class="status">CAMERA OFF</div>
-    </div>
-
-    <div id="angleBadge" class="angleBadge">0.0°</div>
-    <div class="horizonGuide"></div>
-
-    <div class="modeBar">
-        <button class="modeButton active" data-mode="flex">FLEX</button>
-        <button class="modeButton" data-mode="rotate">ROTATE</button>
-        <button class="modeButton" data-mode="locked">LOCKED</button>
-    </div>
-
-    <div class="zoomBar">
-        <button class="zoomButton" data-zoom="0.5">0.5×</button>
-        <button class="zoomButton active" data-zoom="1">1×</button>
-        <button class="zoomButton" data-zoom="1.5">1.5×</button>
-        <button class="zoomButton" data-zoom="2">2×</button>
-    </div>
-
-    <div class="bottomControls">
-        <div class="controlRow">
-            <div class="side">
-                <button id="calibrateButton" class="circleButton">◎</button>
-            </div>
-
-            <button id="recordButton" class="recordButton"></button>
-
-            <div class="side right">
-                <button id="cameraButton" class="circleButton">↻</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="calibrationPopup">
-        <strong>Horizon calibrated</strong>
-        <span>The current phone position is now treated as level.</span>
-        <button id="closeCalibration" class="smallButton">Done</button>
-    </div>
-
-    <div id="startScreen">
-        <h1>Horizon</h1>
-        <p>Portrait horizon camera with gyro stabilization, 0.5× / 1× / 1.5× / 2× zoom, and smooth horizon correction.</p>
-        <button id="startButton" class="startButton">START CAMERA</button>
-    </div>
-
-    <div id="errorBox">
-        <strong>Camera unavailable</strong>
-        <p id="errorText">Please allow camera access and try again.</p>
-    </div>
-
+<video id="camera" autoplay playsinline muted></video><canvas id="outputCanvas"></canvas>
+<div class="topBar"><div class="logo">HORIZON</div><div id="status" class="status">CAMERA OFF</div></div>
+<div id="angleBadge" class="angleBadge">0.0°</div><div class="horizonGuide"></div>
+<div class="modeBar"><button class="modeButton active" data-mode="flex">FLEX</button><button class="modeButton" data-mode="rotate">ROTATE</button><button class="modeButton" data-mode="locked">LOCKED</button></div>
+<div class="zoomBar"><button class="zoomButton" data-zoom="0.5">0.5×</button><button class="zoomButton active" data-zoom="1">1×</button><button class="zoomButton" data-zoom="1.5">1.5×</button><button class="zoomButton" data-zoom="2">2×</button></div>
+<div class="bottomControls"><div class="controlRow"><div class="side"><button id="calibrateButton" class="circleButton" aria-label="Calibrate horizon">◎</button></div><button id="recordButton" class="recordButton" aria-label="Start or stop recording"></button><div class="side right"><button id="cameraButton" class="circleButton" aria-label="Switch camera">↻</button></div></div></div>
+<div id="calibrationPopup"><strong>Horizon calibrated</strong><span>The current phone position is now treated as level.</span><button id="closeCalibration" class="smallButton">Done</button></div>
+<div id="startScreen"><h1>Horizon</h1><p>Portrait horizon camera with roll stabilization, 0.5× / 1× / 1.5× / 2× zoom, and processed video recording.</p><button id="startButton" class="startButton">START CAMERA</button></div>
+<div id="errorBox"><strong>Camera unavailable</strong><p id="errorText">Please allow camera access and try again.</p></div>
 </div>
 
 <script>
 "use strict";
 
-/* =====================================================
-   ELEMENTS
-===================================================== */
+const video=document.getElementById("camera");
+const canvas=document.getElementById("outputCanvas");
+const ctx=canvas.getContext("2d",{alpha:false});
+const startScreen=document.getElementById("startScreen");
+const startButton=document.getElementById("startButton");
+const status=document.getElementById("status");
+const angleBadge=document.getElementById("angleBadge");
+const recordButton=document.getElementById("recordButton");
+const cameraButton=document.getElementById("cameraButton");
+const calibrateButton=document.getElementById("calibrateButton");
+const calibrationPopup=document.getElementById("calibrationPopup");
+const closeCalibration=document.getElementById("closeCalibration");
+const errorBox=document.getElementById("errorBox");
+const errorText=document.getElementById("errorText");
 
-const video = document.getElementById("camera");
-const canvas = document.getElementById("outputCanvas");
-const ctx = canvas.getContext("2d", { alpha: false });
+const OUTPUT_WIDTH=720, OUTPUT_HEIGHT=1280, MAX_ROLL=45;
+const DEAD_ZONE=0.35, SENSOR_TIMEOUT=1800;
+canvas.width=OUTPUT_WIDTH; canvas.height=OUTPUT_HEIGHT;
 
-const startScreen = document.getElementById("startScreen");
-const startButton = document.getElementById("startButton");
-const status = document.getElementById("status");
-const angleBadge = document.getElementById("angleBadge");
-const recordButton = document.getElementById("recordButton");
-const cameraButton = document.getElementById("cameraButton");
-const calibrateButton = document.getElementById("calibrateButton");
-const calibrationPopup = document.getElementById("calibrationPopup");
-const closeCalibration = document.getElementById("closeCalibration");
-const errorBox = document.getElementById("errorBox");
-const errorText = document.getElementById("errorText");
+let stream=null, facingMode="environment", cameraStarted=false;
+let cameraRequestId=0, renderRequest=null, zoomLevel=1, mode="flex";
+let rawRoll=null, filteredRoll=0, calibrationOffset=0;
+let targetRoll=0, outputRoll=0, sensorAvailable=false;
+let lastGoodSensorTime=0, motionListener=null, orientationListener=null;
+let mediaRecorder=null, recordedChunks=[], recording=false, recordedStream=null;
 
-const OUTPUT_WIDTH = 720;
-const OUTPUT_HEIGHT = 1280;
+function clamp(v,min,max){return Math.max(min,Math.min(max,v))}
+function normalizeAngle(a){while(a>180)a-=360;while(a<-180)a+=360;return a}
+function smoothAngle(current,target,factor){return current+normalizeAngle(target-current)*factor}
+function setStatus(text,type=""){status.textContent=text;status.className="status "+type}
 
-canvas.width = OUTPUT_WIDTH;
-canvas.height = OUTPUT_HEIGHT;
-
-/* =====================================================
-   CAMERA STATE
-===================================================== */
-
-let stream = null;
-let facingMode = "environment";
-let cameraStarted = false;
-let cameraRequestId = 0;
-let renderRequest = null;
-
-/* =====================================================
-   ZOOM AND MODES
-===================================================== */
-
-let zoomLevel = 1;
-let mode = "flex";
-
-const MAX_ROLL = 45;
-
-/* =====================================================
-   SENSOR STATE
-===================================================== */
-
-let filteredRoll = 0;
-let targetRoll = 0;
-let outputRoll = 0;
-let calibrationOffset = 0;
-let gravityRoll = null;
-let gyroRate = 0;
-let lastMotionTime = 0;
-
-let sensorStarted = false;
-let sensorsEnabled = false;
-let usingOrientationFallback = false;
-let lastMotionReceived = 0;
-let sensorCheckTimer = null;
-
-let motionListener = null;
-let orientationListener = null;
-
-const DEAD_ZONE = 0.35;
-const MAX_SENSOR_DT = 0.05;
-const SENSOR_TIMEOUT = 1500;
-const OUTPUT_SMOOTHING = 0.30;
-
-/* =====================================================
-   RECORDING STATE
-===================================================== */
-
-let mediaRecorder = null;
-let recordedChunks = [];
-let recording = false;
-let recordedStream = null;
-
-/* =====================================================
-   UTILITIES
-===================================================== */
-
-function clamp(value, min, max) {
-    return Math.max(min, Math.min(max, value));
+async function lockPortrait(){
+    try{if(screen.orientation&&screen.orientation.lock)await screen.orientation.lock("portrait")}
+    catch(e){console.log("Portrait lock unavailable:",e)}
 }
 
-function normalizeAngle(angle) {
-    while (angle > 180) angle -= 360;
-    while (angle < -180) angle += 360;
-    return angle;
+function resetSensorState(){
+    rawRoll=null;filteredRoll=0;calibrationOffset=0;targetRoll=0;
+    outputRoll=0;sensorAvailable=false;lastGoodSensorTime=0;
 }
 
-function smoothAngle(current, target, factor) {
-    return current +
-        normalizeAngle(target - current) * factor;
+/*
+ * Gravity is the absolute reference. For an upright portrait
+ * phone, its X/Y projection changes as the phone rolls sideways.
+ * We deliberately do not integrate rotationRate.alpha because
+ * it is not the same measurement as this gravity angle.
+ */
+function getGravityRoll(x,y,z){
+    if(![x,y,z].every(Number.isFinite))return null;
+    const magnitude=Math.hypot(x,y,z);
+    if(magnitude<7||magnitude>12.5)return null;
+    if(Math.hypot(x,y)<magnitude*0.25)return null;
+    return Math.atan2(x,-y)*180/Math.PI;
 }
 
-function setStatus(text, type = "") {
-    status.textContent = text;
-    status.className = "status " + type;
+function updateTargetRoll(){
+    const relative=normalizeAngle(filteredRoll-calibrationOffset);
+    targetRoll=Math.abs(relative)<DEAD_ZONE?0:clamp(relative,-MAX_ROLL,MAX_ROLL);
 }
 
-/* =====================================================
-   PORTRAIT LOCK
-===================================================== */
-
-async function lockPortrait() {
-    try {
-        if (screen.orientation &&
-            screen.orientation.lock) {
-            await screen.orientation.lock("portrait");
-        }
-    } catch (error) {
-        console.log("Portrait lock unavailable:", error);
-    }
-}
-
-/* =====================================================
-   SENSOR RESET
-===================================================== */
-
-function resetSensorState() {
-    filteredRoll = 0;
-    targetRoll = 0;
-    outputRoll = 0;
-    calibrationOffset = 0;
-    gravityRoll = null;
-    gyroRate = 0;
-    lastMotionTime = 0;
-    sensorStarted = false;
-}
-
-/* =====================================================
-   GRAVITY ANGLE
-
-   Gravity is an absolute reference, but this projection
-   is reliable only when the phone's orientation makes
-   the X/Y gravity projection large enough.
-===================================================== */
-
-function calculateGravityRoll(x, y, z) {
-    if (![x, y, z].every(Number.isFinite)) {
-        return null;
-    }
-
-    const magnitude = Math.hypot(x, y, z);
-
-    if (magnitude < 7 || magnitude > 12.5) {
-        return null;
-    }
-
-    const projectedMagnitude = Math.hypot(x, y);
-
-    if (projectedMagnitude < magnitude * 0.15) {
-        return null;
-    }
-
-    return Math.atan2(x, -y) * 180 / Math.PI;
-}
-
-/* =====================================================
-   TARGET ANGLE
-===================================================== */
-
-function updateTargetRoll() {
-    const relative = normalizeAngle(
-        filteredRoll - calibrationOffset
-    );
-
-    targetRoll = Math.abs(relative) < DEAD_ZONE
-        ? 0
-        : clamp(relative, -MAX_ROLL, MAX_ROLL);
-}
-
-/* =====================================================
-   DEVICE MOTION
-
-   Uses gravity for an absolute reference and gyro
-   integration for smoother movement between samples.
-===================================================== */
-
-function handleDeviceMotion(event) {
-    if (!cameraStarted || mode === "locked") return;
-
-    const now = performance.now();
-    const dt = lastMotionTime
-        ? Math.min((now - lastMotionTime) / 1000, MAX_SENSOR_DT)
-        : 0;
-
-    lastMotionTime = now;
-
-    const rotation = event.rotationRate;
-    const acceleration = event.accelerationIncludingGravity;
-
-    if (rotation && Number.isFinite(rotation.alpha)) {
-        gyroRate = rotation.alpha;
-    } else {
-        gyroRate = 0;
-    }
-
-    if (acceleration) {
-        const measured = calculateGravityRoll(
-            Number(acceleration.x),
-            Number(acceleration.y),
-            Number(acceleration.z)
-        );
-
-        if (measured !== null) {
-            gravityRoll = measured;
-        }
-    }
-
-    if (gravityRoll !== null) {
-        if (!sensorStarted) {
-            filteredRoll = gravityRoll;
-            sensorStarted = true;
-        } else {
-            const gyroPrediction = normalizeAngle(
-                filteredRoll + gyroRate * dt
-            );
-
-            filteredRoll = smoothAngle(
-                gyroPrediction,
-                gravityRoll,
-                0.22
-            );
-        }
-
-        updateTargetRoll();
-    } else if (sensorStarted && dt > 0) {
-        filteredRoll = normalizeAngle(
-            filteredRoll + gyroRate * dt
-        );
-
-        updateTargetRoll();
-    }
-}
-
-/* =====================================================
-   ORIENTATION FALLBACK
-
-   Gamma is not guaranteed to equal horizon roll on
-   every phone/browser. It is used only if motion events
-   are unavailable.
-===================================================== */
-
-function handleOrientation(event) {
-    if (!cameraStarted || mode === "locked") return;
-    if (!usingOrientationFallback) return;
-
-    const gamma = Number(event.gamma);
-
-    if (!Number.isFinite(gamma)) return;
-
-    filteredRoll = clamp(gamma, -90, 90);
-    sensorStarted = true;
-
+function applyRollMeasurement(measured){
+    if(!Number.isFinite(measured))return;
+    lastGoodSensorTime=performance.now();
+    if(rawRoll===null){rawRoll=measured;filteredRoll=measured}
+    else{filteredRoll=smoothAngle(filteredRoll,measured,0.24);rawRoll=measured}
+    sensorAvailable=true;
     updateTargetRoll();
 }
 
-/* =====================================================
-   ENABLE SENSORS
-===================================================== */
-
-async function enableSensors() {
-    try {
-        if (
-            typeof DeviceMotionEvent !== "undefined" &&
-            typeof DeviceMotionEvent.requestPermission === "function"
-        ) {
-            const permission =
-                await DeviceMotionEvent.requestPermission();
-
-            if (permission !== "granted") {
-                throw new Error("Motion permission denied.");
-            }
-        }
-
-        if (
-            typeof DeviceOrientationEvent !== "undefined" &&
-            typeof DeviceOrientationEvent.requestPermission === "function"
-        ) {
-            const permission =
-                await DeviceOrientationEvent.requestPermission();
-
-            if (permission !== "granted") {
-                throw new Error("Orientation permission denied.");
-            }
-        }
-
-        if (!sensorsEnabled) {
-            motionListener = event => {
-                lastMotionReceived = performance.now();
-                usingOrientationFallback = false;
-                handleDeviceMotion(event);
-            };
-
-            orientationListener = event => {
-                if (
-                    !lastMotionReceived ||
-                    performance.now() - lastMotionReceived > SENSOR_TIMEOUT
-                ) {
-                    usingOrientationFallback = true;
-                }
-
-                handleOrientation(event);
-            };
-
-            window.addEventListener(
-                "devicemotion",
-                motionListener,
-                true
-            );
-
-            window.addEventListener(
-                "deviceorientation",
-                orientationListener,
-                true
-            );
-
-            sensorsEnabled = true;
-        }
-
-        clearTimeout(sensorCheckTimer);
-
-        sensorCheckTimer = setTimeout(() => {
-            if (
-                !lastMotionReceived ||
-                performance.now() - lastMotionReceived > SENSOR_TIMEOUT
-            ) {
-                usingOrientationFallback = true;
-            }
-        }, SENSOR_TIMEOUT);
-
-    } catch (error) {
-        console.warn("Sensor setup failed:", error);
-        setStatus("SENSOR UNAVAILABLE");
-    }
+function handleDeviceMotion(event){
+    if(!cameraStarted)return;
+    const g=event.accelerationIncludingGravity;
+    if(!g)return;
+    const angle=getGravityRoll(Number(g.x),Number(g.y),Number(g.z));
+    if(angle!==null)applyRollMeasurement(angle);
 }
 
-/* =====================================================
-   CAMERA START
-===================================================== */
+/* Browser gamma is a fallback only; its mapping varies by device. */
+function handleDeviceOrientation(event){
+    if(!cameraStarted||sensorAvailable)return;
+    const gamma=Number(event.gamma);
+    if(!Number.isFinite(gamma)||Math.abs(gamma)>80)return;
+    filteredRoll=smoothAngle(filteredRoll,gamma,0.18);
+    lastGoodSensorTime=performance.now();
+    updateTargetRoll();
+}
 
-async function startCamera() {
-    const requestId = ++cameraRequestId;
-
-    try {
-        if (!navigator.mediaDevices ||
-            !navigator.mediaDevices.getUserMedia) {
-            throw new Error(
-                "Camera access requires HTTPS or localhost."
-            );
+async function enableSensors(){
+    try{
+        if(typeof DeviceMotionEvent!=="undefined"&&typeof DeviceMotionEvent.requestPermission==="function"){
+            const p=await DeviceMotionEvent.requestPermission();
+            if(p!=="granted")throw new Error("Motion sensor permission was denied.");
         }
-
-        if (recording) {
-            stopRecording();
+        if(typeof DeviceOrientationEvent!=="undefined"&&typeof DeviceOrientationEvent.requestPermission==="function"){
+            const p=await DeviceOrientationEvent.requestPermission();
+            if(p!=="granted")throw new Error("Orientation permission was denied.");
         }
+        if(motionListener)window.removeEventListener("devicemotion",motionListener,true);
+        if(orientationListener)window.removeEventListener("deviceorientation",orientationListener,true);
+        motionListener=handleDeviceMotion;orientationListener=handleDeviceOrientation;
+        window.addEventListener("devicemotion",motionListener,true);
+        window.addEventListener("deviceorientation",orientationListener,true);
+    }catch(e){console.warn("Sensor setup failed:",e);setStatus("SENSOR PERMISSION")}
+}
 
-        if (stream) {
-            stream.getTracks().forEach(track => track.stop());
-            stream = null;
-        }
-
-        cameraStarted = false;
-        setStatus("STARTING...");
-
-        const newStream =
-            await navigator.mediaDevices.getUserMedia({
-                video: {
-                    facingMode: { ideal: facingMode },
-                    width: { ideal: 1280 },
-                    height: { ideal: 1920 },
-                    frameRate: { ideal: 30, max: 30 }
-                },
-                audio: true
-            });
-
-        if (requestId !== cameraRequestId) {
-            newStream.getTracks().forEach(track => track.stop());
-            return;
-        }
-
-        stream = newStream;
-        video.srcObject = stream;
-
-        await video.play();
-
-        if (requestId !== cameraRequestId) return;
-
-        cameraStarted = true;
-        startScreen.style.display = "none";
-        errorBox.classList.remove("show");
-
-        setStatus("CAMERA READY", "ready");
-
-        await lockPortrait();
-
-        resetSensorState();
-
-        if (renderRequest !== null) {
-            cancelAnimationFrame(renderRequest);
-        }
-
-        renderRequest = requestAnimationFrame(renderFrame);
-
-    } catch (error) {
-        console.error(error);
-
-        if (requestId !== cameraRequestId) return;
-
-        cameraStarted = false;
-        setStatus("CAMERA ERROR");
-
-        errorText.textContent = error.message ||
-            "Camera permission was denied or the camera could not be opened.";
-
+async function startCamera(){
+    const requestId=++cameraRequestId;
+    try{
+        if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)
+            throw new Error("Camera access requires HTTPS or localhost.");
+        if(recording)stopRecording();
+        if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}
+        cameraStarted=false;setStatus("STARTING...");
+        const newStream=await navigator.mediaDevices.getUserMedia({
+            video:{facingMode:{ideal:facingMode},width:{ideal:1280},height:{ideal:1920},frameRate:{ideal:30,max:30}},
+            audio:true
+        });
+        if(requestId!==cameraRequestId){newStream.getTracks().forEach(t=>t.stop());return}
+        stream=newStream;video.srcObject=stream;await video.play();
+        if(requestId!==cameraRequestId)return;
+        cameraStarted=true;startScreen.style.display="none";errorBox.classList.remove("show");
+        resetSensorState();setStatus("CAMERA READY","ready");await lockPortrait();
+        if(renderRequest!==null)cancelAnimationFrame(renderRequest);
+        renderRequest=requestAnimationFrame(renderFrame);
+    }catch(e){
+        console.error(e);if(requestId!==cameraRequestId)return;
+        cameraStarted=false;setStatus("CAMERA ERROR");
+        errorText.textContent=e.message||"Camera permission was denied or the camera could not be opened.";
         errorBox.classList.add("show");
     }
 }
 
-/* =====================================================
-   SWITCH CAMERA
-===================================================== */
-
-async function switchCamera() {
-    if (!cameraStarted) return;
-
-    facingMode = facingMode === "environment"
-        ? "user"
-        : "environment";
-
+async function switchCamera(){
+    if(!cameraStarted)return;
+    facingMode=facingMode==="environment"?"user":"environment";
     await startCamera();
 }
 
-/* =====================================================
-   CALIBRATION
-===================================================== */
+function calibrate(){
+    if(!lastGoodSensorTime||performance.now()-lastGoodSensorTime>SENSOR_TIMEOUT){
+        setStatus("WAIT FOR SENSOR");return;
+    }
+    calibrationOffset=filteredRoll;targetRoll=0;outputRoll=0;
+    angleBadge.textContent="0.0°";calibrationPopup.classList.add("show");
+}
+calibrateButton.addEventListener("click",calibrate);
+closeCalibration.addEventListener("click",()=>calibrationPopup.classList.remove("show"));
 
-function calibrate() {
-    calibrationOffset = filteredRoll;
-
-    targetRoll = 0;
-    outputRoll = 0;
-
-    angleBadge.textContent = "0.0°";
-    calibrationPopup.classList.add("show");
+/* Rotation-aware cover scale to keep corners filled at 1× and above. */
+function getRotationSafeScale(sw,sh,angle){
+    const c=Math.abs(Math.cos(angle)),s=Math.abs(Math.sin(angle));
+    const needW=OUTPUT_WIDTH*c+OUTPUT_HEIGHT*s;
+    const needH=OUTPUT_WIDTH*s+OUTPUT_HEIGHT*c;
+    return Math.max(needW/sw,needH/sh);
 }
 
-closeCalibration.addEventListener("click", () => {
-    calibrationPopup.classList.remove("show");
-});
-
-calibrateButton.addEventListener("click", calibrate);
-
-/* =====================================================
-   CANVAS RENDER LOOP
-
-   The corrected canvas is what the recorder captures.
-===================================================== */
-
-function renderFrame() {
-    if (!cameraStarted) {
-        renderRequest = null;
-        return;
+function renderFrame(){
+    if(!cameraStarted){renderRequest=null;return}
+    if(video.readyState<HTMLMediaElement.HAVE_CURRENT_DATA){
+        renderRequest=requestAnimationFrame(renderFrame);return;
     }
+    const vw=video.videoWidth,vh=video.videoHeight;
+    if(!vw||!vh){renderRequest=requestAnimationFrame(renderFrame);return}
 
-    if (video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) {
-        renderRequest = requestAnimationFrame(renderFrame);
-        return;
-    }
+    if(sensorAvailable&&performance.now()-lastGoodSensorTime>SENSOR_TIMEOUT)sensorAvailable=false;
 
-    const vw = video.videoWidth;
-    const vh = video.videoHeight;
+    const desired=mode==="locked"?0:targetRoll;
+    const smoothing=mode==="rotate"?0.38:0.18;
+    outputRoll=clamp(smoothAngle(outputRoll,desired,smoothing),-MAX_ROLL,MAX_ROLL);
+    angleBadge.textContent=outputRoll.toFixed(1)+"°";
 
-    if (!vw || !vh) {
-        renderRequest = requestAnimationFrame(renderFrame);
-        return;
-    }
+    ctx.setTransform(1,0,0,1,0,0);
+    ctx.fillStyle="#000";ctx.fillRect(0,0,OUTPUT_WIDTH,OUTPUT_HEIGHT);
 
-    const desiredRoll = mode === "locked" ? 0 : targetRoll;
+    const angle=-outputRoll*Math.PI/180;
+    const safeScale=getRotationSafeScale(vw,vh,angle);
+    let scale=safeScale*zoomLevel;
+    if(mode==="flex"&&zoomLevel>=1)scale*=1+(Math.abs(outputRoll)/MAX_ROLL)*0.025;
 
-    outputRoll = smoothAngle(
-        outputRoll,
-        desiredRoll,
-        OUTPUT_SMOOTHING
-    );
-
-    outputRoll = clamp(outputRoll, -MAX_ROLL, MAX_ROLL);
-
-    angleBadge.textContent = outputRoll.toFixed(1) + "°";
-
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.fillStyle = "#000";
-    ctx.fillRect(0, 0, OUTPUT_WIDTH, OUTPUT_HEIGHT);
-
-    /*
-       Cover the portrait canvas at 1×.
-
-       0.5× reduces the scale to show more of the source
-       frame where its aspect ratio permits. Black bars
-       may appear if the source cannot fill the canvas.
-    */
-
-    const baseScale = Math.max(
-        OUTPUT_WIDTH / vw,
-        OUTPUT_HEIGHT / vh
-    );
-
-    const finalScale = baseScale * zoomLevel;
-
-    const drawWidth = vw * finalScale;
-    const drawHeight = vh * finalScale;
-
-    let framingScale = 1;
-
-    if (mode === "flex") {
-        const rotationAmount = Math.abs(outputRoll) / MAX_ROLL;
-        framingScale = 1 + rotationAmount * 0.12;
-    }
-
-    const finalWidth = drawWidth * framingScale;
-    const finalHeight = drawHeight * framingScale;
-
+    const dw=vw*scale,dh=vh*scale;
     ctx.save();
-
-    ctx.translate(
-        OUTPUT_WIDTH / 2,
-        OUTPUT_HEIGHT / 2
-    );
-
-    // Apply the inverse rotation to the recorded image.
-    ctx.rotate(-outputRoll * Math.PI / 180);
-
-    if (facingMode === "user") {
-        ctx.scale(-1, 1);
-    }
-
-    ctx.drawImage(
-        video,
-        -finalWidth / 2,
-        -finalHeight / 2,
-        finalWidth,
-        finalHeight
-    );
-
+    ctx.translate(OUTPUT_WIDTH/2,OUTPUT_HEIGHT/2);
+    ctx.rotate(angle);
+    if(facingMode==="user")ctx.scale(-1,1);
+    ctx.drawImage(video,-dw/2,-dh/2,dw,dh);
     ctx.restore();
 
-    renderRequest = requestAnimationFrame(renderFrame);
+    renderRequest=requestAnimationFrame(renderFrame);
 }
 
-/* =====================================================
-   ZOOM BUTTONS
-===================================================== */
-
-document.querySelectorAll(".zoomButton").forEach(button => {
-    button.addEventListener("click", () => {
-        const value = Number(button.dataset.zoom);
-
-        if (![0.5, 1, 1.5, 2].includes(value)) return;
-
-        zoomLevel = value;
-
-        document.querySelectorAll(".zoomButton").forEach(item => {
-            item.classList.remove("active");
-        });
-
-        button.classList.add("active");
+document.querySelectorAll(".zoomButton").forEach(button=>{
+    button.addEventListener("click",()=>{
+        const value=Number(button.dataset.zoom);
+        if(![0.5,1,1.5,2].includes(value))return;
+        zoomLevel=value;
+        document.querySelectorAll(".zoomButton").forEach(b=>b.classList.toggle("active",b===button));
     });
 });
 
-/* =====================================================
-   MODE BUTTONS
-===================================================== */
-
-document.querySelectorAll(".modeButton").forEach(button => {
-    button.addEventListener("click", () => {
-        mode = button.dataset.mode;
-
-        document.querySelectorAll(".modeButton").forEach(item => {
-            item.classList.remove("active");
-        });
-
-        button.classList.add("active");
-
-        if (mode === "locked") {
-            targetRoll = 0;
-        } else {
-            updateTargetRoll();
-        }
+document.querySelectorAll(".modeButton").forEach(button=>{
+    button.addEventListener("click",()=>{
+        mode=button.dataset.mode;
+        document.querySelectorAll(".modeButton").forEach(b=>b.classList.toggle("active",b===button));
+        if(mode==="locked")targetRoll=0;else updateTargetRoll();
     });
 });
 
-/* =====================================================
-   RECORDING
-===================================================== */
+function startRecording(){
+    if(!cameraStarted)return;
+    if(!canvas.captureStream||!window.MediaRecorder){setStatus("RECORDING UNSUPPORTED");return}
+    recordedChunks=[];
+    const processed=canvas.captureStream(30);recordedStream=processed;
+    if(stream)stream.getAudioTracks().forEach(t=>processed.addTrack(t));
 
-function startRecording() {
-    if (!cameraStarted) return;
+    const types=["video/webm;codecs=vp9,opus","video/webm;codecs=vp8,opus","video/webm"];
+    let mime="";
+    for(const type of types){if(MediaRecorder.isTypeSupported(type)){mime=type;break}}
 
-    if (!canvas.captureStream || !window.MediaRecorder) {
-        setStatus("RECORDING UNSUPPORTED");
-        return;
+    try{mediaRecorder=new MediaRecorder(processed,mime?{mimeType:mime}:undefined)}
+    catch(e){
+        console.error("Recorder setup failed:",e);setStatus("RECORDING ERROR");
+        processed.getTracks().forEach(t=>t.stop());recordedStream=null;return;
     }
 
-    recordedChunks = [];
-
-    const processedStream = canvas.captureStream(30);
-    recordedStream = processedStream;
-
-    if (stream) {
-        stream.getAudioTracks().forEach(track => {
-            processedStream.addTrack(track);
-        });
-    }
-
-    const supportedTypes = [
-        "video/webm;codecs=vp9,opus",
-        "video/webm;codecs=vp8,opus",
-        "video/webm"
-    ];
-
-    let selectedType = "";
-
-    for (const type of supportedTypes) {
-        if (MediaRecorder.isTypeSupported(type)) {
-            selectedType = type;
-            break;
-        }
-    }
-
-    try {
-        mediaRecorder = new MediaRecorder(
-            processedStream,
-            selectedType ? { mimeType: selectedType } : undefined
-        );
-    } catch (error) {
-        console.error("MediaRecorder error:", error);
-        setStatus("RECORDING ERROR");
-
-        processedStream.getTracks().forEach(track => track.stop());
-        recordedStream = null;
-        return;
-    }
-
-    mediaRecorder.ondataavailable = event => {
-        if (event.data && event.data.size > 0) {
-            recordedChunks.push(event.data);
-        }
-    };
-
-    mediaRecorder.onstop = saveRecording;
-
-    mediaRecorder.start(200);
-    recording = true;
-
-    recordButton.classList.add("recording");
-    setStatus("RECORDING", "recording");
+    mediaRecorder.ondataavailable=e=>{if(e.data&&e.data.size)recordedChunks.push(e.data)};
+    mediaRecorder.onstop=saveRecording;
+    mediaRecorder.start(200);recording=true;
+    recordButton.classList.add("recording");setStatus("RECORDING","recording");
 }
 
-function stopRecording() {
-    if (mediaRecorder && mediaRecorder.state !== "inactive") {
-        mediaRecorder.stop();
-    }
-
-    recording = false;
-    recordButton.classList.remove("recording");
-
-    if (cameraStarted) {
-        setStatus("CAMERA READY", "ready");
-    }
+function stopRecording(){
+    if(mediaRecorder&&mediaRecorder.state!=="inactive")mediaRecorder.stop();
+    recording=false;recordButton.classList.remove("recording");
+    if(cameraStarted)setStatus("CAMERA READY","ready");
 }
 
-function saveRecording() {
-    if (!recordedChunks.length) {
-        if (recordedStream) {
-            recordedStream.getTracks().forEach(track => track.stop());
-            recordedStream = null;
-        }
-        return;
+function saveRecording(){
+    if(recordedChunks.length){
+        const blob=new Blob(recordedChunks,{type:mediaRecorder?.mimeType||"video/webm"});
+        const url=URL.createObjectURL(blob);
+        const link=document.createElement("a");
+        link.href=url;link.download="horizon-"+Date.now()+".webm";
+        document.body.appendChild(link);link.click();link.remove();
+        setTimeout(()=>URL.revokeObjectURL(url),10000);
     }
-
-    const mimeType = mediaRecorder && mediaRecorder.mimeType
-        ? mediaRecorder.mimeType
-        : "video/webm";
-
-    const blob = new Blob(recordedChunks, { type: mimeType });
-    const url = URL.createObjectURL(blob);
-
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "horizon-" + Date.now() + ".webm";
-
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-
-    setTimeout(() => URL.revokeObjectURL(url), 5000);
-
-    if (recordedStream) {
-        recordedStream.getTracks().forEach(track => track.stop());
-        recordedStream = null;
-    }
-
-    recordedChunks = [];
+    if(recordedStream){recordedStream.getTracks().forEach(t=>t.stop());recordedStream=null}
+    recordedChunks=[];
 }
 
-/* =====================================================
-   EVENT LISTENERS
-===================================================== */
-
-startButton.addEventListener("click", async () => {
-    await enableSensors();
-    await startCamera();
-});
-
-recordButton.addEventListener("click", () => {
-    if (recording) {
-        stopRecording();
-    } else {
-        startRecording();
-    }
-});
-
-cameraButton.addEventListener("click", switchCamera);
-
+startButton.addEventListener("click",async()=>{await enableSensors();await startCamera()});
+recordButton.addEventListener("click",()=>recording?stopRecording():startRecording());
+cameraButton.addEventListener("click",switchCamera);
+document.addEventListener("touchmove",e=>e.preventDefault(),{passive:false});
 setStatus("CAMERA OFF");
 
-/* =====================================================
-   PREVENT PAGE SCROLL
-===================================================== */
-
-document.addEventListener("touchmove", event => {
-    event.preventDefault();
-}, { passive: false });
-
-/* =====================================================
-   CLEANUP
-===================================================== */
-
-window.addEventListener("pagehide", () => {
-    cameraStarted = false;
-
-    if (renderRequest !== null) {
-        cancelAnimationFrame(renderRequest);
-        renderRequest = null;
-    }
-
-    if (recording) {
-        stopRecording();
-    }
-
-    if (stream) {
-        stream.getTracks().forEach(track => track.stop());
-        stream = null;
-    }
-
-    if (recordedStream) {
-        recordedStream.getTracks().forEach(track => track.stop());
-        recordedStream = null;
-    }
-
-    clearTimeout(sensorCheckTimer);
+window.addEventListener("pagehide",()=>{
+    cameraStarted=false;
+    if(renderRequest!==null){cancelAnimationFrame(renderRequest);renderRequest=null}
+    if(recording)stopRecording();
+    if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}
+    if(recordedStream){recordedStream.getTracks().forEach(t=>t.stop());recordedStream=null}
+    if(motionListener)window.removeEventListener("devicemotion",motionListener,true);
+    if(orientationListener)window.removeEventListener("deviceorientation",orientationListener,true);
 });
 </script>
 </body>
