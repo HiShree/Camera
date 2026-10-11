@@ -3,729 +3,767 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<meta name="theme-color" content="#080b10">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1,
+               user-scalable=no, viewport-fit=cover">
 <title>Horizon Film Pro</title>
 
 <style>
 :root {
-  --bg:#080b10;
-  --panel:#151b24;
-  --line:#303a49;
-  --accent:#43e6c3;
-  --text:#f4f7fa;
-  --muted:#9aa8ba;
+  --bg: #080a0d;
+  --panel: #14171c;
+  --text: #f5f7fa;
+  --muted: #9aa4b2;
+  --green: #47f0a0;
+  --red: #ff4557;
 }
-* {box-sizing:border-box}
-body {
-  margin:0;background:var(--bg);color:var(--text);
-  font-family:system-ui,Arial,sans-serif;
+* { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  width: 100%;
+  min-height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Arial, sans-serif;
 }
-button,select,input {font:inherit}
+body { padding: 0 0 env(safe-area-inset-bottom); }
+button, select { font: inherit; }
 button {
-  border:1px solid var(--line);background:#222b37;
-  color:white;border-radius:10px;padding:12px 8px;
-  cursor:pointer;
+  color: var(--text);
+  border: 1px solid #333943;
+  background: #20242b;
+  border-radius: 12px;
+  padding: 12px 10px;
+  cursor: pointer;
+  touch-action: manipulation;
 }
-button:disabled {opacity:.4}
-button:active {transform:scale(.98)}
-.app {max-width:650px;margin:auto;padding:12px}
+button:disabled { opacity: .45; }
+button:active { transform: scale(.98); }
+.app {
+  width: 100%;
+  max-width: 600px;
+  margin: auto;
+  padding: 12px;
+}
 header {
-  display:flex;justify-content:space-between;
-  align-items:center;gap:10px;padding:5px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 7px 2px 13px;
 }
-.brand {font-weight:900;font-size:19px;letter-spacing:1px}
-.brand span {color:var(--accent)}
-.small {font-size:11px;color:var(--muted)}
+.brand { font-size: 19px; font-weight: 800; letter-spacing: .5px; }
+.brand span { color: var(--green); }
+.status { font-size: 11px; color: var(--muted); margin-top: 4px; }
+.live {
+  font-size: 11px;
+  border: 1px solid #353b44;
+  padding: 7px 9px;
+  border-radius: 20px;
+}
+.live::before {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  background: var(--red);
+  border-radius: 50%;
+  margin-right: 6px;
+}
+.live.ready::before { background: var(--green); }
+
 .preview {
-  margin-top:12px;position:relative;background:#000;
-  width:100%;aspect-ratio:9/16;max-height:58vh;
-  border:1px solid #303a49;border-radius:15px;overflow:hidden;
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  max-height: 67vh;
+  margin: auto;
+  overflow: hidden;
+  border-radius: 18px;
+  background: #000;
+  border: 1px solid #252a31;
 }
-#preview {
-  width:100%;height:100%;object-fit:contain;background:#000;
+#cameraInput { display: none; }
+#processedCanvas {
+  display: block;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: #000;
 }
-.overlay {position:absolute;inset:0;pointer-events:none;overflow:hidden}
-#guide {
-  position:absolute;top:50%;left:50%;width:100%;height:2px;
-  background:var(--accent);box-shadow:0 0 9px #43e6c377;
-  transform:translate(-50%,-50%);
+.overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
 }
-#guide:before {
-  content:"";position:absolute;left:50%;top:-5px;
-  height:12px;width:35px;transform:translateX(-50%);
-  border-left:2px solid var(--accent);
-  border-right:2px solid var(--accent);
+.grid {
+  position: absolute;
+  inset: 0;
+  opacity: .4;
+  background-image:
+    linear-gradient(to right, transparent 33.1%, #ffffff 33.3%,
+      transparent 33.6%, transparent 66.4%, #ffffff 66.6%,
+      transparent 66.9%),
+    linear-gradient(to bottom, transparent 33.1%, #ffffff 33.3%,
+      transparent 33.6%, transparent 66.4%, #ffffff 66.6%,
+      transparent 66.9%);
 }
-#crosshair {
-  position:absolute;left:50%;top:50%;width:14px;height:14px;
-  transform:translate(-50%,-50%);
+.horizon {
+  position: absolute;
+  top: 50%;
+  left: -15%;
+  width: 130%;
+  height: 1px;
+  background: var(--green);
+  box-shadow: 0 0 8px #47f0a077;
+  transform-origin: center;
 }
-#crosshair:before,#crosshair:after {
-  content:"";position:absolute;background:white;
+.center-mark {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 22px;
+  height: 22px;
+  border: 1px solid var(--green);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
 }
-#crosshair:before {width:14px;height:1px;top:7px}
-#crosshair:after {height:14px;width:1px;left:7px}
-#grid {
-  position:absolute;inset:0;
-  background:
-    linear-gradient(90deg,transparent 33.2%,#fff4 33.33%,transparent 33.5%,transparent 66.5%,#fff4 66.67%,transparent 66.8%),
-    linear-gradient(transparent 33.2%,#fff4 33.33%,transparent 33.5%,transparent 66.5%,#fff4 66.67%,transparent 66.8%);
+.center-mark::before, .center-mark::after {
+  content: "";
+  position: absolute;
+  background: var(--green);
 }
-.topinfo,.bottominfo {
-  position:absolute;left:10px;right:10px;
-  display:flex;justify-content:space-between;align-items:center;
-  gap:8px;font-size:11px;text-shadow:0 1px 5px #000;
+.center-mark::before {
+  width: 34px;
+  height: 1px;
+  left: -7px;
+  top: 10px;
 }
-.topinfo {top:10px}
-.bottominfo {bottom:10px}
-.pill {background:#10151dcc;padding:7px 9px;border-radius:8px}
-.section {
-  margin-top:12px;padding:13px;background:var(--panel);
-  border:1px solid #27313e;border-radius:13px;
+.center-mark::after {
+  height: 34px;
+  width: 1px;
+  top: -7px;
+  left: 10px;
 }
-.heading {
-  font-size:11px;font-weight:800;letter-spacing:1px;
-  color:var(--muted);margin-bottom:12px;
+.top-info, .bottom-info {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
 }
-.row {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
-.row.three {grid-template-columns:repeat(3,minmax(0,1fr))}
-.field {min-width:0}
-.field label {display:block;font-size:11px;color:var(--muted);margin-bottom:7px}
-select,input[type=range] {width:100%;min-width:0}
-select {
-  color:white;background:#202936;border:1px solid var(--line);
-  border-radius:8px;padding:10px 5px;
+.top-info { top: 10px; }
+.bottom-info { bottom: 10px; }
+.pill {
+  font-size: 11px;
+  background: #080a0dcc;
+  border: 1px solid #ffffff20;
+  padding: 7px 9px;
+  border-radius: 8px;
+  backdrop-filter: blur(6px);
 }
-input[type=range] {accent-color:var(--accent)}
-button.primary {background:var(--accent);color:#04120f;border-color:var(--accent);font-weight:800}
-button.record {background:#a5263c;border-color:#a5263c;font-weight:800}
-button.active {border-color:var(--accent);color:var(--accent)}
-button.wide {width:100%;margin-top:9px}
-#recordBtn.recording {background:#ff263f;animation:pulse 1s infinite}
-@keyframes pulse {50%{opacity:.65}}
-.value {font-size:12px;color:var(--accent);margin-top:5px}
-#message {font-size:12px;line-height:1.55;color:var(--muted);overflow-wrap:anywhere}
-#gallery a {display:block;color:var(--accent);font-size:12px;padding:8px 0;overflow-wrap:anywhere}
-#processedCanvas {display:none}
-footer {text-align:center;color:#687589;font-size:11px;padding:18px 0}
+#rollLabel { color: var(--green); }
+.controls { margin-top: 13px; }
+.section-label {
+  color: var(--muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 15px 2px 8px;
+}
+.row { display: flex; gap: 8px; }
+.row > * { flex: 1; min-width: 0; }
+.zoom-btn.selected, .mode-btn.selected {
+  border-color: var(--green);
+  color: var(--green);
+  background: #163126;
+}
+.primary {
+  background: var(--green);
+  color: #06120b;
+  font-weight: 800;
+  border: 0;
+}
+.recording {
+  background: var(--red);
+  color: white;
+  border: 0;
+  font-weight: 800;
+}
+.info-card {
+  margin-top: 13px;
+  padding: 12px;
+  background: var(--panel);
+  border: 1px solid #252a31;
+  border-radius: 13px;
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+.info-card strong { color: var(--text); }
+#message { color: var(--green); }
+footer {
+  text-align: center;
+  font-size: 10px;
+  color: #6e7784;
+  padding: 16px 0 10px;
+}
+@media (max-height: 700px) {
+  .preview { max-height: 52vh; }
+  .app { padding-top: 6px; }
+}
 </style>
 </head>
 
 <body>
 <div class="app">
-<header>
-  <div>
-    <div class="brand">HORIZON <span>FILM PRO</span></div>
-    <div class="small">PRO VIDEO · ROLL CORRECTION</div>
-  </div>
-  <div class="small" id="status">CAMERA OFF</div>
-</header>
-
-<div class="preview">
-  <video id="preview" autoplay muted playsinline></video>
-  <div class="overlay">
-    <div id="grid"></div>
-    <div id="guide"></div>
-    <div id="crosshair"></div>
-  </div>
-  <div class="topinfo">
-    <span class="pill" id="resolutionLabel">NO SIGNAL</span>
-    <span class="pill" id="levelLabel">ROLL --°</span>
-  </div>
-  <div class="bottominfo">
-    <span class="pill" id="correctionLabel">CORRECTION READY</span>
-    <span class="pill" id="timer">00:00</span>
-  </div>
-</div>
-
-<div class="section">
-  <div class="heading">CAMERA</div>
-  <div class="row three">
-    <button id="startBtn" class="primary">Start Camera</button>
-    <button id="switchBtn">Switch Lens</button>
-    <button id="recordBtn" class="record" disabled>● Record</button>
-  </div>
-  <div class="row three" style="margin-top:12px">
-    <div class="field">
-      <label>Resolution</label>
-      <select id="resolution">
-        <option value="1280x720">720p</option>
-        <option value="1920x1080" selected>1080p</option>
-        <option value="3840x2160">4K request</option>
-      </select>
+  <header>
+    <div>
+      <div class="brand">HORIZON <span>FILM PRO</span></div>
+      <div class="status">CAMERA • LEVEL • RECORD</div>
     </div>
-    <div class="field">
-      <label>Frame rate</label>
-      <select id="fps">
-        <option value="24">24 FPS</option>
-        <option value="30" selected>30 FPS</option>
-        <option value="60">60 FPS</option>
-      </select>
+    <div class="live" id="liveStatus">OFFLINE</div>
+  </header>
+
+  <div class="preview" id="preview">
+    <!-- Hidden camera input; the canvas is the actual live preview. -->
+    <video id="cameraInput" autoplay muted playsinline></video>
+    <canvas id="processedCanvas"></canvas>
+
+    <div class="overlay">
+      <div class="grid" id="grid"></div>
+      <div class="horizon" id="horizon"></div>
+      <div class="center-mark"></div>
     </div>
-    <div class="field">
-      <label>Zoom</label>
-      <select id="zoom">
-        <option value="1">1×</option>
-        <option value="1.5">1.5×</option>
-        <option value="2">2×</option>
-      </select>
+
+    <div class="top-info">
+      <span class="pill" id="resolutionLabel">NO SIGNAL</span>
+      <span class="pill" id="rollLabel">ROLL 0.0°</span>
+    </div>
+
+    <div class="bottom-info">
+      <span class="pill" id="correctionLabel">LEVEL READY</span>
+      <span class="pill" id="timer">00:00</span>
     </div>
   </div>
-  <button id="applyBtn" class="wide">Apply Camera Settings</button>
-</div>
 
-<div class="section">
-  <div class="heading">HORIZON ENGINE</div>
-  <div class="row">
-    <button id="sensorBtn">Enable Motion Sensor</button>
-    <button id="calibrateBtn">Calibrate Level · 0°</button>
-  </div>
-  <div class="field" style="margin-top:15px">
-    <label>Correction strength</label>
-    <input id="strength" type="range" min="0" max="100" value="100" step="5">
-    <div class="value" id="strengthValue">100%</div>
-  </div>
-  <div class="field" style="margin-top:15px">
-    <label>Maximum correction angle</label>
-    <select id="limit">
-      <option value="15">±15°</option>
-      <option value="30">±30°</option>
-      <option value="45" selected>±45°</option>
-    </select>
-  </div>
-  <div class="row" style="margin-top:12px">
-    <button id="guideBtn" class="active">Level Guide ON</button>
-    <button id="correctionBtn" class="active">Video Correction ON</button>
-  </div>
-  <p class="small">Calibration establishes the phone's current level as zero. Keep the phone steady while calibrating. Sensor accuracy depends on your device.</p>
-</div>
+  <div class="controls">
+    <div class="section-label">Camera</div>
+    <div class="row">
+      <button id="startBtn" class="primary">Start Camera</button>
+      <button id="switchBtn">Switch Camera</button>
+    </div>
 
-<div class="section">
-  <div class="heading">VIEWFINDER</div>
-  <div class="row three">
-    <button id="gridBtn" class="active">Grid ON</button>
-    <button id="crossBtn" class="active">Crosshair ON</button>
-    <button id="invertBtn">Invert Roll</button>
+    <div class="section-label">Digital zoom</div>
+    <div class="row">
+      <button class="zoom-btn selected" data-zoom="1">1×</button>
+      <button class="zoom-btn" data-zoom="1.5">1.5×</button>
+      <button class="zoom-btn" data-zoom="2">2×</button>
+    </div>
+
+    <div class="section-label">Horizon controls</div>
+    <div class="row">
+      <button id="calibrateBtn">Set Level</button>
+      <button id="sensorBtn">Enable Sensors</button>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <button id="gridBtn" class="mode-btn selected">Grid: ON</button>
+      <button id="audioBtn" class="mode-btn selected">Audio: ON</button>
+    </div>
+
+    <div class="section-label">Recording</div>
+    <div class="row">
+      <button id="recordBtn" class="primary" disabled>● Record</button>
+      <button id="stopBtn" disabled>Stop</button>
+    </div>
+
+    <div class="info-card">
+      <strong>System status</strong><br>
+      <span id="message">Press Start Camera to begin.</span><br><br>
+      Roll correction: <strong>limited to ±45°</strong>.<br>
+      Zoom is digital cropping, not optical zoom. Sensor availability and accuracy depend on your device and browser.
+    </div>
   </div>
-</div>
 
-<div class="section">
-  <div class="heading">RECORDINGS</div>
-  <p id="message">Start the camera and enable the motion sensor. Corrected recording is produced by drawing rotated frames to a canvas.</p>
-  <div id="gallery">No recordings yet.</div>
-</div>
-
-<canvas id="processedCanvas"></canvas>
-<footer>Horizon Film Pro · Experimental web camera</footer>
+  <footer>HORIZON FILM PRO • WEB CAMERA PROTOTYPE</footer>
 </div>
 
 <script>
-(() => {
 "use strict";
 
-const $ = id => document.getElementById(id);
-const preview = $("preview");
-const canvas = $("processedCanvas");
-const ctx = canvas.getContext("2d", {alpha:false});
+const video = document.getElementById("cameraInput");
+const canvas = document.getElementById("processedCanvas");
+const ctx = canvas.getContext("2d", { alpha: false });
+
+const preview = document.getElementById("preview");
+const horizon = document.getElementById("horizon");
+const liveStatus = document.getElementById("liveStatus");
+const message = document.getElementById("message");
+const resolutionLabel = document.getElementById("resolutionLabel");
+const rollLabel = document.getElementById("rollLabel");
+const correctionLabel = document.getElementById("correctionLabel");
+const timerLabel = document.getElementById("timer");
+
+const startBtn = document.getElementById("startBtn");
+const switchBtn = document.getElementById("switchBtn");
+const calibrateBtn = document.getElementById("calibrateBtn");
+const sensorBtn = document.getElementById("sensorBtn");
+const gridBtn = document.getElementById("gridBtn");
+const audioBtn = document.getElementById("audioBtn");
+const recordBtn = document.getElementById("recordBtn");
+const stopBtn = document.getElementById("stopBtn");
 
 let cameraStream = null;
-let cameraTrack = null;
+let outputStream = null;
 let recorder = null;
-let recording = false;
-let chunks = [];
-let cameraSide = "environment";
+let recordedChunks = [];
+let animationId = 0;
+let timerInterval = null;
+let recordingStart = 0;
+let recordingSeconds = 0;
+
+let facingMode = "environment";
+let zoom = 1;
+let showGrid = true;
+let audioEnabled = true;
 let sensorEnabled = false;
-let guideEnabled = true;
-let correctionEnabled = true;
-let gridEnabled = true;
-let crossEnabled = true;
-let invertRoll = false;
+let sensorPermissionGranted = false;
 
 let sensorRoll = 0;
 let zeroOffset = 0;
 let filteredRoll = 0;
+let sensorSamples = 0;
 let lastSensorTime = 0;
-let lastFrameTime = 0;
-let animationId = 0;
-let recordStartedAt = 0;
-let timerId = 0;
-let recordCanvasStream = null;
-let recordStream = null;
-let currentObjectURL = null;
-let capabilities = {};
-let busy = false;
 
-const MAX_CANVAS_WIDTH = 1920;
+const MAX_ROLL = 45;
+const SMOOTHING = 0.12;
 
-function say(text) {
-  $("message").textContent = text;
-}
-
-function clamp(value, min, max) {
-  return Math.max(min, Math.min(max, value));
-}
-
-function fmtTime(ms) {
-  const total = Math.floor(ms / 1000);
-  return String(Math.floor(total / 60)).padStart(2, "0") +
-    ":" + String(total % 60).padStart(2, "0");
-}
-
-function getMimeType() {
-  if (!window.MediaRecorder) return "";
-  return [
-    "video/webm;codecs=vp9,opus",
-    "video/webm;codecs=vp8,opus",
-    "video/webm"
-  ].find(t => MediaRecorder.isTypeSupported(t)) || "";
-}
-
-function stopCamera() {
-  if (cameraStream) {
-    cameraStream.getTracks().forEach(t => t.stop());
-  }
-  cameraStream = null;
-  cameraTrack = null;
-  capabilities = {};
-  preview.srcObject = null;
-  $("recordBtn").disabled = true;
-  $("status").textContent = "CAMERA OFF";
-}
+/* ---------- Camera ---------- */
 
 async function startCamera() {
-  if (busy) return;
-  if (recording) {
-    say("Stop recording before changing camera settings.");
-    return;
-  }
-
-  if (!navigator.mediaDevices?.getUserMedia) {
-    say("Camera access needs a secure HTTPS page or localhost.");
-    return;
-  }
-
-  busy = true;
-  stopCamera();
-
   try {
-    const [width, height] = $("resolution").value.split("x").map(Number);
-    const fps = Number($("fps").value);
+    message.textContent = "Requesting camera permission…";
+
+    if (!navigator.mediaDevices ||
+        !navigator.mediaDevices.getUserMedia) {
+      throw new Error("Camera API unavailable. Open this page over HTTPS.");
+    }
+
+    if (recorder && recorder.state !== "inactive") {
+      throw new Error("Stop recording before changing cameras.");
+    }
+
+    stopCameraTracks();
 
     cameraStream = await navigator.mediaDevices.getUserMedia({
       audio: true,
       video: {
-        facingMode: {ideal: cameraSide},
-        width: {ideal: width},
-        height: {ideal: height},
-        frameRate: {ideal: fps}
+        facingMode: { ideal: facingMode },
+        width: { ideal: 1920 },
+        height: { ideal: 1080 },
+        frameRate: { ideal: 30, max: 30 }
       }
     });
 
-    cameraTrack = cameraStream.getVideoTracks()[0];
-    capabilities = cameraTrack.getCapabilities?.() || {};
+    video.srcObject = cameraStream;
+    await video.play();
 
-    preview.srcObject = cameraStream;
-    await preview.play();
+    await waitForVideo();
 
-    await new Promise(resolve => {
-      if (preview.videoWidth) resolve();
-      else preview.addEventListener("loadedmetadata", resolve, {once:true});
-    });
+    liveStatus.textContent = "LIVE";
+    liveStatus.classList.add("ready");
+    startBtn.textContent = "Restart Camera";
 
-    $("status").textContent = "CAMERA READY";
-    $("recordBtn").disabled = false;
+    const track = cameraStream.getVideoTracks()[0];
+    const settings = track ? track.getSettings() : {};
 
-    const settings = cameraTrack.getSettings();
-    $("resolutionLabel").textContent =
-      (settings.width || preview.videoWidth) + " × " +
-      (settings.height || preview.videoHeight);
+    resolutionLabel.textContent =
+      (settings.width || video.videoWidth) + " × " +
+      (settings.height || video.videoHeight);
 
-    updateZoom();
+    const audioTrack = cameraStream.getAudioTracks()[0];
+    if (audioTrack) audioTrack.enabled = audioEnabled;
+
     resizeCanvas();
+    recordBtn.disabled = false;
+    message.textContent =
+      "Camera running. Enable sensors and set the level for best results.";
+
+    cancelAnimationFrame(animationId);
     drawLoop();
-
-    say("Camera ready. Motion sensor and canvas recording are separate from the original camera stream.");
-  } catch (error) {
-    stopCamera();
-    say("Camera error: " + error.message +
-      ". Check browser permissions and try a smaller resolution.");
-  } finally {
-    busy = false;
+  } catch (err) {
+    console.error(err);
+    message.textContent = "Camera error: " + err.message;
+    liveStatus.textContent = "ERROR";
+    liveStatus.classList.remove("ready");
   }
 }
 
-function resizeCanvas() {
-  if (!preview.videoWidth || !preview.videoHeight) return;
+function waitForVideo() {
+  return new Promise((resolve, reject) => {
+    if (video.readyState >= 2 && video.videoWidth) {
+      resolve();
+      return;
+    }
 
-  const sourceW = preview.videoWidth;
-  const sourceH = preview.videoHeight;
-  const scale = Math.min(1, MAX_CANVAS_WIDTH / sourceW);
+    const timeout = setTimeout(() => {
+      cleanup();
+      reject(new Error("Camera did not produce a video frame."));
+    }, 12000);
 
-  canvas.width = Math.max(2, Math.round(sourceW * scale));
-  canvas.height = Math.max(2, Math.round(sourceH * scale));
+    function done() {
+      if (video.videoWidth > 0) {
+        cleanup();
+        resolve();
+      }
+    }
+
+    function cleanup() {
+      clearTimeout(timeout);
+      video.removeEventListener("loadeddata", done);
+      video.removeEventListener("resize", done);
+    }
+
+    video.addEventListener("loadeddata", done);
+    video.addEventListener("resize", done);
+  });
 }
 
-function updateZoom() {
-  const zoom = $("zoom");
-  const range = capabilities.zoom;
-
-  for (const option of zoom.options) {
-    const z = Number(option.value);
-    option.disabled = !!range && (z < range.min || z > range.max);
+function stopCameraTracks() {
+  if (cameraStream) {
+    cameraStream.getTracks().forEach(track => track.stop());
   }
+  cameraStream = null;
+  video.srcObject = null;
 }
 
-async function applyZoom() {
-  if (!cameraTrack) return;
-
-  const requested = Number($("zoom").value);
-  const range = capabilities.zoom;
-
-  if (!range) {
-    say("This browser does not expose hardware zoom. No real optical zoom was applied.");
+async function switchCamera() {
+  if (recorder && recorder.state !== "inactive") {
+    message.textContent = "Stop recording before switching cameras.";
     return;
   }
 
-  const actual = clamp(requested, range.min, range.max);
+  facingMode = facingMode === "environment" ? "user" : "environment";
+  await startCamera();
+}
 
-  try {
-    await cameraTrack.applyConstraints({
-      advanced: [{zoom:actual}]
-    });
-    const applied = cameraTrack.getSettings().zoom ?? actual;
-    say("Hardware zoom set to approximately " + applied + "×.");
-  } catch (error) {
-    say("Zoom could not be applied: " + error.message);
+/* ---------- Canvas preview and roll correction ---------- */
+
+function resizeCanvas() {
+  const rect = preview.getBoundingClientRect();
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+  canvas.width = Math.max(1, Math.round(rect.width * dpr));
+  canvas.height = Math.max(1, Math.round(rect.height * dpr));
+}
+
+function clamp(value, min, max) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function drawLoop() {
+  if (video.readyState >= 2 && video.videoWidth > 0) {
+    drawCorrectedFrame();
   }
+  animationId = requestAnimationFrame(drawLoop);
 }
 
-function getRequestedRoll() {
-  let roll = sensorRoll - zeroOffset;
-  if (invertRoll) roll = -roll;
-  return roll;
+function drawCorrectedFrame() {
+  const W = canvas.width;
+  const H = canvas.height;
+  if (!W || !H || !video.videoWidth || !video.videoHeight) return;
+
+  // Stabilize roll only. Positive sensor roll rotates the image
+  // in the opposite direction to counter the measured tilt.
+  const correction = clamp(-(filteredRoll - zeroOffset), -MAX_ROLL, MAX_ROLL);
+  const radians = correction * Math.PI / 180;
+
+  ctx.save();
+  ctx.fillStyle = "#000";
+  ctx.fillRect(0, 0, W, H);
+
+  ctx.translate(W / 2, H / 2);
+  ctx.rotate(radians);
+
+  // Cover the output canvas, then crop further for digital zoom.
+  const baseScale = Math.max(
+    W / video.videoWidth,
+    H / video.videoHeight
+  );
+  const scale = baseScale * zoom;
+
+  const drawW = video.videoWidth * scale;
+  const drawH = video.videoHeight * scale;
+
+  ctx.drawImage(video, -drawW / 2, -drawH / 2, drawW, drawH);
+  ctx.restore();
+
+  rollLabel.textContent =
+    "ROLL " + (filteredRoll - zeroOffset).toFixed(1) + "°";
+
+  // The guide shows the estimated level error, not camera position.
+  horizon.style.transform =
+    "translateY(-50%) rotate(" +
+    clamp(filteredRoll - zeroOffset, -MAX_ROLL, MAX_ROLL) + "deg)";
+
+  correctionLabel.textContent =
+    Math.abs(filteredRoll - zeroOffset) > MAX_ROLL
+      ? "LIMIT ±45°"
+      : "ROLL CORRECTION";
 }
 
-function handleOrientation(event) {
-  // gamma is a useful starting estimate in portrait orientation.
-  // Sensor axes differ with phone orientation, so calibration matters.
-  if (!Number.isFinite(event.gamma)) return;
+/* ---------- Motion sensors ---------- */
 
-  sensorRoll = event.gamma;
+function onOrientation(event) {
+  // gamma is a useful approximation for roll when the phone is
+  // held upright in portrait. It is not universally correct for
+  // every device orientation.
+  let rawRoll;
+
+  if (typeof event.gamma === "number") {
+    rawRoll = event.gamma;
+  } else {
+    return;
+  }
+
+  rawRoll = clamp(rawRoll, -90, 90);
+
   const now = performance.now();
-  const dt = lastSensorTime ? Math.min(0.25, (now - lastSensorTime) / 1000) : 0.05;
+  if (sensorSamples === 0) {
+    filteredRoll = rawRoll;
+  } else {
+    // Low-pass filter removes some sensor jitter.
+    filteredRoll += SMOOTHING * (rawRoll - filteredRoll);
+  }
+
+  sensorRoll = rawRoll;
+  sensorSamples++;
   lastSensorTime = now;
-
-  const target = clamp(getRequestedRoll(), -90, 90);
-  // Low-pass smoothing to reduce jitter without making response too slow.
-  const smoothing = 1 - Math.exp(-dt * 7);
-  filteredRoll += (target - filteredRoll) * smoothing;
-
-  updateLevelUI();
-}
-
-function updateLevelUI() {
-  const roll = getRequestedRoll();
-  const limit = Number($("limit").value);
-  const strength = Number($("strength").value) / 100;
-  const correctionAngle = correctionEnabled
-    ? clamp(filteredRoll, -limit, limit) * strength
-    : 0;
-
-  $("levelLabel").textContent =
-    "ROLL " + (roll >= 0 ? "+" : "") + roll.toFixed(1) + "°";
-
-  $("correctionLabel").textContent = correctionEnabled
-    ? "CORRECT " + correctionAngle.toFixed(1) + "°"
-    : "CORRECTION OFF";
-
-  $("guide").style.display = guideEnabled ? "block" : "none";
-  $("guide").style.transform =
-    "translate(-50%,-50%) rotate(" + (-roll) + "deg)";
 }
 
 async function enableSensors() {
   try {
     if (!("DeviceOrientationEvent" in window)) {
-      say("This browser does not provide device orientation events.");
-      return;
+      throw new Error("This browser does not provide orientation sensors.");
     }
 
+    // Some browsers require permission through a user gesture.
     if (typeof DeviceOrientationEvent.requestPermission === "function") {
       const permission = await DeviceOrientationEvent.requestPermission();
       if (permission !== "granted") {
-        say("Motion sensor permission was denied.");
-        return;
+        throw new Error("Motion sensor permission was not granted.");
       }
     }
 
-    window.addEventListener("deviceorientation", handleOrientation, true);
+    window.addEventListener("deviceorientation", onOrientation, true);
     sensorEnabled = true;
-    $("sensorBtn").textContent = "Motion Sensor ON";
-    $("sensorBtn").classList.add("active");
-    say("Sensor enabled. Place the phone in its intended recording position and tap Calibrate Level.");
-  } catch (error) {
-    say("Could not enable motion sensor: " + error.message);
+    sensorPermissionGranted = true;
+    sensorBtn.textContent = "Sensors: ON";
+    sensorBtn.classList.add("selected");
+    message.textContent =
+      "Sensors enabled. Hold the phone level, then press Set Level.";
+  } catch (err) {
+    message.textContent = err.message;
   }
 }
 
-function calibrate() {
-  if (!sensorEnabled) {
-    say("Enable the motion sensor before calibrating.");
+function calibrateLevel() {
+  if (!sensorEnabled || sensorSamples === 0) {
+    message.textContent = "Enable sensors and wait for a sensor reading first.";
     return;
   }
 
-  zeroOffset = sensorRoll;
-  filteredRoll = 0;
-  updateLevelUI();
-  say("Calibrated. The phone's current roll reading is now zero.");
+  zeroOffset = filteredRoll;
+  message.textContent = "Level calibrated. Keep the phone steady briefly.";
 }
 
-function drawCorrectedFrame() {
-  if (!cameraStream || preview.readyState < 2 ||
-      !preview.videoWidth || !preview.videoHeight) return;
+/* ---------- Zoom and interface ---------- */
 
-  if (canvas.width === 0 || canvas.height === 0) resizeCanvas();
+document.querySelectorAll(".zoom-btn").forEach(button => {
+  button.addEventListener("click", () => {
+    zoom = Number(button.dataset.zoom);
+    document.querySelectorAll(".zoom-btn").forEach(b => {
+      b.classList.toggle("selected", b === button);
+    });
+  });
+});
 
-  const W = canvas.width;
-  const H = canvas.height;
-  const strength = Number($("strength").value) / 100;
-  const limit = Number($("limit").value);
+gridBtn.addEventListener("click", () => {
+  showGrid = !showGrid;
+  document.getElementById("grid").style.display = showGrid ? "block" : "none";
+  gridBtn.textContent = "Grid: " + (showGrid ? "ON" : "OFF");
+  gridBtn.classList.toggle("selected", showGrid);
+});
 
-  let angle = correctionEnabled
-    ? clamp(filteredRoll, -limit, limit) * strength
-    : 0;
+audioBtn.addEventListener("click", () => {
+  audioEnabled = !audioEnabled;
 
-  // Compensate roll by rotating the image in the opposite direction.
-  const rad = -angle * Math.PI / 180;
-  const c = Math.abs(Math.cos(rad));
-  const s = Math.abs(Math.sin(rad));
-
-  // Scale up enough to cover the whole output frame after rotation.
-  // This crops edges to avoid black triangular corners.
-  const rotatedW = W * c + H * s;
-  const rotatedH = W * s + H * c;
-  const scale = Math.max(W / rotatedW, H / rotatedH);
-
-  ctx.fillStyle = "#000";
-  ctx.fillRect(0, 0, W, H);
-  ctx.save();
-  ctx.translate(W / 2, H / 2);
-  ctx.rotate(rad);
-  ctx.scale(scale, scale);
-
-  if (cameraSide === "user") ctx.scale(-1, 1);
-
-  ctx.drawImage(preview, -W / 2, -H / 2, W, H);
-  ctx.restore();
-}
-
-function drawLoop(now = 0) {
-  if (!cameraStream) return;
-
-  const fps = Number($("fps").value);
-  const interval = 1000 / fps;
-
-  if (!lastFrameTime || now - lastFrameTime >= interval) {
-    lastFrameTime = now;
-    try {
-      drawCorrectedFrame();
-    } catch (error) {
-      // Avoid repeatedly showing errors while camera metadata settles.
-    }
+  if (cameraStream) {
+    cameraStream.getAudioTracks().forEach(track => {
+      track.enabled = audioEnabled;
+    });
   }
 
-  animationId = requestAnimationFrame(drawLoop);
+  audioBtn.textContent = "Audio: " + (audioEnabled ? "ON" : "OFF");
+  audioBtn.classList.toggle("selected", audioEnabled);
+});
+
+startBtn.addEventListener("click", startCamera);
+switchBtn.addEventListener("click", switchCamera);
+sensorBtn.addEventListener("click", enableSensors);
+calibrateBtn.addEventListener("click", calibrateLevel);
+
+window.addEventListener("resize", resizeCanvas);
+window.addEventListener("orientationchange", () => {
+  setTimeout(resizeCanvas, 250);
+});
+
+/* ---------- Video recording ---------- */
+
+function chooseRecorderType() {
+  const types = [
+    "video/webm;codecs=vp9,opus",
+    "video/webm;codecs=vp8,opus",
+    "video/webm"
+  ];
+
+  for (const type of types) {
+    if (window.MediaRecorder &&
+        MediaRecorder.isTypeSupported(type)) {
+      return type;
+    }
+  }
+  return "";
 }
 
 function startRecording() {
-  if (!cameraStream || recording) return;
-
-  if (!canvas.captureStream || !window.MediaRecorder) {
-    say("This browser does not support canvas recording or MediaRecorder.");
+  if (!cameraStream || !video.videoWidth) {
+    message.textContent = "Start the camera before recording.";
     return;
   }
 
   try {
-    resizeCanvas();
-    drawCorrectedFrame();
+    recordedChunks = [];
 
-    const fps = Number($("fps").value);
-    recordCanvasStream = canvas.captureStream(fps);
+    // Record the corrected canvas, not the original camera video.
+    outputStream = canvas.captureStream(30);
 
-    // Use corrected canvas frames for video and original microphone
-    // audio tracks for sound, when the browser supplies audio.
-    const tracks = [...recordCanvasStream.getVideoTracks()];
-    const audioTracks = cameraStream.getAudioTracks();
-    audioTracks.forEach(track => tracks.push(track));
-    recordStream = new MediaStream(tracks);
+    // Include microphone audio, if available and enabled.
+    if (audioEnabled && cameraStream) {
+      cameraStream.getAudioTracks().forEach(track => {
+        if (track.readyState === "live") {
+          outputStream.addTrack(track);
+        }
+      });
+    }
 
-    chunks = [];
-    const mimeType = getMimeType();
-
+    const mimeType = chooseRecorderType();
     recorder = new MediaRecorder(
-      recordStream,
-      mimeType ? {mimeType} : undefined
+      outputStream,
+      mimeType ? { mimeType } : undefined
     );
 
     recorder.ondataavailable = event => {
-      if (event.data && event.data.size > 0) chunks.push(event.data);
+      if (event.data && event.data.size > 0) {
+        recordedChunks.push(event.data);
+      }
     };
 
     recorder.onerror = event => {
-      say("Recording error: " + (event.error?.message || "unknown error"));
+      message.textContent = "Recording error: " +
+        (event.error ? event.error.message : "unknown error");
     };
 
-    recorder.onstop = finishRecording;
-    recorder.start(1000);
+    recorder.onstop = saveRecording;
+    recorder.start(250);
 
-    recording = true;
-    recordStartedAt = Date.now();
-    $("recordBtn").textContent = "■ Stop";
-    $("recordBtn").classList.add("recording");
-    $("status").textContent = "RECORDING";
+    recordingStart = Date.now();
+    recordingSeconds = 0;
+    timerLabel.textContent = "00:00";
 
-    timerId = setInterval(() => {
-      $("timer").textContent = fmtTime(Date.now() - recordStartedAt);
-    }, 250);
+    timerInterval = setInterval(updateTimer, 250);
 
-    say("Recording corrected canvas frames. Keep this page open and avoid locking the screen while recording.");
-
-  } catch (error) {
-    cleanupRecordStreams();
-    say("Could not start recording: " + error.message);
+    recordBtn.disabled = true;
+    recordBtn.classList.add("recording");
+    recordBtn.textContent = "● Recording";
+    stopBtn.disabled = false;
+    message.textContent = "Recording the corrected canvas video…";
+  } catch (err) {
+    message.textContent = "Cannot start recording: " + err.message;
+    cleanupOutputStream();
   }
+}
+
+function updateTimer() {
+  recordingSeconds = Math.floor((Date.now() - recordingStart) / 1000);
+  const minutes = String(Math.floor(recordingSeconds / 60)).padStart(2, "0");
+  const seconds = String(recordingSeconds % 60).padStart(2, "0");
+  timerLabel.textContent = minutes + ":" + seconds;
 }
 
 function stopRecording() {
-  if (!recording || !recorder) return;
-
-  recording = false;
-  clearInterval(timerId);
-  $("recordBtn").textContent = "● Record";
-  $("recordBtn").classList.remove("recording");
-  $("status").textContent = "SAVING";
-
-  if (recorder.state !== "inactive") recorder.stop();
-}
-
-function cleanupRecordStreams() {
-  if (recordCanvasStream) {
-    recordCanvasStream.getTracks().forEach(track => track.stop());
+  if (recorder && recorder.state !== "inactive") {
+    recorder.stop();
   }
-  recordCanvasStream = null;
-  recordStream = null;
+  clearInterval(timerInterval);
+  timerInterval = null;
+
+  recordBtn.disabled = !cameraStream;
+  recordBtn.classList.remove("recording");
+  recordBtn.textContent = "● Record";
+  stopBtn.disabled = true;
 }
 
-function finishRecording() {
-  cleanupRecordStreams();
-
-  if (!chunks.length) {
-    $("status").textContent = cameraStream ? "CAMERA READY" : "CAMERA OFF";
-    say("No recording data was returned by the browser.");
+function saveRecording() {
+  if (!recordedChunks.length) {
+    message.textContent = "No video data was recorded.";
+    cleanupOutputStream();
     return;
   }
 
-  const type = recorder.mimeType || "video/webm";
-  const blob = new Blob(chunks, {type});
+  const mimeType = recorder && recorder.mimeType
+    ? recorder.mimeType
+    : "video/webm";
+
+  const blob = new Blob(recordedChunks, { type: mimeType });
   const url = URL.createObjectURL(blob);
-  const date = new Date().toISOString().replace(/[:.]/g, "-");
-  const filename = "HorizonFilmPro_Corrected_" + date + ".webm";
-
-  const entry = document.createElement("div");
   const link = document.createElement("a");
+
   link.href = url;
-  link.download = filename;
-  link.textContent = "Download corrected video · " +
-    (blob.size / 1048576).toFixed(1) + " MB";
-  entry.appendChild(link);
-  $("gallery").prepend(entry);
+  link.download = "horizon-film-pro-" +
+    new Date().toISOString().replace(/[:.]/g, "-") + ".webm";
 
-  $("status").textContent = cameraStream ? "CAMERA READY" : "CAMERA OFF";
-  $("timer").textContent = "00:00";
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
 
-  say("Corrected video created. Download it and play it back to verify the correction, audio, and framing.");
+  // Revoke the URL after the browser has had time to start downloading.
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+
+  message.textContent =
+    "Recording saved as a WebM video. Check your Downloads folder.";
+  cleanupOutputStream();
 }
 
-function setToggle(button, enabled, onText, offText) {
-  button.textContent = enabled ? onText : offText;
-  button.classList.toggle("active", enabled);
+function cleanupOutputStream() {
+  if (outputStream) {
+    outputStream.getTracks().forEach(track => track.stop());
+    outputStream = null;
+  }
 }
 
-$("startBtn").addEventListener("click", startCamera);
+recordBtn.addEventListener("click", startRecording);
+stopBtn.addEventListener("click", stopRecording);
 
-$("switchBtn").addEventListener("click", async () => {
-  if (recording) {
-    say("Stop recording before switching cameras.");
-    return;
-  }
-  cameraSide = cameraSide === "environment" ? "user" : "environment";
-  await startCamera();
+window.addEventListener("beforeunload", () => {
+  cancelAnimationFrame(animationId);
+  clearInterval(timerInterval);
+  stopCameraTracks();
+  cleanupOutputStream();
 });
-
-$("applyBtn").addEventListener("click", startCamera);
-$("zoom").addEventListener("change", applyZoom);
-$("sensorBtn").addEventListener("click", enableSensors);
-$("calibrateBtn").addEventListener("click", calibrate);
-
-$("recordBtn").addEventListener("click", () => {
-  if (recording) stopRecording();
-  else startRecording();
-});
-
-$("strength").addEventListener("input", () => {
-  $("strengthValue").textContent = $("strength").value + "%";
-  updateLevelUI();
-});
-
-$("limit").addEventListener("change", updateLevelUI);
-
-$("guideBtn").addEventListener("click", () => {
-  guideEnabled = !guideEnabled;
-  setToggle($("guideBtn"), guideEnabled, "Level Guide ON", "Level Guide OFF");
-  updateLevelUI();
-});
-
-$("correctionBtn").addEventListener("click", () => {
-  correctionEnabled = !correctionEnabled;
-  setToggle($("correctionBtn"), correctionEnabled,
-    "Video Correction ON", "Video Correction OFF");
-  updateLevelUI();
-});
-
-$("gridBtn").addEventListener("click", () => {
-  gridEnabled = !gridEnabled;
-  $("grid").style.display = gridEnabled ? "block" : "none";
-  setToggle($("gridBtn"), gridEnabled, "Grid ON", "Grid OFF");
-});
-
-$("crossBtn").addEventListener("click", () => {
-  crossEnabled = !crossEnabled;
-  $("crosshair").style.display = crossEnabled ? "block" : "none";
-  setToggle($("crossBtn"), crossEnabled, "Crosshair ON", "Crosshair OFF");
-});
-
-$("invertBtn").addEventListener("click", () => {
-  invertRoll = !invertRoll;
-  $("invertBtn").textContent = invertRoll ? "Roll Inverted ON" : "Invert Roll";
-  updateLevelUI();
-});
-
-document.addEventListener("visibilitychange", () => {
-  if (document.hidden && recording) {
-    say("The page is in the background. Android may throttle or pause processing; return to the app and verify the saved video.");
-  }
-});
-
-window.addEventListener("pagehide", () => {
-  if (recording && recorder && recorder.state !== "inactive") {
-    try { recorder.stop(); } catch (_) {}
-  }
-  if (animationId) cancelAnimationFrame(animationId);
-  stopCamera();
-});
-
-})();
 </script>
 </body>
 </html>
