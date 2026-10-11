@@ -8,598 +8,937 @@
 
 <style>
 :root {
-  --bg:#0b0c0e; --panel:#1b1d21; --line:#33363d;
-  --text:#f5f5f5; --muted:#a4a8af; --accent:#f2c14e;
-  --red:#ff4055;
+  --bg: #080a0e;
+  --panel: #141820;
+  --line: #303744;
+  --text: #f3f5f8;
+  --muted: #9ba5b4;
+  --accent: #64e6c2;
+  --danger: #ff5968;
 }
-* { box-sizing:border-box; }
-html,body {
-  margin:0; width:100%; height:100%; overflow:hidden;
-  background:var(--bg); color:var(--text);
-  font-family:Arial,sans-serif;
+* { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, sans-serif;
 }
-button,input { font:inherit; }
+button, input, select { font: inherit; }
 button {
-  background:#292c31; color:var(--text);
-  border:1px solid var(--line); border-radius:8px;
-  padding:7px 8px; font-size:11px;
-  touch-action:manipulation;
+  color: var(--text);
+  background: #222833;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 12px;
+  min-height: 38px;
+  cursor: pointer;
+  touch-action: manipulation;
 }
-button:disabled { opacity:.45; }
-.active { border-color:var(--accent); color:var(--accent); }
-.primary { background:var(--accent); color:#15120a; border-color:var(--accent); font-weight:bold; }
-.recording { background:var(--red); border-color:var(--red); color:white; }
-.app {
-  height:100dvh; width:100%; max-width:700px; margin:auto;
-  padding:5px 8px max(5px,env(safe-area-inset-bottom));
-  display:flex; flex-direction:column; gap:5px; overflow:hidden;
+button:disabled { opacity: .45; }
+button.active {
+  color: #07120f;
+  background: var(--accent);
+  border-color: var(--accent);
+  font-weight: 800;
+}
+button.recording { background: var(--danger); border-color: var(--danger); }
+#app {
+  height: 100dvh;
+  width: 100%;
+  max-width: 700px;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: max(8px, env(safe-area-inset-top)) 10px
+           max(8px, env(safe-area-inset-bottom));
 }
 header {
-  min-height:31px; flex-shrink:0;
-  display:flex; align-items:center; justify-content:space-between;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 8px;
 }
-.logo { font-size:14px; font-weight:900; letter-spacing:.8px; }
-.logo span { color:var(--accent); }
-.subtitle { color:var(--muted); font-size:8px; margin-top:2px; }
-.status { color:var(--muted); font-size:9px; border:1px solid var(--line); border-radius:14px; padding:5px 7px; }
-
-#previewBox {
-  position:relative; width:100%; flex:1 1 auto; min-height:0;
-  background:#000; overflow:hidden; border:1px solid #292c31; border-radius:10px;
+.brand { font-size: 17px; font-weight: 900; letter-spacing: 1.2px; }
+.brand span { color: var(--accent); }
+#status { color: var(--muted); font-size: 11px; text-align: right; }
+#previewWrap {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 110px;
+  overflow: hidden;
+  border-radius: 16px;
+  background: #000;
+  border: 1px solid #29303b;
 }
-#cameraVideo { display:none; }
-#viewCanvas { display:block; width:100%; height:100%; background:#000; }
-.hud {
-  position:absolute; left:6px; right:6px;
-  display:flex; align-items:center; justify-content:space-between;
-  pointer-events:none;
+#viewCanvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
 }
-.hud.top { top:6px; }
-.hud.bottom { bottom:6px; }
-.chip { background:#08090bdc; border:1px solid #ffffff20; border-radius:5px; padding:5px 6px; font-size:9px; }
-#gridOverlay {
-  position:absolute; inset:0; pointer-events:none;
-  background:
-    linear-gradient(to right,transparent 33.1%,#ffffff45 33.3%,transparent 33.6%,transparent 66.4%,#ffffff45 66.6%,transparent 66.9%),
-    linear-gradient(to bottom,transparent 33.1%,#ffffff45 33.3%,transparent 33.6%,transparent 66.4%,#ffffff45 66.6%,transparent 66.9%);
+#cameraVideo { display: none; }
+.overlay {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  top: 10px;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  pointer-events: none;
 }
-.controls { flex-shrink:0; display:flex; flex-direction:column; gap:4px; }
-.row { display:flex; align-items:center; gap:5px; }
-.row > * { flex:1; min-width:0; }
-.section-label { font-size:8px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; }
-.zoom-panel {
-  display:flex; align-items:center; gap:8px;
-  background:var(--panel); border:1px solid #292c31;
-  border-radius:8px; padding:4px 8px;
+.pill {
+  background: #000a;
+  border: 1px solid #ffffff25;
+  padding: 6px 9px;
+  border-radius: 7px;
+  font-size: 10px;
+  letter-spacing: .6px;
 }
-.zoom-panel label { color:var(--muted); font-size:10px; }
-.zoom-panel input { flex:1; min-width:0; }
-#zoomValue { color:var(--accent); font-size:10px; width:32px; text-align:right; }
-input[type=range] { width:100%; height:18px; margin:0; accent-color:var(--accent); }
-.whitebalance { display:grid; grid-template-columns:1fr 1fr; gap:5px; }
-.wb-card { background:var(--panel); border:1px solid #292c31; border-radius:8px; padding:4px 7px; min-width:0; }
-.wb-heading { display:flex; align-items:center; justify-content:space-between; gap:4px; margin-bottom:2px; }
-.wb-heading span:first-child { font-size:10px; }
-.wb-heading span:last-child { color:var(--accent); font-size:10px; white-space:nowrap; }
-.presets { display:flex; gap:4px; }
-.presets button { flex:1; padding:5px 2px; font-size:9px; }
-.bottom-controls { display:grid; grid-template-columns:1fr 1fr 1.25fr; gap:5px; }
-#stopBtn { display:none; }
-#message { font-size:9px; color:var(--muted); min-height:11px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
-@media(max-height:680px) {
-  .app { gap:3px; padding-top:3px; }
-  header { min-height:26px; }
-  .logo { font-size:12px; }
-  .controls { gap:3px; }
-  .wb-card { padding:3px 6px; }
-  .presets button,button { padding:5px 5px; }
+#guide {
+  position: absolute;
+  inset: 14% 12%;
+  border: 1px solid #ffffff55;
+  pointer-events: none;
 }
-@media(max-height:570px) {
-  .subtitle,.section-label { display:none; }
-  .wb-card input { height:14px; }
+#guide::before, #guide::after {
+  content: "";
+  position: absolute;
+  background: #ffffff28;
+}
+#guide::before { left: 50%; top: 0; bottom: 0; width: 1px; }
+#guide::after { top: 50%; left: 0; right: 0; height: 1px; }
+#startMessage {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 24px;
+  color: #c3cbd6;
+  background: #0008;
+  font-size: 13px;
+}
+.controls {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-height: 0;
+}
+.panel {
+  background: var(--panel);
+  border: 1px solid #272e39;
+  border-radius: 12px;
+  padding: 9px 10px;
+}
+.panelTitle {
+  font-size: 10px;
+  letter-spacing: 1px;
+  font-weight: 900;
+  color: var(--muted);
+  margin-bottom: 7px;
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.row > * { min-width: 0; }
+.row .grow { flex: 1; }
+.small { color: var(--muted); font-size: 11px; }
+.value { color: var(--accent); font-weight: 800; font-size: 11px; }
+input[type="range"] {
+  width: 100%;
+  min-width: 0;
+  accent-color: var(--accent);
+}
+.sliderLine {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr) 42px;
+  align-items: center;
+  gap: 7px;
+  margin: 4px 0;
+  font-size: 11px;
+}
+.presetRow { display: flex; gap: 5px; }
+.presetRow button {
+  flex: 1;
+  padding: 7px 3px;
+  min-height: 32px;
+  font-size: 10px;
+}
+.ai-panel { border-color: #24695b; }
+.ai-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+.ai-header strong { color: var(--accent); font-size: 11px; letter-spacing: .5px; }
+#aiToggle { font-size: 10px; min-height: 31px; padding: 6px 9px; }
+#aiScene { color: var(--muted); font-size: 10px; margin-top: 3px; }
+.ai-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5px;
+  margin-top: 8px;
+}
+.metric {
+  background: #080d12;
+  border-radius: 7px;
+  padding: 6px;
+  min-width: 0;
+}
+.metric span { display: block; font-size: 9px; color: var(--muted); }
+.metric b { display: block; margin-top: 3px; font-size: 11px; overflow-wrap: anywhere; }
+#filterRow button { font-size: 10px; }
+#bottomBar {
+  display: grid;
+  grid-template-columns: 1fr 1.3fr 1fr;
+  gap: 7px;
+}
+#bottomBar button { font-weight: 800; }
+#recordBtn { background: var(--danger); border-color: var(--danger); }
+#recordBtn:disabled { opacity: .45; }
+#stopBtn { display: none; }
+#stopBtn.show { display: block; }
+#cameraBtn { white-space: nowrap; }
+#message {
+  font-size: 10px;
+  min-height: 12px;
+  color: var(--muted);
+  text-align: center;
+}
+#settingsRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 7px;
+}
+#settingsRow button { font-size: 10px; padding: 7px 3px; min-height: 32px; }
+select {
+  background: #222833;
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 7px;
+  max-width: 100%;
+}
+@media (max-height: 760px) {
+  #app { gap: 5px; padding-left: 8px; padding-right: 8px; }
+  .panel { padding: 7px 8px; }
+  .controls { gap: 5px; }
+  .panelTitle { margin-bottom: 4px; }
+  .sliderLine { margin: 2px 0; }
+  .ai-metrics { margin-top: 5px; }
+  #previewWrap { min-height: 90px; }
+}
+@media (max-height: 620px) {
+  .brand { font-size: 14px; }
+  .panel { padding: 5px 7px; }
+  .ai-metrics { display: none; }
+  .sliderLine { grid-template-columns: 58px minmax(0,1fr) 36px; }
+  button { min-height: 32px; padding: 6px 8px; }
+  #guide { inset: 10% 8%; }
 }
 </style>
 </head>
 
 <body>
-<div class="app">
+<div id="app">
   <header>
-    <div>
-      <div class="logo">HORIZON <span>FILM PRO</span></div>
-      <div class="subtitle">MOBILE CINEMA CAMERA</div>
-    </div>
-    <div class="status" id="cameraStatus">CAMERA OFF</div>
+    <div class="brand">HORIZON <span>FILM PRO</span></div>
+    <div id="status">CAMERA OFFLINE</div>
   </header>
 
-  <div id="previewBox">
-    <video id="cameraVideo" autoplay muted playsinline></video>
-    <canvas id="viewCanvas"></canvas>
-    <div id="gridOverlay"></div>
-    <div class="hud top">
-      <span class="chip" id="resolution">NO SIGNAL</span>
-      <span class="chip" id="fpsLabel">30 FPS</span>
+  <div id="previewWrap">
+    <canvas id="viewCanvas" width="1280" height="720"></canvas>
+    <video id="cameraVideo" autoplay playsinline muted></video>
+    <div id="guide"></div>
+    <div class="overlay">
+      <div class="pill" id="zoomBadge">ZOOM 1.0×</div>
+      <div class="pill" id="fpsBadge">30 FPS</div>
     </div>
-    <div class="hud bottom">
-      <span class="chip" id="zoomHud">1.0×</span>
-      <span class="chip" id="timer">00:00</span>
-    </div>
+    <div id="startMessage">HORIZON FILM PRO<br><br>Tap START CAMERA to begin.</div>
   </div>
 
   <div class="controls">
-    <div class="row">
-      <button id="startBtn" class="primary">Start Camera</button>
-      <button id="switchBtn">⇄ Flip</button>
-      <button id="gridBtn" class="active">Grid ON</button>
-    </div>
-
-    <div class="zoom-panel">
-      <label for="zoomSlider">ZOOM</label>
-      <input id="zoomSlider" type="range" min="1" max="3" step="0.05" value="1">
-      <span id="zoomValue">1.0×</span>
-    </div>
-
-    <div class="section-label">White balance</div>
-    <div class="whitebalance">
-      <div class="wb-card">
-        <div class="wb-heading"><span>TEMP</span><span id="tempValue">6400 K</span></div>
-        <input id="tempSlider" type="range" min="2500" max="10000" step="100" value="6400">
+    <div class="panel ai-panel">
+      <div class="ai-header">
+        <div>
+          <strong>✦ AI AUTO-CINEMATOGRAPHER</strong>
+          <div id="aiScene">Waiting for camera…</div>
+        </div>
+        <button id="aiToggle" class="active">AI AUTO: ON</button>
       </div>
-      <div class="wb-card">
-        <div class="wb-heading"><span>TINT</span><span id="tintValue">0</span></div>
-        <input id="tintSlider" type="range" min="-100" max="100" value="0">
+      <div class="ai-metrics">
+        <div class="metric"><span>SCENE BRIGHTNESS</span><b id="aiBrightness">--</b></div>
+        <div class="metric"><span>IMAGE EXPOSURE</span><b id="aiExposure">Auto</b></div>
+        <div class="metric"><span>COLOUR BALANCE</span><b id="aiColour">Auto</b></div>
       </div>
     </div>
 
-    <div class="presets">
-      <button data-temp="3200">Bulb</button>
-      <button data-temp="4500">Fluorescent</button>
-      <button data-temp="5600">Daylight</button>
-      <button data-temp="6500">Cloudy</button>
-      <button id="awbBtn" class="active">AWB</button>
+    <div class="panel">
+      <div class="panelTitle">CAMERA & IMAGE</div>
+      <div class="sliderLine">
+        <label for="zoomSlider">Zoom</label>
+        <input id="zoomSlider" type="range" min="1" max="3" step="0.1" value="1">
+        <span class="value" id="zoomValue">1.0×</span>
+      </div>
+      <div class="sliderLine">
+        <label for="tempSlider">Warmth</label>
+        <input id="tempSlider" type="range" min="-40" max="40" step="1" value="0">
+        <span class="value" id="tempValue">0</span>
+      </div>
+      <div class="sliderLine">
+        <label for="tintSlider">Tint</label>
+        <input id="tintSlider" type="range" min="-30" max="30" step="1" value="0">
+        <span class="value" id="tintValue">0</span>
+      </div>
+      <div class="presetRow" id="filterRow">
+        <button class="active" data-filter="STD">STD</button>
+        <button data-filter="CINE">CINE</button>
+        <button data-filter="VIVID">VIVID</button>
+        <button data-filter="WARM">WARM</button>
+        <button data-filter="B&W">B&W</button>
+        <button data-filter="RETRO">RETRO</button>
+      </div>
     </div>
 
-    <div class="section-label">Colour look</div>
-    <div class="row" id="filterRow">
-      <button class="filter active" data-filter="standard">STD</button>
-      <button class="filter" data-filter="cinematic">CINE</button>
-      <button class="filter" data-filter="vivid">VIVID</button>
-      <button class="filter" data-filter="warm">WARM</button>
-      <button class="filter" data-filter="bw">B&W</button>
-      <button class="filter" data-filter="vintage">RETRO</button>
+    <div id="settingsRow">
+      <button id="cameraBtn">START CAMERA</button>
+      <button id="micBtn">MIC: ON</button>
+      <button id="fpsBtn">FPS: 30</button>
     </div>
 
-    <div class="bottom-controls">
-      <button id="audioBtn" class="active">Mic ON</button>
-      <button id="fpsBtn">30 FPS</button>
-      <button id="recordBtn" class="primary" disabled>● Record</button>
-      <button id="stopBtn">■ Stop</button>
+    <div id="bottomBar">
+      <button id="switchBtn" disabled>SWITCH</button>
+      <button id="recordBtn" disabled>● RECORD</button>
+      <button id="stopBtn">■ STOP</button>
     </div>
-    <div id="message">Start the camera to begin.</div>
+    <div id="message">Allow camera access when prompted.</div>
   </div>
 </div>
 
 <script>
 "use strict";
 
-const $ = id => document.getElementById(id);
-const video = $("cameraVideo");
-const canvas = $("viewCanvas");
-const ctx = canvas.getContext("2d", {alpha:false});
-const previewBox = $("previewBox");
+const video = document.getElementById("cameraVideo");
+const canvas = document.getElementById("viewCanvas");
+const ctx = canvas.getContext("2d", { alpha: false });
+
+const cameraBtn = document.getElementById("cameraBtn");
+const switchBtn = document.getElementById("switchBtn");
+const recordBtn = document.getElementById("recordBtn");
+const stopBtn = document.getElementById("stopBtn");
+const micBtn = document.getElementById("micBtn");
+const fpsBtn = document.getElementById("fpsBtn");
+const aiToggle = document.getElementById("aiToggle");
+const startMessage = document.getElementById("startMessage");
+const statusEl = document.getElementById("status");
+const messageEl = document.getElementById("message");
+
+const zoomSlider = document.getElementById("zoomSlider");
+const tempSlider = document.getElementById("tempSlider");
+const tintSlider = document.getElementById("tintSlider");
 
 let stream = null;
-let outputStream = null;
+let cameraTrack = null;
 let recorder = null;
-let chunks = [];
-let raf = 0;
-let timerInterval = null;
-let recordStart = 0;
+let recordedChunks = [];
+let renderRAF = 0;
+let aiTimer = 0;
 let facingMode = "environment";
-let zoom = 1;
-let temperature = 6400;
-let tint = 0;
-let filterName = "standard";
-let audioEnabled = true;
-let gridEnabled = true;
-let fps = 30;
-let awb = true;
-let saving = false;
+let micEnabled = true;
+let aiEnabled = true;
+let currentFilter = "STD";
+let targetFPS = 30;
+let lastRenderTime = 0;
+let aiGain = 1;
+let measuredBrightness = 110;
+let measuredR = 110;
+let measuredG = 110;
+let measuredB = 110;
+let capabilitiesMessage = "";
+let cameraStarting = false;
+let cameraChanging = false;
+let isRecording = false;
+let audioStream = null;
+let audioTrack = null;
+let recordStream = null;
+
+const analysisCanvas = document.createElement("canvas");
+analysisCanvas.width = 48;
+analysisCanvas.height = 32;
+const analysisCtx = analysisCanvas.getContext("2d", { willReadFrequently: true });
 
 const filterMap = {
-  standard:"",
-  cinematic:"contrast(1.16) saturate(.82) sepia(.10)",
-  vivid:"contrast(1.08) saturate(1.5)",
-  warm:"sepia(.22) saturate(1.2)",
-  bw:"grayscale(1) contrast(1.1)",
-  vintage:"sepia(.42) contrast(.9) saturate(.82)"
+  "STD": "none",
+  "CINE": "contrast(1.12) saturate(0.82)",
+  "VIVID": "contrast(1.08) saturate(1.35)",
+  "WARM": "saturate(1.08)",
+  "B&W": "grayscale(1) contrast(1.08)",
+  "RETRO": "sepia(0.35) contrast(1.08) saturate(0.8)"
 };
 
-function message(text) { $("message").textContent = text; }
+function setMessage(text) {
+  messageEl.textContent = text;
+}
 
-function resizeCanvas() {
-  const r = previewBox.getBoundingClientRect();
-  const dpr = Math.min(window.devicePixelRatio || 1, 2);
-  const w = Math.max(1, Math.round(r.width*dpr));
-  const h = Math.max(1, Math.round(r.height*dpr));
-  if (canvas.width !== w || canvas.height !== h) {
-    canvas.width = w;
-    canvas.height = h;
+function updateZoomUI() {
+  const z = Number(zoomSlider.value);
+  document.getElementById("zoomValue").textContent = z.toFixed(1) + "×";
+  document.getElementById("zoomBadge").textContent = "ZOOM " + z.toFixed(1) + "×";
+}
+
+function updateFPSUI() {
+  document.getElementById("fpsBadge").textContent = targetFPS + " FPS";
+  fpsBtn.textContent = "FPS: " + targetFPS;
+}
+
+function updateManualValues() {
+  document.getElementById("tempValue").textContent = tempSlider.value;
+  document.getElementById("tintValue").textContent = tintSlider.value;
+}
+
+function setFilter(name) {
+  currentFilter = name;
+  document.querySelectorAll("[data-filter]").forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.filter === name);
+  });
+}
+
+function drawWaitingFrame() {
+  canvas.width = 1280;
+  canvas.height = 720;
+  ctx.fillStyle = "#080b10";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "#64e6c2";
+  ctx.font = "bold 34px system-ui";
+  ctx.textAlign = "center";
+  ctx.fillText("HORIZON FILM PRO", canvas.width / 2, canvas.height / 2 - 10);
+  ctx.fillStyle = "#b8c3cf";
+  ctx.font = "22px system-ui";
+  ctx.fillText("Start camera to preview", canvas.width / 2, canvas.height / 2 + 35);
+}
+
+function stopTracks(mediaStream) {
+  if (!mediaStream) return;
+  mediaStream.getTracks().forEach(track => {
+    try { track.stop(); } catch (_) {}
+  });
+}
+
+async function requestCamera() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    throw new Error("Camera access needs HTTPS or localhost in a supported browser.");
+  }
+
+  const constraints = {
+    audio: false,
+    video: {
+      facingMode: { ideal: facingMode },
+      width: { ideal: 1920 },
+      height: { ideal: 1080 },
+      frameRate: { ideal: targetFPS, max: 30 }
+    }
+  };
+
+  try {
+    return await navigator.mediaDevices.getUserMedia(constraints);
+  } catch (firstError) {
+    return await navigator.mediaDevices.getUserMedia({
+      audio: false,
+      video: { facingMode: facingMode }
+    });
   }
 }
 
-function waitForVideo() {
-  return new Promise((resolve,reject) => {
-    if (video.readyState >= 2 && video.videoWidth) return resolve();
-    const timeout = setTimeout(() => {
-      cleanup();
-      reject(new Error("Camera did not produce a video frame."));
-    },12000);
-    const done = () => {
-      if (video.videoWidth) { cleanup(); resolve(); }
-    };
-    function cleanup() {
-      clearTimeout(timeout);
-      video.removeEventListener("loadeddata",done);
-      video.removeEventListener("resize",done);
+async function requestMicrophone() {
+  if (!micEnabled || !navigator.mediaDevices?.getUserMedia) return null;
+  try {
+    return await navigator.mediaDevices.getUserMedia({
+      audio: {
+        echoCancellation: false,
+        noiseSuppression: false,
+        autoGainControl: false
+      },
+      video: false
+    });
+  } catch (err) {
+    setMessage("Camera works, but microphone access was not granted.");
+    return null;
+  }
+}
+
+async function tryContinuousCameraModes() {
+  if (!cameraTrack || !cameraTrack.getCapabilities || !cameraTrack.applyConstraints) {
+    capabilitiesMessage = "Camera auto controls depend on device support.";
+    return;
+  }
+
+  try {
+    const caps = cameraTrack.getCapabilities();
+    const advanced = {};
+    if (Array.isArray(caps.focusMode) && caps.focusMode.includes("continuous")) {
+      advanced.focusMode = "continuous";
     }
-    video.addEventListener("loadeddata",done);
-    video.addEventListener("resize",done);
-  });
+    if (Array.isArray(caps.exposureMode) && caps.exposureMode.includes("continuous")) {
+      advanced.exposureMode = "continuous";
+    }
+    if (Array.isArray(caps.whiteBalanceMode) && caps.whiteBalanceMode.includes("continuous")) {
+      advanced.whiteBalanceMode = "continuous";
+    }
+
+    if (Object.keys(advanced).length) {
+      await cameraTrack.applyConstraints({ advanced: [advanced] });
+      capabilitiesMessage = "Supported camera auto modes enabled.";
+    } else {
+      capabilitiesMessage = "Using browser camera defaults.";
+    }
+  } catch (err) {
+    capabilitiesMessage = "Using browser camera defaults.";
+  }
 }
 
 async function startCamera() {
+  if (cameraStarting || cameraChanging) return;
+  if (stream) {
+    stopCamera();
+    return;
+  }
+
+  cameraStarting = true;
+  cameraBtn.disabled = true;
+  setMessage("Starting camera…");
+
   try {
-    if (!navigator.mediaDevices?.getUserMedia) {
-      throw new Error("Camera access requires HTTPS and a supported browser.");
+    stream = await requestCamera();
+    cameraTrack = stream.getVideoTracks()[0];
+    video.srcObject = stream;
+    await video.play();
+
+    if (video.videoWidth && video.videoHeight) {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
     }
-    if (recorder && recorder.state !== "inactive") {
-      message("Stop recording before restarting the camera.");
+
+    statusEl.textContent = "CAMERA ONLINE";
+    cameraBtn.textContent = "STOP CAMERA";
+    switchBtn.disabled = false;
+    recordBtn.disabled = false;
+    startMessage.style.display = "none";
+
+    await tryContinuousCameraModes();
+    startRenderLoop();
+    startAIAnalysis();
+
+    setMessage(capabilitiesMessage || "Camera ready.");
+  } catch (err) {
+    stopTracks(stream);
+    stream = null;
+    cameraTrack = null;
+    statusEl.textContent = "CAMERA OFFLINE";
+    setMessage(err.message || "Could not start camera. Check camera permissions.");
+  } finally {
+    cameraStarting = false;
+    cameraBtn.disabled = false;
+  }
+}
+
+function stopCamera() {
+  if (isRecording) stopRecording();
+  stopRenderLoop();
+  stopAIAnalysis();
+  stopTracks(stream);
+  stopTracks(audioStream);
+
+  stream = null;
+  cameraTrack = null;
+  audioStream = null;
+  audioTrack = null;
+  video.srcObject = null;
+
+  cameraBtn.textContent = "START CAMERA";
+  switchBtn.disabled = true;
+  recordBtn.disabled = true;
+  statusEl.textContent = "CAMERA OFFLINE";
+  startMessage.style.display = "flex";
+  drawWaitingFrame();
+  setMessage("Camera stopped.");
+}
+
+async function switchCamera() {
+  if (!stream || cameraChanging || cameraStarting) return;
+  if (isRecording) {
+    setMessage("Stop recording before switching cameras.");
+    return;
+  }
+
+  cameraChanging = true;
+  switchBtn.disabled = true;
+  stopRenderLoop();
+  stopAIAnalysis();
+  stopTracks(stream);
+  stream = null;
+  cameraTrack = null;
+  facingMode = facingMode === "environment" ? "user" : "environment";
+
+  try {
+    stream = await requestCamera();
+    cameraTrack = stream.getVideoTracks()[0];
+    video.srcObject = stream;
+    await video.play();
+    if (video.videoWidth && video.videoHeight) {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+    }
+    await tryContinuousCameraModes();
+    startRenderLoop();
+    startAIAnalysis();
+    setMessage("Camera switched.");
+  } catch (err) {
+    setMessage("Unable to switch camera. Try restarting the camera.");
+    cameraBtn.textContent = "START CAMERA";
+    statusEl.textContent = "CAMERA OFFLINE";
+    stopTracks(stream);
+    stream = null;
+    cameraTrack = null;
+    startMessage.style.display = "flex";
+    recordBtn.disabled = true;
+  } finally {
+    cameraChanging = false;
+    switchBtn.disabled = !stream;
+  }
+}
+
+function startRenderLoop() {
+  stopRenderLoop();
+  lastRenderTime = 0;
+
+  function frame(now) {
+    if (!stream || video.readyState < 2) {
+      renderRAF = requestAnimationFrame(frame);
       return;
     }
 
-    stopTracks();
-    message("Opening camera…");
-
-    stream = await navigator.mediaDevices.getUserMedia({
-      audio:true,
-      video:{
-        facingMode:{ideal:facingMode},
-        width:{ideal:1920},
-        height:{ideal:1080},
-        frameRate:{ideal:30}
-      }
-    });
-
-    video.srcObject = stream;
-    await video.play();
-    await waitForVideo();
-
-    const settings = stream.getVideoTracks()[0].getSettings();
-    $("resolution").textContent =
-      (settings.width || video.videoWidth) + "×" +
-      (settings.height || video.videoHeight);
-
-    $("cameraStatus").textContent = "CAMERA ON";
-    $("startBtn").textContent = "Restart";
-    stream.getAudioTracks().forEach(t => t.enabled = audioEnabled);
-
-    resizeCanvas();
-    drawLoop();
-    $("recordBtn").disabled = false;
-    message("Camera ready.");
-  } catch(e) {
-    message("Camera error: " + e.message);
-    $("cameraStatus").textContent = "CAMERA ERROR";
+    const interval = 1000 / targetFPS;
+    if (!lastRenderTime || now - lastRenderTime >= interval) {
+      lastRenderTime = now;
+      renderFrame();
+    }
+    renderRAF = requestAnimationFrame(frame);
   }
+
+  renderRAF = requestAnimationFrame(frame);
 }
 
-function stopTracks() {
-  if (stream) stream.getTracks().forEach(t => t.stop());
-  stream = null;
-  video.srcObject = null;
-}
-
-async function flipCamera() {
-  if (recorder && recorder.state !== "inactive") {
-    message("Stop recording before flipping the camera.");
-    return;
-  }
-  facingMode = facingMode === "environment" ? "user" : "environment";
-  await startCamera();
-}
-
-function drawLoop() {
-  cancelAnimationFrame(raf);
-  function frame() {
-    if (video.readyState >= 2 && video.videoWidth) renderFrame();
-    raf = requestAnimationFrame(frame);
-  }
-  frame();
+function stopRenderLoop() {
+  if (renderRAF) cancelAnimationFrame(renderRAF);
+  renderRAF = 0;
 }
 
 function renderFrame() {
-  const W = canvas.width, H = canvas.height;
-  if (!W || !H || !video.videoWidth || !video.videoHeight) return;
+  const vw = video.videoWidth;
+  const vh = video.videoHeight;
+  if (!vw || !vh) return;
 
-  // Consistent centre crop: 1x fills the preview; slider values
-  // multiply that base scale to produce smooth digital zoom.
-  const baseScale = Math.max(W/video.videoWidth, H/video.videoHeight);
+  if (canvas.width !== vw || canvas.height !== vh) {
+    canvas.width = vw;
+    canvas.height = vh;
+  }
+
+  const cw = canvas.width;
+  const ch = canvas.height;
+  const zoom = Number(zoomSlider.value);
+  const baseScale = Math.max(cw / vw, ch / vh);
   const scale = baseScale * zoom;
-  const dw = video.videoWidth * scale;
-  const dh = video.videoHeight * scale;
+  const dw = vw * scale;
+  const dh = vh * scale;
+  const dx = (cw - dw) / 2;
+  const dy = (ch - dh) / 2;
+
+  let gain = aiEnabled ? aiGain : 1;
+  gain = Math.max(0.75, Math.min(1.30, gain));
 
   ctx.save();
-  ctx.globalCompositeOperation = "source-over";
-  ctx.filter = filterMap[filterName] || "";
-  ctx.fillStyle = "#000";
-  ctx.fillRect(0,0,W,H);
-  ctx.drawImage(video,(W-dw)/2,(H-dh)/2,dw,dh);
+  ctx.clearRect(0, 0, cw, ch);
+  ctx.filter = "brightness(" + gain.toFixed(3) + ") " + filterMap[currentFilter];
+  ctx.drawImage(video, dx, dy, dw, dh);
   ctx.filter = "none";
 
-  // Approximate white-balance colour grading.
-  if (!awb) {
-    const warmth = Math.max(-.55,Math.min(.55,(6500-temperature)/7500));
-    if (Math.abs(warmth) > .01) {
-      ctx.globalCompositeOperation = "soft-light";
-      ctx.fillStyle = warmth > 0
-        ? "rgba(255,150,55," + Math.abs(warmth)*.55 + ")"
-        : "rgba(65,140,255," + Math.abs(warmth)*.55 + ")";
-      ctx.fillRect(0,0,W,H);
-    }
-    const ta = tint/250;
-    if (Math.abs(ta) > .005) {
-      ctx.globalCompositeOperation = "soft-light";
-      ctx.fillStyle = ta > 0
-        ? "rgba(255,45,150," + Math.abs(ta) + ")"
-        : "rgba(60,255,100," + Math.abs(ta) + ")";
-      ctx.fillRect(0,0,W,H);
-    }
-  }
-  ctx.restore();
+  // Warmth and tint are applied to the rendered preview and recording.
+  const warmth = Number(tempSlider.value);
+  const tint = Number(tintSlider.value);
 
-  $("zoomHud").textContent = zoom.toFixed(2).replace(/0$/,"")+"×";
+  if (warmth > 0) {
+    ctx.fillStyle = "rgba(255,145,40," + (warmth / 260).toFixed(3) + ")";
+    ctx.fillRect(0, 0, cw, ch);
+  } else if (warmth < 0) {
+    ctx.fillStyle = "rgba(45,130,255," + (-warmth / 300).toFixed(3) + ")";
+    ctx.fillRect(0, 0, cw, ch);
+  }
+
+  if (tint > 0) {
+    ctx.fillStyle = "rgba(220,55,150," + (tint / 320).toFixed(3) + ")";
+    ctx.fillRect(0, 0, cw, ch);
+  } else if (tint < 0) {
+    ctx.fillStyle = "rgba(40,210,135," + (-tint / 320).toFixed(3) + ")";
+    ctx.fillRect(0, 0, cw, ch);
+  }
+
+  ctx.restore();
 }
 
-/* Zoom slider */
-$("zoomSlider").addEventListener("input",e => {
-  zoom = Number(e.target.value);
-  $("zoomValue").textContent = zoom.toFixed(2).replace(/0$/,"")+"×";
-  $("zoomHud").textContent = zoom.toFixed(2).replace(/0$/,"")+"×";
-});
+function startAIAnalysis() {
+  stopAIAnalysis();
+  if (!stream) return;
 
-/* White balance */
-$("tempSlider").addEventListener("input",e => {
-  temperature = Number(e.target.value);
-  awb = false;
-  $("tempValue").textContent = temperature+" K";
-  $("awbBtn").classList.remove("active");
-});
+  aiTimer = window.setInterval(() => {
+    if (!stream || video.readyState < 2 || !video.videoWidth) return;
 
-$("tintSlider").addEventListener("input",e => {
-  tint = Number(e.target.value);
-  awb = false;
-  $("tintValue").textContent = tint;
-  $("awbBtn").classList.remove("active");
-});
+    try {
+      analysisCtx.drawImage(video, 0, 0, 48, 32);
+      const pixels = analysisCtx.getImageData(0, 0, 48, 32).data;
+      let sumY = 0, sumR = 0, sumG = 0, sumB = 0;
+      const count = pixels.length / 4;
 
-document.querySelectorAll("[data-temp]").forEach(btn => {
-  btn.addEventListener("click",() => {
-    temperature = Number(btn.dataset.temp);
-    tint = 0;
-    awb = false;
-    $("tempSlider").value = temperature;
-    $("tintSlider").value = 0;
-    $("tempValue").textContent = temperature+" K";
-    $("tintValue").textContent = "0";
-    $("awbBtn").classList.remove("active");
-  });
-});
+      for (let i = 0; i < pixels.length; i += 4) {
+        const r = pixels[i];
+        const g = pixels[i + 1];
+        const b = pixels[i + 2];
+        sumR += r;
+        sumG += g;
+        sumB += b;
+        sumY += 0.2126 * r + 0.7152 * g + 0.0722 * b;
+      }
 
-$("awbBtn").addEventListener("click",() => {
-  awb = true;
-  temperature = 6400;
-  tint = 0;
-  $("tempSlider").value = temperature;
-  $("tintSlider").value = 0;
-  $("tempValue").textContent = "6400 K";
-  $("tintValue").textContent = "0";
-  $("awbBtn").classList.add("active");
-});
+      measuredBrightness = sumY / count;
+      measuredR = sumR / count;
+      measuredG = sumG / count;
+      measuredB = sumB / count;
 
-/* Filters */
-document.querySelectorAll(".filter").forEach(btn => {
-  btn.addEventListener("click",() => {
-    filterName = btn.dataset.filter;
-    document.querySelectorAll(".filter").forEach(b =>
-      b.classList.toggle("active",b===btn)
-    );
-  });
-});
+      updateAIReadout();
+      if (aiEnabled) adaptImage();
+    } catch (err) {
+      document.getElementById("aiScene").textContent = "Scene analysis unavailable";
+    }
+  }, 900);
+}
 
-/* Grid and audio */
-$("gridBtn").addEventListener("click",() => {
-  gridEnabled = !gridEnabled;
-  $("gridOverlay").style.display = gridEnabled ? "block" : "none";
-  $("gridBtn").textContent = gridEnabled ? "Grid ON" : "Grid OFF";
-  $("gridBtn").classList.toggle("active",gridEnabled);
-});
+function stopAIAnalysis() {
+  if (aiTimer) clearInterval(aiTimer);
+  aiTimer = 0;
+}
 
-$("audioBtn").addEventListener("click",() => {
-  audioEnabled = !audioEnabled;
-  if (stream) stream.getAudioTracks().forEach(t => t.enabled = audioEnabled);
-  $("audioBtn").textContent = audioEnabled ? "Mic ON" : "Mic OFF";
-  $("audioBtn").classList.toggle("active",audioEnabled);
-});
+function adaptImage() {
+  // Conservative image-level correction. This does not change physical shutter speed or ISO.
+  let targetGain = 1;
+  if (measuredBrightness < 65) {
+    targetGain = Math.min(1.30, 105 / Math.max(35, measuredBrightness));
+  } else if (measuredBrightness < 95) {
+    targetGain = Math.min(1.18, 100 / Math.max(50, measuredBrightness));
+  } else if (measuredBrightness > 205) {
+    targetGain = Math.max(0.78, 175 / measuredBrightness);
+  } else if (measuredBrightness > 175) {
+    targetGain = Math.max(0.88, 180 / measuredBrightness);
+  }
 
-$("fpsBtn").addEventListener("click",() => {
-  fps = fps === 30 ? 24 : fps === 24 ? 25 : fps === 25 ? 60 : 30;
-  $("fpsBtn").textContent = fps+" FPS";
-  $("fpsLabel").textContent = fps+" FPS";
-});
+  // Smooth the adjustment so brightness doesn't jump between frames.
+  aiGain += (targetGain - aiGain) * 0.22;
+  aiGain = Math.max(0.78, Math.min(1.28, aiGain));
+}
 
-$("startBtn").addEventListener("click",startCamera);
-$("switchBtn").addEventListener("click",flipCamera);
+function updateAIReadout() {
+  document.getElementById("aiBrightness").textContent =
+    Math.round(measuredBrightness) + " / 255";
 
-/* Recording */
-function supportedMime() {
+  let scene = "Balanced lighting";
+  if (measuredBrightness < 55) scene = "Very low light";
+  else if (measuredBrightness < 95) scene = "Low light detected";
+  else if (measuredBrightness > 205) scene = "Bright scene";
+  else if (measuredBrightness > 175) scene = "High brightness";
+
+  const differenceRG = measuredR - measuredG;
+  const differenceBG = measuredB - measuredG;
+  let colour = "Balanced";
+  if (differenceRG > 15 && differenceRG > differenceBG) colour = "Warm";
+  else if (differenceBG > 15 && differenceBG > differenceRG) colour = "Cool";
+  else if (differenceRG < -15 && differenceBG < -10) colour = "Greenish";
+  else if (differenceRG < -10 && differenceBG > 10) colour = "Mixed";
+
+  document.getElementById("aiScene").textContent =
+    aiEnabled ? scene + " • On-device analysis" : "Auto adjustments paused";
+
+  document.getElementById("aiExposure").textContent =
+    aiEnabled ? (aiGain > 1.04 ? "+" + Math.round((aiGain - 1) * 100) + "%" :
+    aiGain < 0.96 ? Math.round((aiGain - 1) * 100) + "%" : "Neutral") : "Manual";
+
+  document.getElementById("aiColour").textContent = colour;
+}
+
+function toggleAI() {
+  aiEnabled = !aiEnabled;
+  aiToggle.classList.toggle("active", aiEnabled);
+  aiToggle.textContent = aiEnabled ? "AI AUTO: ON" : "AI AUTO: OFF";
+  if (!aiEnabled) aiGain = 1;
+  updateAIReadout();
+}
+
+function getSupportedMimeType() {
   if (!window.MediaRecorder) return "";
-  const types = [
+  const candidates = [
     "video/webm;codecs=vp9,opus",
     "video/webm;codecs=vp8,opus",
     "video/webm"
   ];
-  return types.find(t => MediaRecorder.isTypeSupported(t)) || "";
+  return candidates.find(type => MediaRecorder.isTypeSupported(type)) || "";
 }
 
-function startRecording() {
-  if (!stream) {
-    message("Start the camera first.");
-    return;
-  }
+async function startRecording() {
+  if (!stream || isRecording) return;
+
   if (!canvas.captureStream || !window.MediaRecorder) {
-    message("Canvas recording is not supported by this browser.");
+    setMessage("Recording is not supported by this browser.");
     return;
   }
+
+  setMessage("Preparing recording…");
+  recordBtn.disabled = true;
 
   try {
-    chunks = [];
-    saving = false;
-    outputStream = canvas.captureStream(fps);
+    recordedChunks = [];
+    recordStream = canvas.captureStream(targetFPS);
 
-    if (audioEnabled) {
-      stream.getAudioTracks().forEach(t => {
-        if (t.readyState === "live") outputStream.addTrack(t);
-      });
+    // Add microphone audio separately so the video is recorded from the processed canvas.
+    audioStream = await requestMicrophone();
+    if (audioStream) {
+      audioTrack = audioStream.getAudioTracks()[0];
+      if (audioTrack) recordStream.addTrack(audioTrack);
     }
 
-    const mime = supportedMime();
-    recorder = new MediaRecorder(outputStream,mime ? {mimeType:mime} : undefined);
+    const mimeType = getSupportedMimeType();
+    recorder = new MediaRecorder(recordStream, mimeType ? { mimeType } : undefined);
 
-    recorder.ondataavailable = e => {
-      if (e.data && e.data.size) chunks.push(e.data);
+    recorder.ondataavailable = event => {
+      if (event.data && event.data.size > 0) recordedChunks.push(event.data);
     };
-    recorder.onerror = () => message("Recording error.");
-    recorder.onstop = saveRecording;
 
-    // Collect data regularly so the final file is complete.
+    recorder.onerror = () => {
+      setMessage("Recording error. Try again.");
+    };
+
+    recorder.onstop = () => {
+      const type = recorder && recorder.mimeType ? recorder.mimeType : "video/webm";
+      const blob = new Blob(recordedChunks, { type });
+      stopTracks(recordStream);
+      stopTracks(audioStream);
+      recordStream = null;
+      audioStream = null;
+      audioTrack = null;
+
+      if (blob.size > 0) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "Horizon-Film-Pro-" + new Date().toISOString().replace(/[:.]/g, "-") + ".webm";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 60000);
+        setMessage("Recording saved. Check your Downloads folder.");
+      } else {
+        setMessage("No video data was captured. Please try again.");
+      }
+
+      isRecording = false;
+      recordBtn.disabled = !stream;
+      recordBtn.textContent = "● RECORD";
+      recordBtn.classList.remove("recording");
+      stopBtn.classList.remove("show");
+      stopBtn.style.display = "none";
+    };
+
     recorder.start(500);
-
-    recordStart = Date.now();
-    $("timer").textContent = "00:00";
-    timerInterval = setInterval(() => {
-      const s = Math.floor((Date.now()-recordStart)/1000);
-      $("timer").textContent =
-        String(Math.floor(s/60)).padStart(2,"0")+":"+
-        String(s%60).padStart(2,"0");
-    },250);
-
-    $("recordBtn").disabled = true;
-    $("recordBtn").classList.add("recording");
-    $("recordBtn").textContent = "● REC";
-
-    // Explicitly show and enable Stop while recording.
-    $("stopBtn").style.display = "block";
-    $("stopBtn").disabled = false;
-
-    message("Recording… press Stop to save the video.");
-  } catch(e) {
-    message("Cannot record: " + e.message);
-    cleanupOutput();
-    resetRecordingButtons();
+    isRecording = true;
+    recordBtn.textContent = "● REC";
+    recordBtn.classList.add("recording");
+    stopBtn.classList.add("show");
+    stopBtn.style.display = "block";
+    setMessage("Recording video" + (audioStream ? " with microphone." : " without microphone audio."));
+  } catch (err) {
+    stopTracks(recordStream);
+    stopTracks(audioStream);
+    recordStream = null;
+    audioStream = null;
+    audioTrack = null;
+    isRecording = false;
+    recordBtn.disabled = !stream;
+    setMessage("Could not start recording: " + (err.message || "unsupported format"));
   }
 }
 
 function stopRecording() {
-  // Guard against presses when no recording is active.
-  if (!recorder || recorder.state === "inactive") {
-    message("There is no active recording.");
-    return;
-  }
-
-  $("stopBtn").disabled = true;
-  message("Finishing video…");
-
-  clearInterval(timerInterval);
-  timerInterval = null;
-
-  try {
-    // Stop fires the onstop handler, which saves the collected data.
-    recorder.stop();
-  } catch(e) {
-    message("Could not stop recording: " + e.message);
-    resetRecordingButtons();
+  if (recorder && recorder.state !== "inactive") {
+    setMessage("Finishing video…");
+    try { recorder.stop(); }
+    catch (err) { setMessage("Unable to stop recording cleanly."); }
   }
 }
 
-function saveRecording() {
-  if (saving) return;
-  saving = true;
+cameraBtn.addEventListener("click", startCamera);
+switchBtn.addEventListener("click", switchCamera);
+recordBtn.addEventListener("click", startRecording);
+stopBtn.addEventListener("click", stopRecording);
+aiToggle.addEventListener("click", toggleAI);
 
-  clearInterval(timerInterval);
-  timerInterval = null;
+zoomSlider.addEventListener("input", updateZoomUI);
+tempSlider.addEventListener("input", updateManualValues);
+tintSlider.addEventListener("input", updateManualValues);
 
-  if (!chunks.length) {
-    message("No video data was recorded.");
-    cleanupOutput();
-    resetRecordingButtons();
-    return;
-  }
-
-  const type = recorder && recorder.mimeType
-    ? recorder.mimeType : "video/webm";
-  const blob = new Blob(chunks,{type});
-
-  if (!blob.size) {
-    message("The recording is empty. Please try again.");
-    cleanupOutput();
-    resetRecordingButtons();
-    return;
-  }
-
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "horizon-film-" + Date.now() + ".webm";
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-
-  setTimeout(() => URL.revokeObjectURL(url),60000);
-  message("Video saved. Check your Downloads folder.");
-  cleanupOutput();
-  resetRecordingButtons();
-}
-
-function resetRecordingButtons() {
-  $("recordBtn").disabled = !stream;
-  $("recordBtn").classList.remove("recording");
-  $("recordBtn").textContent = "● Record";
-  $("stopBtn").style.display = "none";
-  $("stopBtn").disabled = true;
-}
-
-function cleanupOutput() {
-  if (outputStream) {
-    outputStream.getTracks().forEach(t => t.stop());
-    outputStream = null;
-  }
-}
-
-$("recordBtn").addEventListener("click",startRecording);
-$("stopBtn").addEventListener("click",stopRecording);
-
-window.addEventListener("resize",resizeCanvas);
-window.addEventListener("orientationchange",() => setTimeout(resizeCanvas,250));
-
-window.addEventListener("beforeunload",() => {
-  cancelAnimationFrame(raf);
-  clearInterval(timerInterval);
-  if (recorder && recorder.state !== "inactive") recorder.stop();
-  stopTracks();
-  cleanupOutput();
+document.querySelectorAll("[data-filter]").forEach(btn => {
+  btn.addEventListener("click", () => setFilter(btn.dataset.filter));
 });
 
-resizeCanvas();
+micBtn.addEventListener("click", () => {
+  micEnabled = !micEnabled;
+  micBtn.textContent = micEnabled ? "MIC: ON" : "MIC: OFF";
+  micBtn.classList.toggle("active", micEnabled);
+  setMessage(micEnabled ? "Microphone will be requested when recording starts." :
+    "Microphone disabled for new recordings.");
+});
+
+fpsBtn.addEventListener("click", () => {
+  targetFPS = targetFPS === 30 ? 24 : targetFPS === 24 ? 60 : 30;
+  updateFPSUI();
+  if (stream && !isRecording) {
+    startRenderLoop();
+  }
+  setMessage("Recording target set to " + targetFPS + " FPS. Actual camera FPS depends on device support.");
+});
+
+window.addEventListener("pagehide", () => {
+  if (recorder && recorder.state !== "inactive") {
+    try { recorder.stop(); } catch (_) {}
+  }
+  stopRenderLoop();
+  stopAIAnalysis();
+  stopTracks(stream);
+  stopTracks(audioStream);
+  stopTracks(recordStream);
+});
+
+updateZoomUI();
+updateManualValues();
+updateFPSUI();
+drawWaitingFrame();
+document.getElementById("aiScene").textContent = "Waiting for camera…";
 </script>
 </body>
 </html>
