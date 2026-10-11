@@ -8,62 +8,97 @@
 
 <style>
 :root {
-  --bg:#090a0c;
-  --panel:#15171b;
-  --line:#30343b;
+  --bg:#0b0c0e;
+  --panel:#1b1d21;
+  --line:#33363d;
   --text:#f5f5f5;
-  --muted:#9da4ae;
+  --muted:#a4a8af;
   --accent:#f2c14e;
   --red:#ff4055;
 }
 * { box-sizing:border-box; }
-body {
+html,body {
   margin:0;
+  width:100%;
+  height:100%;
+  overflow:hidden;
   background:var(--bg);
   color:var(--text);
   font-family:Arial,sans-serif;
 }
-button,select,input { font:inherit; }
+button,input,select { font:inherit; }
 button {
+  background:#292c31;
   color:var(--text);
-  background:#22252b;
   border:1px solid var(--line);
-  border-radius:10px;
-  padding:11px 10px;
-  cursor:pointer;
+  border-radius:8px;
+  padding:7px 8px;
+  font-size:11px;
+  touch-action:manipulation;
 }
 button:active { transform:scale(.98); }
 button:disabled { opacity:.45; }
+.active {
+  border-color:var(--accent);
+  color:var(--accent);
+  background:#322c1d;
+}
+.primary {
+  background:var(--accent);
+  color:#15120a;
+  border-color:var(--accent);
+  font-weight:800;
+}
+.recording {
+  background:var(--red);
+  border-color:var(--red);
+  color:white;
+}
 .app {
-  max-width:600px;
+  height:100dvh;
+  width:100%;
+  max-width:700px;
   margin:auto;
-  padding:12px 12px 24px;
+  padding:5px 8px max(5px, env(safe-area-inset-bottom));
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+  overflow:hidden;
 }
 header {
+  min-height:32px;
+  flex-shrink:0;
   display:flex;
-  justify-content:space-between;
   align-items:center;
-  margin-bottom:12px;
+  justify-content:space-between;
 }
-.logo { font-size:19px; font-weight:900; letter-spacing:1px; }
+.logo {
+  font-size:14px;
+  font-weight:900;
+  letter-spacing:.8px;
+}
 .logo span { color:var(--accent); }
-.subtitle { color:var(--muted); font-size:10px; margin-top:4px; }
+.subtitle {
+  color:var(--muted);
+  font-size:8px;
+  margin-top:2px;
+}
 .status {
   color:var(--muted);
-  font-size:10px;
+  font-size:9px;
   border:1px solid var(--line);
-  border-radius:20px;
-  padding:7px 9px;
+  border-radius:14px;
+  padding:5px 7px;
 }
 #previewBox {
   position:relative;
   width:100%;
-  aspect-ratio:9/16;
-  max-height:65vh;
+  flex:1 1 auto;
+  min-height:0;
   background:#000;
   overflow:hidden;
-  border:1px solid #25282e;
-  border-radius:15px;
+  border:1px solid #292c31;
+  border-radius:10px;
 }
 #cameraVideo { display:none; }
 #viewCanvas {
@@ -74,131 +109,135 @@ header {
 }
 .hud {
   position:absolute;
-  left:10px;
-  right:10px;
+  left:6px;
+  right:6px;
   display:flex;
   align-items:center;
   justify-content:space-between;
-  gap:5px;
   pointer-events:none;
 }
-.hud.top { top:10px; }
-.hud.bottom { bottom:10px; }
+.hud.top { top:6px; }
+.hud.bottom { bottom:6px; }
 .chip {
-  background:#090a0cd9;
+  background:#08090bdc;
   border:1px solid #ffffff20;
-  border-radius:7px;
-  padding:7px 8px;
-  font-size:10px;
-  white-space:nowrap;
-}
-.rec-dot {
-  display:inline-block;
-  width:7px;
-  height:7px;
-  background:var(--red);
-  border-radius:50%;
-  margin-right:5px;
+  border-radius:5px;
+  padding:5px 6px;
+  font-size:9px;
 }
 #gridOverlay {
   position:absolute;
   inset:0;
   pointer-events:none;
   background:
-    linear-gradient(to right,transparent 33.1%,#ffffff55 33.3%,transparent 33.6%,transparent 66.4%,#ffffff55 66.6%,transparent 66.9%),
-    linear-gradient(to bottom,transparent 33.1%,#ffffff55 33.3%,transparent 33.6%,transparent 66.4%,#ffffff55 66.6%,transparent 66.9%);
+    linear-gradient(to right,transparent 33.1%,#ffffff45 33.3%,transparent 33.6%,transparent 66.4%,#ffffff45 66.6%,transparent 66.9%),
+    linear-gradient(to bottom,transparent 33.1%,#ffffff45 33.3%,transparent 33.6%,transparent 66.4%,#ffffff45 66.6%,transparent 66.9%);
 }
-.section-title {
+.controls {
+  flex-shrink:0;
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+}
+.section-label {
+  font-size:8px;
+  color:var(--muted);
+  text-transform:uppercase;
+  letter-spacing:1px;
+}
+.row { display:flex; align-items:center; gap:5px; }
+.row > * { flex:1; min-width:0; }
+.zoom-panel {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  background:var(--panel);
+  border:1px solid #292c31;
+  border-radius:8px;
+  padding:5px 8px;
+}
+.zoom-panel label {
   color:var(--muted);
   font-size:10px;
-  text-transform:uppercase;
-  letter-spacing:1.4px;
-  margin:17px 2px 9px;
+  white-space:nowrap;
 }
-.row { display:flex; gap:7px; }
-.row > * { flex:1; min-width:0; }
-.active {
+.zoom-panel input { flex:1; min-width:0; }
+#zoomValue {
   color:var(--accent);
-  border-color:var(--accent);
-  background:#302a1b;
-}
-.primary {
-  color:#15120a;
-  background:var(--accent);
-  border-color:var(--accent);
-  font-weight:800;
-}
-.recording {
-  color:#fff;
-  background:var(--red);
-  border-color:var(--red);
-}
-.filter-list {
-  display:flex;
-  gap:8px;
-  overflow-x:auto;
-  padding:2px 0 8px;
-  scrollbar-width:thin;
-}
-.filter-item {
-  flex:0 0 83px;
-  padding:0;
-  overflow:hidden;
-  border-radius:10px;
-}
-.filter-preview {
-  height:56px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:23px;
-  background:linear-gradient(135deg,#9b7057,#344e64,#d3a65d);
-}
-.filter-name {
-  padding:8px 2px;
   font-size:10px;
-  text-align:center;
+  width:30px;
+  text-align:right;
 }
-.control-card {
-  background:var(--panel);
-  border:1px solid #282b31;
-  border-radius:12px;
-  padding:12px;
-  margin-top:9px;
-}
-.control-heading {
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:10px;
-  font-size:12px;
-  margin-bottom:10px;
-}
-.control-heading span:last-child { color:var(--accent); }
 input[type=range] {
   width:100%;
+  height:18px;
+  margin:0;
   accent-color:var(--accent);
 }
-select {
-  width:100%;
-  color:var(--text);
-  background:#22252b;
-  border:1px solid var(--line);
-  border-radius:9px;
-  padding:10px;
+.whitebalance {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:5px;
 }
-.small { color:var(--muted); font-size:11px; line-height:1.5; }
-#message { color:var(--accent); }
-.record-row { margin-top:12px; }
-footer {
-  color:#737b86;
+.wb-card {
+  background:var(--panel);
+  border:1px solid #292c31;
+  border-radius:8px;
+  padding:5px 7px;
+  min-width:0;
+}
+.wb-heading {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:4px;
+  margin-bottom:3px;
+}
+.wb-heading span:first-child {
   font-size:10px;
-  text-align:center;
-  margin-top:18px;
+  color:#e9e9e9;
 }
-@media(max-height:700px) {
-  #previewBox { max-height:50vh; }
-  .app { padding-top:7px; }
+.wb-heading span:last-child {
+  color:var(--accent);
+  font-size:10px;
+  white-space:nowrap;
+}
+.wb-card input { display:block; }
+.presets {
+  display:flex;
+  gap:4px;
+}
+.presets button {
+  flex:1;
+  padding:6px 2px;
+  font-size:9px;
+}
+.bottom-controls {
+  display:grid;
+  grid-template-columns:1fr 1fr 1.25fr;
+  gap:5px;
+}
+#message {
+  font-size:9px;
+  color:var(--muted);
+  min-height:11px;
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+@media(max-height:680px) {
+  .app { gap:3px; padding-top:3px; }
+  header { min-height:27px; }
+  .logo { font-size:12px; }
+  .controls { gap:3px; }
+  .wb-card { padding:3px 6px; }
+  .presets button { padding:4px 2px; }
+  button { padding:6px 6px; }
+}
+@media(max-height:570px) {
+  .subtitle { display:none; }
+  .wb-card input { height:14px; }
+  .section-label { display:none; }
 }
 </style>
 </head>
@@ -213,132 +252,79 @@ footer {
     <div class="status" id="cameraStatus">CAMERA OFF</div>
   </header>
 
+  <!-- Large camera preview -->
   <div id="previewBox">
     <video id="cameraVideo" autoplay muted playsinline></video>
     <canvas id="viewCanvas"></canvas>
     <div id="gridOverlay"></div>
-
     <div class="hud top">
       <span class="chip" id="resolution">NO SIGNAL</span>
       <span class="chip" id="fpsLabel">30 FPS</span>
     </div>
     <div class="hud bottom">
-      <span class="chip" id="zoomLabel">1.0×</span>
+      <span class="chip" id="zoomHud">1.0×</span>
       <span class="chip" id="timer">00:00</span>
     </div>
   </div>
 
-  <div class="section-title">Camera</div>
-  <div class="row">
-    <button id="startBtn" class="primary">Start Camera</button>
-    <button id="switchBtn">⇄ Flip</button>
-  </div>
+  <div class="controls">
+    <div class="row">
+      <button id="startBtn" class="primary">Start Camera</button>
+      <button id="switchBtn">⇄ Flip</button>
+      <button id="gridBtn" class="active">Grid ON</button>
+    </div>
 
-  <div class="section-title">Zoom</div>
-  <div class="row">
-    <button class="zoomBtn active" data-zoom="1">1×</button>
-    <button class="zoomBtn" data-zoom="1.5">1.5×</button>
-    <button class="zoomBtn" data-zoom="2">2×</button>
-    <button class="zoomBtn" data-zoom="3">3×</button>
-  </div>
-  <div class="control-card">
-    <div class="control-heading">
-      <span>Smooth digital zoom</span>
+    <!-- One zoom slider, no zoom buttons -->
+    <div class="zoom-panel">
+      <label for="zoomSlider">ZOOM</label>
+      <input id="zoomSlider" type="range" min="1" max="3" step="0.05" value="1">
       <span id="zoomValue">1.0×</span>
     </div>
-    <input id="zoomSlider" type="range" min="1" max="3" step="0.1" value="1">
-  </div>
 
-  <div class="section-title">Colour filters</div>
-  <div class="filter-list" id="filterList">
-    <button class="filter-item active" data-filter="standard">
-      <div class="filter-preview">◉</div><div class="filter-name">Standard</div>
-    </button>
-    <button class="filter-item" data-filter="cinematic">
-      <div class="filter-preview" style="filter:contrast(1.2) saturate(.8) sepia(.18)">◉</div><div class="filter-name">Cinematic</div>
-    </button>
-    <button class="filter-item" data-filter="vivid">
-      <div class="filter-preview" style="filter:saturate(1.8)">◉</div><div class="filter-name">Vivid</div>
-    </button>
-    <button class="filter-item" data-filter="warm">
-      <div class="filter-preview" style="filter:sepia(.35) saturate(1.3)">◉</div><div class="filter-name">Warm</div>
-    </button>
-    <button class="filter-item" data-filter="cool">
-      <div class="filter-preview" style="filter:hue-rotate(15deg) saturate(.9)">◉</div><div class="filter-name">Cool</div>
-    </button>
-    <button class="filter-item" data-filter="bw">
-      <div class="filter-preview" style="filter:grayscale(1)">◉</div><div class="filter-name">B&W</div>
-    </button>
-    <button class="filter-item" data-filter="vintage">
-      <div class="filter-preview" style="filter:sepia(.55) contrast(.85)">◉</div><div class="filter-name">Vintage</div>
-    </button>
-    <button class="filter-item" data-filter="fade">
-      <div class="filter-preview" style="filter:contrast(.8) brightness(1.08) saturate(.7)">◉</div><div class="filter-name">Fade</div>
-    </button>
-  </div>
+    <div class="section-label">White balance</div>
 
-  <div class="section-title">Image controls</div>
-  <div class="control-card">
-    <div class="control-heading">
-      <span>Exposure / brightness</span>
-      <span id="exposureValue">0</span>
+    <div class="whitebalance">
+      <div class="wb-card">
+        <div class="wb-heading">
+          <span>TEMP</span>
+          <span id="tempValue">6400 K</span>
+        </div>
+        <input id="tempSlider" type="range" min="2500" max="10000" step="100" value="6400">
+      </div>
+      <div class="wb-card">
+        <div class="wb-heading">
+          <span>TINT</span>
+          <span id="tintValue">0</span>
+        </div>
+        <input id="tintSlider" type="range" min="-100" max="100" value="0">
+      </div>
     </div>
-    <input id="exposureSlider" type="range" min="-50" max="50" step="1" value="0">
-  </div>
-  <div class="control-card">
-    <div class="control-heading">
-      <span>Contrast</span>
-      <span id="contrastValue">100%</span>
+
+    <div class="presets">
+      <button data-temp="3200" data-tint="0">Bulb</button>
+      <button data-temp="4500" data-tint="0">Fluorescent</button>
+      <button data-temp="5600" data-tint="0">Daylight</button>
+      <button data-temp="6500" data-tint="0">Cloudy</button>
+      <button id="awbBtn" class="active">AWB</button>
     </div>
-    <input id="contrastSlider" type="range" min="50" max="160" value="100">
-  </div>
-  <div class="control-card">
-    <div class="control-heading">
-      <span>Saturation</span>
-      <span id="saturationValue">100%</span>
+
+    <div class="section-label">Colour look</div>
+    <div class="row" id="filterRow">
+      <button class="filter active" data-filter="standard">STD</button>
+      <button class="filter" data-filter="cinematic">CINE</button>
+      <button class="filter" data-filter="vivid">VIVID</button>
+      <button class="filter" data-filter="warm">WARM</button>
+      <button class="filter" data-filter="bw">B&W</button>
+      <button class="filter" data-filter="vintage">RETRO</button>
     </div>
-    <input id="saturationSlider" type="range" min="0" max="200" value="100">
-  </div>
 
-  <div class="section-title">Recording setup</div>
-  <div class="row">
-    <div>
-      <div class="small" style="margin-bottom:6px">Aspect ratio</div>
-      <select id="aspectSelect">
-        <option value="9/16">9:16 Portrait</option>
-        <option value="16/9">16:9 Landscape</option>
-        <option value="4/3">4:3 Classic</option>
-        <option value="1/1">1:1 Square</option>
-      </select>
+    <div class="bottom-controls">
+      <button id="audioBtn" class="active">Mic ON</button>
+      <button id="fpsBtn">30 FPS</button>
+      <button id="recordBtn" class="primary" disabled>● Record</button>
     </div>
-    <div>
-      <div class="small" style="margin-bottom:6px">Frame rate</div>
-      <select id="fpsSelect">
-        <option value="30">30 FPS</option>
-        <option value="24">24 FPS</option>
-        <option value="25">25 FPS</option>
-        <option value="60">60 FPS*</option>
-      </select>
-    </div>
+    <div id="message">Start the camera to begin.</div>
   </div>
-
-  <div class="row" style="margin-top:9px">
-    <button id="gridBtn" class="active">Grid: ON</button>
-    <button id="audioBtn" class="active">Microphone: ON</button>
-  </div>
-
-  <div class="row record-row">
-    <button id="recordBtn" class="primary" disabled>● Record</button>
-    <button id="stopBtn" disabled>Stop</button>
-  </div>
-
-  <div class="control-card small">
-    <strong style="color:#fff">Camera status</strong>
-    <p id="message">Start the camera to begin.</p>
-    Your selected colour look, zoom and image adjustments are applied to the preview and recorded video. Digital zoom crops the image and may reduce detail. Recording format is WebM on supported browsers.
-  </div>
-
-  <footer>HORIZON FILM PRO • FILMMAKING CAMERA PROTOTYPE</footer>
 </div>
 
 <script>
@@ -346,75 +332,59 @@ footer {
 
 const video = document.getElementById("cameraVideo");
 const canvas = document.getElementById("viewCanvas");
-const ctx = canvas.getContext("2d", { alpha:false });
-
+const ctx = canvas.getContext("2d", {alpha:false});
 const previewBox = document.getElementById("previewBox");
-const cameraStatus = document.getElementById("cameraStatus");
-const resolution = document.getElementById("resolution");
-const fpsLabel = document.getElementById("fpsLabel");
-const zoomLabel = document.getElementById("zoomLabel");
-const timerLabel = document.getElementById("timer");
-const message = document.getElementById("message");
 
 let stream = null;
 let outputStream = null;
 let recorder = null;
 let chunks = [];
-let facingMode = "environment";
-let zoom = 1;
-let filterName = "standard";
-let exposure = 0;
-let contrast = 100;
-let saturation = 100;
-let gridOn = true;
-let audioOn = true;
 let raf = 0;
 let timerInterval = null;
-let recordStarted = 0;
+let recordStart = 0;
+let facingMode = "environment";
+
+let zoom = 1;
+let temperature = 6400;
+let tint = 0;
+let filterName = "standard";
+let audioEnabled = true;
+let gridEnabled = true;
+let fps = 30;
+let awb = true;
+
+const $ = id => document.getElementById(id);
+const message = text => $("message").textContent = text;
 
 const filterMap = {
   standard: "",
-  cinematic: "contrast(1.18) saturate(0.82) sepia(0.12)",
-  vivid: "contrast(1.08) saturate(1.55)",
-  warm: "sepia(0.24) saturate(1.25)",
-  cool: "hue-rotate(12deg) saturate(0.9) contrast(1.05)",
-  bw: "grayscale(1) contrast(1.12)",
-  vintage: "sepia(0.45) contrast(0.88) saturate(0.85)",
-  fade: "brightness(1.06) contrast(0.82) saturate(0.72)"
+  cinematic: "contrast(1.16) saturate(.82) sepia(.10)",
+  vivid: "contrast(1.08) saturate(1.5)",
+  warm: "sepia(.22) saturate(1.2)",
+  bw: "grayscale(1) contrast(1.1)",
+  vintage: "sepia(.42) contrast(.9) saturate(.82)"
 };
 
-function showMessage(text) {
-  message.textContent = text;
-}
-
-function setAspect() {
-  previewBox.style.aspectRatio = document.getElementById("aspectSelect").value;
-  setTimeout(resizeCanvas, 50);
-}
-
 function resizeCanvas() {
-  const rect = previewBox.getBoundingClientRect();
-  const dpr = Math.min(window.devicePixelRatio || 1, 2);
-  canvas.width = Math.max(1, Math.round(rect.width * dpr));
-  canvas.height = Math.max(1, Math.round(rect.height * dpr));
+  const r = previewBox.getBoundingClientRect();
+  const dpr = Math.min(devicePixelRatio || 1, 2);
+  canvas.width = Math.max(1, Math.round(r.width*dpr));
+  canvas.height = Math.max(1, Math.round(r.height*dpr));
 }
 
 function waitForVideo() {
   return new Promise((resolve, reject) => {
-    if (video.readyState >= 2 && video.videoWidth) {
-      resolve();
-      return;
-    }
+    if (video.readyState >= 2 && video.videoWidth) return resolve();
     const timeout = setTimeout(() => {
       cleanup();
-      reject(new Error("Timed out waiting for camera video."));
+      reject(new Error("Camera did not produce a video frame."));
     }, 12000);
-    function done() {
+    const done = () => {
       if (video.videoWidth) {
         cleanup();
         resolve();
       }
-    }
+    };
     function cleanup() {
       clearTimeout(timeout);
       video.removeEventListener("loadeddata", done);
@@ -428,23 +398,23 @@ function waitForVideo() {
 async function startCamera() {
   try {
     if (!navigator.mediaDevices?.getUserMedia) {
-      throw new Error("Camera access needs a supported browser and HTTPS.");
+      throw new Error("Camera access requires HTTPS and a supported browser.");
     }
     if (recorder && recorder.state !== "inactive") {
-      showMessage("Stop recording before restarting the camera.");
+      message("Stop recording before restarting the camera.");
       return;
     }
 
     stopTracks();
-    showMessage("Opening camera…");
+    message("Opening camera…");
 
     stream = await navigator.mediaDevices.getUserMedia({
-      audio: true,
-      video: {
-        facingMode: { ideal:facingMode },
-        width: { ideal:1920 },
-        height: { ideal:1080 },
-        frameRate: { ideal:30 }
+      audio:true,
+      video:{
+        facingMode:{ideal:facingMode},
+        width:{ideal:1920},
+        height:{ideal:1080},
+        frameRate:{ideal:30}
       }
     });
 
@@ -453,22 +423,21 @@ async function startCamera() {
     await waitForVideo();
 
     const settings = stream.getVideoTracks()[0].getSettings();
-    resolution.textContent =
+    $("resolution").textContent =
       (settings.width || video.videoWidth) + "×" +
       (settings.height || video.videoHeight);
 
-    cameraStatus.textContent = "CAMERA ON";
-    document.getElementById("startBtn").textContent = "Restart";
-    stream.getAudioTracks().forEach(t => t.enabled = audioOn);
+    $("cameraStatus").textContent = "CAMERA ON";
+    $("startBtn").textContent = "Restart";
+    stream.getAudioTracks().forEach(t => t.enabled = audioEnabled);
 
     resizeCanvas();
     drawLoop();
-
-    document.getElementById("recordBtn").disabled = false;
-    showMessage("Camera ready. Choose a look and record.");
-  } catch (err) {
-    showMessage("Camera error: " + err.message);
-    cameraStatus.textContent = "CAMERA ERROR";
+    $("recordBtn").disabled = false;
+    message("Camera ready.");
+  } catch (e) {
+    message("Camera error: " + e.message);
+    $("cameraStatus").textContent = "CAMERA ERROR";
   }
 }
 
@@ -480,7 +449,7 @@ function stopTracks() {
 
 async function flipCamera() {
   if (recorder && recorder.state !== "inactive") {
-    showMessage("Stop recording before switching cameras.");
+    message("Stop recording before flipping the camera.");
     return;
   }
   facingMode = facingMode === "environment" ? "user" : "environment";
@@ -489,211 +458,218 @@ async function flipCamera() {
 
 function drawLoop() {
   cancelAnimationFrame(raf);
-  function draw() {
+  function frame() {
     if (video.readyState >= 2 && video.videoWidth) renderFrame();
-    raf = requestAnimationFrame(draw);
+    raf = requestAnimationFrame(frame);
   }
-  draw();
+  frame();
 }
 
 function renderFrame() {
-  const W = canvas.width;
-  const H = canvas.height;
+  const W = canvas.width, H = canvas.height;
   if (!W || !H) return;
+
+  // Fill the preview and crop the image as zoom increases.
+  const scale = Math.max(W/video.videoWidth, H/video.videoHeight)*zoom;
+  const dw = video.videoWidth*scale;
+  const dh = video.videoHeight*scale;
+
+  // Approximate colour-temperature adjustment using a warm/cool
+  // colour overlay. This does not change the camera sensor's WB.
+  const warm = (6500-temperature)/7500;
+  const warmth = Math.max(-0.55, Math.min(0.55, warm));
+  const tintAmount = tint/250;
 
   ctx.save();
   ctx.fillStyle = "#000";
-  ctx.fillRect(0, 0, W, H);
+  ctx.fillRect(0,0,W,H);
 
-  // Cover the output canvas; extra zoom crops the image.
-  const baseScale = Math.max(W / video.videoWidth, H / video.videoHeight);
-  const scale = baseScale * zoom;
-  const drawW = video.videoWidth * scale;
-  const drawH = video.videoHeight * scale;
-
-  // CSS-style filter effects are rendered into the canvas,
-  // so they are included in the saved recording.
-  const brightness = Math.max(0.5, 1 + exposure / 100);
-  const filter = [
-    filterMap[filterName],
-    "brightness(" + brightness + ")",
-    "contrast(" + contrast + "%)",
-    "saturate(" + saturation + "%)"
-  ].filter(Boolean).join(" ");
-
-  ctx.filter = filter;
-  ctx.drawImage(video, (W-drawW)/2, (H-drawH)/2, drawW, drawH);
+  ctx.filter = filterMap[filterName] || "";
+  ctx.drawImage(video,(W-dw)/2,(H-dh)/2,dw,dh);
   ctx.filter = "none";
+
+  if (!awb && Math.abs(warmth) > 0.01) {
+    ctx.globalCompositeOperation = "soft-light";
+    ctx.fillStyle = warmth > 0
+      ? "rgba(255,150,55," + Math.abs(warmth)*0.55 + ")"
+      : "rgba(65,140,255," + Math.abs(warmth)*0.55 + ")";
+    ctx.fillRect(0,0,W,H);
+  }
+
+  if (!awb && Math.abs(tintAmount) > 0.005) {
+    ctx.globalCompositeOperation = "soft-light";
+    ctx.fillStyle = tintAmount > 0
+      ? "rgba(255,45,150," + Math.abs(tintAmount) + ")"
+      : "rgba(60,255,100," + Math.abs(tintAmount) + ")";
+    ctx.fillRect(0,0,W,H);
+  }
+
+  ctx.globalCompositeOperation = "source-over";
   ctx.restore();
 
-  zoomLabel.textContent = zoom.toFixed(1) + "×";
+  $("zoomHud").textContent = zoom.toFixed(1)+"×";
 }
 
-function selectZoom(value) {
-  zoom = Number(value);
-  document.getElementById("zoomSlider").value = zoom;
-  document.getElementById("zoomValue").textContent = zoom.toFixed(1) + "×";
-  document.querySelectorAll(".zoomBtn").forEach(btn => {
-    btn.classList.toggle("active", Number(btn.dataset.zoom) === zoom);
-  });
-}
+$("startBtn").addEventListener("click",startCamera);
+$("switchBtn").addEventListener("click",flipCamera);
 
-document.querySelectorAll(".zoomBtn").forEach(btn => {
-  btn.addEventListener("click", () => selectZoom(btn.dataset.zoom));
-});
-
-document.getElementById("zoomSlider").addEventListener("input", e => {
+$("zoomSlider").addEventListener("input",e => {
   zoom = Number(e.target.value);
-  document.getElementById("zoomValue").textContent = zoom.toFixed(1) + "×";
-  document.querySelectorAll(".zoomBtn").forEach(btn => {
-    btn.classList.toggle("active", Number(btn.dataset.zoom) === zoom);
+  $("zoomValue").textContent = zoom.toFixed(1)+"×";
+});
+
+$("tempSlider").addEventListener("input",e => {
+  temperature = Number(e.target.value);
+  awb = false;
+  $("tempValue").textContent = temperature+" K";
+  $("awbBtn").classList.remove("active");
+});
+
+$("tintSlider").addEventListener("input",e => {
+  tint = Number(e.target.value);
+  awb = false;
+  $("tintValue").textContent = tint;
+  $("awbBtn").classList.remove("active");
+});
+
+document.querySelectorAll("[data-temp]").forEach(btn => {
+  btn.addEventListener("click",() => {
+    temperature = Number(btn.dataset.temp);
+    tint = Number(btn.dataset.tint);
+    awb = false;
+    $("tempSlider").value = temperature;
+    $("tintSlider").value = tint;
+    $("tempValue").textContent = temperature+" K";
+    $("tintValue").textContent = tint;
+    $("awbBtn").classList.remove("active");
   });
 });
 
-document.querySelectorAll(".filter-item").forEach(btn => {
-  btn.addEventListener("click", () => {
+$("awbBtn").addEventListener("click",() => {
+  awb = true;
+  temperature = 6400;
+  tint = 0;
+  $("tempSlider").value = temperature;
+  $("tintSlider").value = tint;
+  $("tempValue").textContent = temperature+" K";
+  $("tintValue").textContent = "0";
+  $("awbBtn").classList.add("active");
+  message("Automatic colour rendering selected.");
+});
+
+document.querySelectorAll(".filter").forEach(btn => {
+  btn.addEventListener("click",() => {
     filterName = btn.dataset.filter;
-    document.querySelectorAll(".filter-item").forEach(b => {
-      b.classList.toggle("active", b === btn);
-    });
+    document.querySelectorAll(".filter").forEach(b =>
+      b.classList.toggle("active",b===btn)
+    );
   });
 });
 
-document.getElementById("exposureSlider").addEventListener("input", e => {
-  exposure = Number(e.target.value);
-  document.getElementById("exposureValue").textContent =
-    (exposure > 0 ? "+" : "") + exposure;
+$("gridBtn").addEventListener("click",() => {
+  gridEnabled = !gridEnabled;
+  $("gridOverlay").style.display = gridEnabled ? "block" : "none";
+  $("gridBtn").textContent = gridEnabled ? "Grid ON" : "Grid OFF";
+  $("gridBtn").classList.toggle("active",gridEnabled);
 });
 
-document.getElementById("contrastSlider").addEventListener("input", e => {
-  contrast = Number(e.target.value);
-  document.getElementById("contrastValue").textContent = contrast + "%";
+$("audioBtn").addEventListener("click",() => {
+  audioEnabled = !audioEnabled;
+  if (stream) stream.getAudioTracks().forEach(t => t.enabled = audioEnabled);
+  $("audioBtn").textContent = audioEnabled ? "Mic ON" : "Mic OFF";
+  $("audioBtn").classList.toggle("active",audioEnabled);
 });
 
-document.getElementById("saturationSlider").addEventListener("input", e => {
-  saturation = Number(e.target.value);
-  document.getElementById("saturationValue").textContent = saturation + "%";
+$("fpsBtn").addEventListener("click",() => {
+  fps = fps === 30 ? 24 : fps === 24 ? 25 : fps === 25 ? 60 : 30;
+  $("fpsBtn").textContent = fps+" FPS";
+  $("fpsLabel").textContent = fps+" FPS";
 });
-
-document.getElementById("aspectSelect").addEventListener("change", setAspect);
-
-document.getElementById("fpsSelect").addEventListener("change", e => {
-  fpsLabel.textContent = e.target.value + " FPS";
-  showMessage("The selected frame rate applies to canvas recording where supported. Actual capture rate may vary.");
-});
-
-document.getElementById("gridBtn").addEventListener("click", e => {
-  gridOn = !gridOn;
-  document.getElementById("gridOverlay").style.display = gridOn ? "block" : "none";
-  e.currentTarget.textContent = "Grid: " + (gridOn ? "ON" : "OFF");
-  e.currentTarget.classList.toggle("active", gridOn);
-});
-
-document.getElementById("audioBtn").addEventListener("click", e => {
-  audioOn = !audioOn;
-  if (stream) stream.getAudioTracks().forEach(t => t.enabled = audioOn);
-  e.currentTarget.textContent = "Microphone: " + (audioOn ? "ON" : "OFF");
-  e.currentTarget.classList.toggle("active", audioOn);
-});
-
-document.getElementById("startBtn").addEventListener("click", startCamera);
-document.getElementById("switchBtn").addEventListener("click", flipCamera);
 
 function supportedMime() {
   if (!window.MediaRecorder) return "";
-  const options = [
+  const types = [
     "video/webm;codecs=vp9,opus",
     "video/webm;codecs=vp8,opus",
     "video/webm"
   ];
-  return options.find(type => MediaRecorder.isTypeSupported(type)) || "";
+  return types.find(t => MediaRecorder.isTypeSupported(t)) || "";
 }
 
 function startRecording() {
   if (!stream) {
-    showMessage("Start the camera first.");
+    message("Start the camera first.");
     return;
   }
   if (!canvas.captureStream || !window.MediaRecorder) {
-    showMessage("This browser does not support canvas video recording.");
+    message("Canvas recording is not supported by this browser.");
     return;
   }
 
   try {
     chunks = [];
-    const fps = Number(document.getElementById("fpsSelect").value);
     outputStream = canvas.captureStream(fps);
 
-    if (audioOn) {
-      stream.getAudioTracks().forEach(track => {
-        if (track.readyState === "live") outputStream.addTrack(track);
+    if (audioEnabled) {
+      stream.getAudioTracks().forEach(t => {
+        if (t.readyState === "live") outputStream.addTrack(t);
       });
     }
 
     const mime = supportedMime();
-    recorder = new MediaRecorder(outputStream, mime ? { mimeType:mime } : undefined);
+    recorder = new MediaRecorder(outputStream,mime ? {mimeType:mime} : undefined);
 
     recorder.ondataavailable = e => {
       if (e.data && e.data.size) chunks.push(e.data);
     };
-    recorder.onerror = () => showMessage("A recording error occurred.");
+    recorder.onerror = () => message("Recording error.");
     recorder.onstop = saveRecording;
     recorder.start(250);
 
-    recordStarted = Date.now();
-    timerLabel.textContent = "00:00";
-    timerInterval = setInterval(updateTimer, 250);
+    recordStart = Date.now();
+    $("timer").textContent = "00:00";
+    timerInterval = setInterval(() => {
+      const s = Math.floor((Date.now()-recordStart)/1000);
+      $("timer").textContent =
+        String(Math.floor(s/60)).padStart(2,"0")+":"+
+        String(s%60).padStart(2,"0");
+    },250);
 
-    document.getElementById("recordBtn").disabled = true;
-    document.getElementById("recordBtn").classList.add("recording");
-    document.getElementById("recordBtn").textContent = "● Recording";
-    document.getElementById("stopBtn").disabled = false;
-    showMessage("Recording video with your selected colour look…");
-  } catch (err) {
-    showMessage("Could not record: " + err.message);
+    $("recordBtn").disabled = true;
+    $("recordBtn").classList.add("recording");
+    $("recordBtn").textContent = "● REC";
+    message("Recording…");
+  } catch(e) {
+    message("Cannot record: "+e.message);
     cleanupOutput();
   }
-}
-
-function updateTimer() {
-  const seconds = Math.floor((Date.now() - recordStarted) / 1000);
-  timerLabel.textContent =
-    String(Math.floor(seconds / 60)).padStart(2, "0") + ":" +
-    String(seconds % 60).padStart(2, "0");
 }
 
 function stopRecording() {
   if (recorder && recorder.state !== "inactive") recorder.stop();
   clearInterval(timerInterval);
-  timerInterval = null;
-
-  document.getElementById("recordBtn").disabled = !stream;
-  document.getElementById("recordBtn").classList.remove("recording");
-  document.getElementById("recordBtn").textContent = "● Record";
-  document.getElementById("stopBtn").disabled = true;
+  $("recordBtn").disabled = !stream;
+  $("recordBtn").classList.remove("recording");
+  $("recordBtn").textContent = "● Record";
 }
 
 function saveRecording() {
   if (!chunks.length) {
-    showMessage("No video data was produced.");
+    message("No video data recorded.");
     cleanupOutput();
     return;
   }
 
-  const type = recorder.mimeType || "video/webm";
-  const blob = new Blob(chunks, {type});
+  const blob = new Blob(chunks,{type:recorder.mimeType || "video/webm"});
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
-
   a.href = url;
-  a.download = "horizon-film-" +
-    new Date().toISOString().replace(/[:.]/g, "-") + ".webm";
+  a.download = "horizon-film-"+Date.now()+".webm";
   document.body.appendChild(a);
   a.click();
   a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 60000);
-
-  showMessage("Video saved. Check your Downloads folder.");
+  setTimeout(() => URL.revokeObjectURL(url),60000);
+  message("Video saved to Downloads.");
   cleanupOutput();
 }
 
@@ -704,18 +680,30 @@ function cleanupOutput() {
   }
 }
 
-document.getElementById("recordBtn").addEventListener("click", startRecording);
-document.getElementById("stopBtn").addEventListener("click", stopRecording);
+$("recordBtn").addEventListener("click",startRecording);
+$("recordBtn").insertAdjacentHTML("afterend",
+  '<button id="stopBtn" disabled>Stop</button>');
+$("stopBtn").addEventListener("click",stopRecording);
 
-window.addEventListener("resize", resizeCanvas);
-window.addEventListener("orientationchange", () => setTimeout(resizeCanvas, 250));
+// Keep both recording controls on the same bottom row.
+const stopBtn = $("stopBtn");
+stopBtn.style.display = "none";
+$("recordBtn").addEventListener("click",() => {
+  if (recorder && recorder.state === "recording") stopBtn.style.display = "inline-block";
+});
+stopBtn.addEventListener("click",() => stopBtn.style.display = "none");
 
-window.addEventListener("beforeunload", () => {
+window.addEventListener("resize",resizeCanvas);
+window.addEventListener("orientationchange",() => setTimeout(resizeCanvas,250));
+
+window.addEventListener("beforeunload",() => {
   cancelAnimationFrame(raf);
   clearInterval(timerInterval);
   stopTracks();
   cleanupOutput();
 });
+
+resizeCanvas();
 </script>
 </body>
 </html>
