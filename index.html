@@ -3,253 +3,82 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#080b10">
 <title>Horizon Film Pro</title>
-
 <style>
-:root {
-  --bg: #080a0e;
-  --panel: #141820;
-  --line: #303744;
-  --text: #f3f5f8;
-  --muted: #9ba5b4;
-  --accent: #64e6c2;
-  --danger: #ff5968;
+:root{
+  color-scheme:dark;--bg:#080b10;--panel:#121821;--line:#283341;
+  --muted:#9aa9ba;--white:#f4f7fb;--accent:#7df9d1;--red:#ff4e65;
 }
-* { box-sizing: border-box; }
-html, body {
-  margin: 0;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  background: var(--bg);
-  color: var(--text);
-  font-family: system-ui, -apple-system, sans-serif;
-}
-button, input, select { font: inherit; }
-button {
-  color: var(--text);
-  background: #222833;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 10px 12px;
-  min-height: 38px;
-  cursor: pointer;
-  touch-action: manipulation;
-}
-button:disabled { opacity: .45; }
-button.active {
-  color: #07120f;
-  background: var(--accent);
-  border-color: var(--accent);
-  font-weight: 800;
-}
-button.recording { background: var(--danger); border-color: var(--danger); }
-#app {
-  height: 100dvh;
-  width: 100%;
-  max-width: 700px;
-  margin: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: max(8px, env(safe-area-inset-top)) 10px
-           max(8px, env(safe-area-inset-bottom));
-}
-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-shrink: 0;
-  gap: 8px;
-}
-.brand { font-size: 17px; font-weight: 900; letter-spacing: 1.2px; }
-.brand span { color: var(--accent); }
-#status { color: var(--muted); font-size: 11px; text-align: right; }
-#previewWrap {
-  position: relative;
-  flex: 1 1 auto;
-  min-height: 110px;
-  overflow: hidden;
-  border-radius: 16px;
-  background: #000;
-  border: 1px solid #29303b;
-}
-#viewCanvas {
-  width: 100%;
-  height: 100%;
-  display: block;
-  object-fit: contain;
-}
-#cameraVideo { display: none; }
-.overlay {
-  position: absolute;
-  left: 10px;
-  right: 10px;
-  top: 10px;
-  display: flex;
-  justify-content: space-between;
-  gap: 8px;
-  pointer-events: none;
-}
-.pill {
-  background: #000a;
-  border: 1px solid #ffffff25;
-  padding: 6px 9px;
-  border-radius: 7px;
-  font-size: 10px;
-  letter-spacing: .6px;
-}
-#guide {
-  position: absolute;
-  inset: 14% 12%;
-  border: 1px solid #ffffff55;
-  pointer-events: none;
-}
-#guide::before, #guide::after {
-  content: "";
-  position: absolute;
-  background: #ffffff28;
-}
-#guide::before { left: 50%; top: 0; bottom: 0; width: 1px; }
-#guide::after { top: 50%; left: 0; right: 0; height: 1px; }
-#startMessage {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  padding: 24px;
-  color: #c3cbd6;
-  background: #0008;
-  font-size: 13px;
-}
-.controls {
-  flex: 0 0 auto;
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-  min-height: 0;
-}
-.panel {
-  background: var(--panel);
-  border: 1px solid #272e39;
-  border-radius: 12px;
-  padding: 9px 10px;
-}
-.panelTitle {
-  font-size: 10px;
-  letter-spacing: 1px;
-  font-weight: 900;
-  color: var(--muted);
-  margin-bottom: 7px;
-}
-.row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.row > * { min-width: 0; }
-.row .grow { flex: 1; }
-.small { color: var(--muted); font-size: 11px; }
-.value { color: var(--accent); font-weight: 800; font-size: 11px; }
-input[type="range"] {
-  width: 100%;
-  min-width: 0;
-  accent-color: var(--accent);
-}
-.sliderLine {
-  display: grid;
-  grid-template-columns: 72px minmax(0, 1fr) 42px;
-  align-items: center;
-  gap: 7px;
-  margin: 4px 0;
-  font-size: 11px;
-}
-.presetRow { display: flex; gap: 5px; }
-.presetRow button {
-  flex: 1;
-  padding: 7px 3px;
-  min-height: 32px;
-  font-size: 10px;
-}
-.ai-panel { border-color: #24695b; }
-.ai-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
-}
-.ai-header strong { color: var(--accent); font-size: 11px; letter-spacing: .5px; }
-#aiToggle { font-size: 10px; min-height: 31px; padding: 6px 9px; }
-#aiScene { color: var(--muted); font-size: 10px; margin-top: 3px; }
-.ai-metrics {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 5px;
-  margin-top: 8px;
-}
-.metric {
-  background: #080d12;
-  border-radius: 7px;
-  padding: 6px;
-  min-width: 0;
-}
-.metric span { display: block; font-size: 9px; color: var(--muted); }
-.metric b { display: block; margin-top: 3px; font-size: 11px; overflow-wrap: anywhere; }
-#filterRow button { font-size: 10px; }
-#bottomBar {
-  display: grid;
-  grid-template-columns: 1fr 1.3fr 1fr;
-  gap: 7px;
-}
-#bottomBar button { font-weight: 800; }
-#recordBtn { background: var(--danger); border-color: var(--danger); }
-#recordBtn:disabled { opacity: .45; }
-#stopBtn { display: none; }
-#stopBtn.show { display: block; }
-#cameraBtn { white-space: nowrap; }
-#message {
-  font-size: 10px;
-  min-height: 12px;
-  color: var(--muted);
-  text-align: center;
-}
-#settingsRow {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 7px;
-}
-#settingsRow button { font-size: 10px; padding: 7px 3px; min-height: 32px; }
-select {
-  background: #222833;
-  color: var(--text);
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 7px;
-  max-width: 100%;
-}
-@media (max-height: 760px) {
-  #app { gap: 5px; padding-left: 8px; padding-right: 8px; }
-  .panel { padding: 7px 8px; }
-  .controls { gap: 5px; }
-  .panelTitle { margin-bottom: 4px; }
-  .sliderLine { margin: 2px 0; }
-  .ai-metrics { margin-top: 5px; }
-  #previewWrap { min-height: 90px; }
-}
-@media (max-height: 620px) {
-  .brand { font-size: 14px; }
-  .panel { padding: 5px 7px; }
-  .ai-metrics { display: none; }
-  .sliderLine { grid-template-columns: 58px minmax(0,1fr) 36px; }
-  button { min-height: 32px; padding: 6px 8px; }
-  #guide { inset: 10% 8%; }
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);
+font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:var(--white)}
+button,select,input{font:inherit}
+button{border:1px solid var(--line);background:#19222d;color:var(--white);
+border-radius:12px;padding:10px 12px;min-height:40px;cursor:pointer}
+button:disabled{opacity:.4}
+button:active{transform:scale(.98)}
+button.primary{background:var(--accent);color:#07130f;border-color:var(--accent);font-weight:800}
+button.danger{background:#401c26;border-color:#73303c;color:#ffb5bf}
+button.active{border-color:var(--accent);color:var(--accent)}
+select,input[type=range]{width:100%;accent-color:var(--accent)}
+select{background:#0b1017;color:var(--white);border:1px solid var(--line);padding:9px;border-radius:10px}
+#app{height:100dvh;max-width:620px;margin:auto;display:flex;flex-direction:column;
+padding:env(safe-area-inset-top) 12px env(safe-area-inset-bottom);gap:8px;overflow:hidden}
+header{height:44px;flex:0 0 44px;display:flex;align-items:center;justify-content:space-between}
+.brand{font-weight:900;letter-spacing:1.3px;font-size:15px}
+.brand span{color:var(--accent)}
+#status{font-size:11px;color:var(--muted);text-align:right;max-width:48%}
+#view{position:relative;flex:1 1 auto;min-height:120px;overflow:hidden;border-radius:18px;
+background:#020406;border:1px solid #202a35}
+#preview{width:100%;height:100%;display:block;object-fit:contain}
+#video{position:fixed;width:2px;height:2px;left:-10px;top:-10px;opacity:.001;pointer-events:none}
+.overlay{position:absolute;inset:0;pointer-events:none}
+.topline{position:absolute;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;
+align-items:center;font-size:10px;letter-spacing:1px;text-shadow:0 1px 4px #000}
+.pill{background:#080b10bb;border:1px solid #ffffff28;border-radius:20px;padding:6px 9px}
+#recDot{display:none;color:#ff596e}
+#recDot.on{display:inline}
+#levelBox{position:absolute;left:8%;right:8%;top:50%;height:1px;background:#ffffff55}
+#levelLine{position:absolute;left:50%;top:50%;width:48%;height:2px;transform:translate(-50%,-50%);
+background:#ffffffb8;box-shadow:0 0 5px #000}
+#levelLine.level{background:var(--accent);box-shadow:0 0 9px var(--accent)}
+.cross{position:absolute;left:50%;top:50%;width:18px;height:18px;transform:translate(-50%,-50%);
+border:1px solid #ffffff7a;border-radius:50%}
+#noCamera{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:24px;
+color:var(--muted);font-size:13px;pointer-events:none}
+#controls{flex:0 0 auto;max-height:49%;overflow-y:auto;overscroll-behavior:contain;
+scrollbar-width:thin;padding-bottom:3px}
+.row{display:flex;gap:7px;align-items:center}
+.row>*{flex:1;min-width:0}
+.actions button{font-size:12px;font-weight:750}
+.section{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px;margin-bottom:7px}
+.sectionHead{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;
+font-size:11px;font-weight:850;letter-spacing:1px;color:#c6d3e1}
+.small{font-size:10px;color:var(--muted)}
+.control{min-width:0;margin-bottom:8px}
+.control:last-child{margin-bottom:0}
+.controlHead{display:flex;justify-content:space-between;gap:8px;font-size:11px;color:#dbe4ee;margin-bottom:5px}
+.controlHead output{color:var(--accent);font-variant-numeric:tabular-nums}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.three{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.looks button{font-size:11px;padding:8px 3px;min-height:35px}
+#assistant{font-size:11px;line-height:1.45;color:#b9c7d5}
+#assistant strong{color:var(--accent)}
+#bottom{font-size:9px;color:#718194;text-align:center;padding:0 0 2px;flex:0 0 auto}
+#downloadLink{display:none;text-align:center;color:var(--accent);font-size:12px;padding:8px}
+#downloadLink.show{display:block}
+.hidden{display:none!important}
+@media(max-height:690px){
+ #app{gap:5px;padding-left:8px;padding-right:8px}
+ header{height:36px;flex-basis:36px}
+ #controls{max-height:48%}
+ .section{padding:8px;margin-bottom:5px}
+ button{min-height:35px;padding:7px}
 }
 </style>
 </head>
-
 <body>
 <div id="app">
   <header>
@@ -257,688 +86,702 @@ select {
     <div id="status">CAMERA OFFLINE</div>
   </header>
 
-  <div id="previewWrap">
-    <canvas id="viewCanvas" width="1280" height="720"></canvas>
-    <video id="cameraVideo" autoplay playsinline muted></video>
-    <div id="guide"></div>
+  <section id="view">
+    <canvas id="preview" aria-label="Processed camera preview"></canvas>
+    <video id="video" autoplay muted playsinline></video>
     <div class="overlay">
-      <div class="pill" id="zoomBadge">ZOOM 1.0×</div>
-      <div class="pill" id="fpsBadge">30 FPS</div>
+      <div class="topline">
+        <span class="pill" id="modeLabel">READY · 1×</span>
+        <span class="pill"><span id="recDot">● REC </span><span id="timer">00:00</span></span>
+      </div>
+      <div id="levelBox"><div id="levelLine"></div></div>
+      <div class="cross"></div>
+      <div id="noCamera">Tap START CAMERA to activate the live preview.</div>
     </div>
-    <div id="startMessage">HORIZON FILM PRO<br><br>Tap START CAMERA to begin.</div>
-  </div>
+  </section>
 
-  <div class="controls">
-    <div class="panel ai-panel">
-      <div class="ai-header">
-        <div>
-          <strong>✦ AI AUTO-CINEMATOGRAPHER</strong>
-          <div id="aiScene">Waiting for camera…</div>
+  <div id="controls">
+    <section class="section">
+      <div class="row actions">
+        <button id="startBtn" class="primary">START CAMERA</button>
+        <button id="switchBtn" disabled>SWITCH</button>
+        <button id="sensorBtn">ENABLE LEVEL</button>
+      </div>
+      <div class="row actions" style="margin-top:7px">
+        <button id="recordBtn" class="danger" disabled>● RECORD</button>
+        <button id="stopBtn" disabled>STOP / SAVE</button>
+        <button id="micBtn" class="active">MIC ON</button>
+      </div>
+      <div class="small" id="recordInfo" style="margin-top:7px">
+        Start the camera first. Recording is saved as a browser-supported video file.
+      </div>
+      <a id="downloadLink" download="horizon-film-pro.webm">Download last recording</a>
+    </section>
+
+    <section class="section">
+      <div class="sectionHead"><span>CAMERA</span><span id="cameraInfo">No active camera</span></div>
+      <div class="two">
+        <div class="control">
+          <div class="controlHead"><label for="zoom">Digital zoom</label><output id="zoomOut">1.0×</output></div>
+          <input id="zoom" type="range" min="1" max="3" step=".1" value="1">
         </div>
-        <button id="aiToggle" class="active">AI AUTO: ON</button>
+        <div class="control">
+          <div class="controlHead"><label for="fps">Capture preference</label></div>
+          <select id="fps"><option value="24">24 fps</option><option value="30" selected>30 fps</option><option value="60">60 fps</option></select>
+        </div>
       </div>
-      <div class="ai-metrics">
-        <div class="metric"><span>SCENE BRIGHTNESS</span><b id="aiBrightness">--</b></div>
-        <div class="metric"><span>IMAGE EXPOSURE</span><b id="aiExposure">Auto</b></div>
-        <div class="metric"><span>COLOUR BALANCE</span><b id="aiColour">Auto</b></div>
+      <div class="control">
+        <div class="controlHead"><label for="resolution">Resolution preference</label></div>
+        <select id="resolution">
+          <option value="720">HD · 1280×720</option>
+          <option value="1080" selected>Full HD · 1920×1080</option>
+          <option value="2160">4K · 3840×2160 (if supported)</option>
+        </select>
       </div>
-    </div>
+      <div class="small">Digital zoom crops the preview. Requested resolution/FPS are preferences, not guarantees.</div>
+    </section>
 
-    <div class="panel">
-      <div class="panelTitle">CAMERA & IMAGE</div>
-      <div class="sliderLine">
-        <label for="zoomSlider">Zoom</label>
-        <input id="zoomSlider" type="range" min="1" max="3" step="0.1" value="1">
-        <span class="value" id="zoomValue">1.0×</span>
+    <section class="section">
+      <div class="sectionHead"><span>MANUAL CONTROLS</span><span id="capLabel">Checking hardware…</span></div>
+      <div class="control">
+        <div class="controlHead"><label for="exposure">Exposure compensation</label><output id="exposureOut">0</output></div>
+        <input id="exposure" type="range" min="-2" max="2" step=".1" value="0" disabled>
       </div>
-      <div class="sliderLine">
-        <label for="tempSlider">Warmth</label>
-        <input id="tempSlider" type="range" min="-40" max="40" step="1" value="0">
-        <span class="value" id="tempValue">0</span>
+      <div class="two">
+        <div class="control">
+          <div class="controlHead"><label for="focus">Focus distance</label><output id="focusOut">Auto</output></div>
+          <input id="focus" type="range" min="0" max="1" step=".01" value=".5" disabled>
+        </div>
+        <div class="control">
+          <div class="controlHead"><label for="whiteBalance">White balance</label></div>
+          <select id="whiteBalance" disabled>
+            <option value="continuous">Auto</option>
+            <option value="manual">Manual</option>
+          </select>
+        </div>
       </div>
-      <div class="sliderLine">
-        <label for="tintSlider">Tint</label>
-        <input id="tintSlider" type="range" min="-30" max="30" step="1" value="0">
-        <span class="value" id="tintValue">0</span>
-      </div>
-      <div class="presetRow" id="filterRow">
-        <button class="active" data-filter="STD">STD</button>
-        <button data-filter="CINE">CINE</button>
-        <button data-filter="VIVID">VIVID</button>
-        <button data-filter="WARM">WARM</button>
-        <button data-filter="B&W">B&W</button>
-        <button data-filter="RETRO">RETRO</button>
-      </div>
-    </div>
+      <div class="small" id="manualInfo">Only settings explicitly supported by the active browser camera will be enabled.</div>
+    </section>
 
-    <div id="settingsRow">
-      <button id="cameraBtn">START CAMERA</button>
-      <button id="micBtn">MIC: ON</button>
-      <button id="fpsBtn">FPS: 30</button>
-    </div>
+    <section class="section">
+      <div class="sectionHead"><span>CINEMATIC LOOK</span><span id="lookName">CINEMA</span></div>
+      <div class="three looks">
+        <button data-look="neutral">STD</button>
+        <button data-look="cinema" class="active">CINEMA</button>
+        <button data-look="vivid">VIVID</button>
+        <button data-look="warm">WARM</button>
+        <button data-look="bw">B&W</button>
+        <button data-look="retro">RETRO</button>
+      </div>
+      <div class="control" style="margin-top:9px">
+        <div class="controlHead"><label for="intensity">Look intensity</label><output id="intensityOut">70%</output></div>
+        <input id="intensity" type="range" min="0" max="100" value="70">
+      </div>
+    </section>
 
-    <div id="bottomBar">
-      <button id="switchBtn" disabled>SWITCH</button>
-      <button id="recordBtn" disabled>● RECORD</button>
-      <button id="stopBtn">■ STOP</button>
-    </div>
-    <div id="message">Allow camera access when prompted.</div>
+    <section class="section">
+      <div class="sectionHead"><span>SCENE ASSISTANT</span><span id="sceneTag">ANALYSING</span></div>
+      <div id="assistant"><strong>Ready:</strong> Start the camera to analyse brightness and colour.</div>
+      <div class="row" style="margin-top:8px">
+        <button id="autoLookBtn">APPLY SUGGESTED LOOK</button>
+        <button id="recheckBtn">RECHECK SCENE</button>
+      </div>
+    </section>
   </div>
+  <div id="bottom">HORIZON FILM PRO · Browser edition · Keep the phone steady for best results</div>
 </div>
 
 <script>
+(() => {
 "use strict";
 
-const video = document.getElementById("cameraVideo");
-const canvas = document.getElementById("viewCanvas");
-const ctx = canvas.getContext("2d", { alpha: false });
+const $ = id => document.getElementById(id);
+const video = $("video");
+const canvas = $("preview");
+const ctx = canvas.getContext("2d", {alpha:false});
+const probe = document.createElement("canvas");
+probe.width = 48; probe.height = 32;
+const pctx = probe.getContext("2d", {willReadFrequently:true});
 
-const cameraBtn = document.getElementById("cameraBtn");
-const switchBtn = document.getElementById("switchBtn");
-const recordBtn = document.getElementById("recordBtn");
-const stopBtn = document.getElementById("stopBtn");
-const micBtn = document.getElementById("micBtn");
-const fpsBtn = document.getElementById("fpsBtn");
-const aiToggle = document.getElementById("aiToggle");
-const startMessage = document.getElementById("startMessage");
-const statusEl = document.getElementById("status");
-const messageEl = document.getElementById("message");
-
-const zoomSlider = document.getElementById("zoomSlider");
-const tempSlider = document.getElementById("tempSlider");
-const tintSlider = document.getElementById("tintSlider");
-
-let stream = null;
-let cameraTrack = null;
+let cameraStream = null;
 let recorder = null;
-let recordedChunks = [];
-let renderRAF = 0;
-let aiTimer = 0;
-let facingMode = "environment";
+let chunks = [];
+let recording = false;
+let cameraBusy = false;
+let facing = "environment";
 let micEnabled = true;
-let aiEnabled = true;
-let currentFilter = "STD";
-let targetFPS = 30;
-let lastRenderTime = 0;
-let aiGain = 1;
-let measuredBrightness = 110;
-let measuredR = 110;
-let measuredG = 110;
-let measuredB = 110;
-let capabilitiesMessage = "";
-let cameraStarting = false;
-let cameraChanging = false;
-let isRecording = false;
-let audioStream = null;
-let audioTrack = null;
-let recordStream = null;
+let sensorEnabled = false;
+let sensorAvailable = false;
+let sensorRoll = 0;
+let smoothRoll = 0;
+let sensorListener = null;
+let raf = 0;
+let lastAnalysis = 0;
+let startTime = 0;
+let timerInterval = 0;
+let lastUrl = null;
+let supported = {};
+let capabilities = {};
+let currentLook = "cinema";
+let suggestedLook = "cinema";
+let scene = {brightness:0, r:0, g:0, b:0};
+let actualSettings = {};
+let renderFPS = 30;
+let recordingStream = null;
+let digitalZoom = 1;
+let cropRotation = 0;
+let lastVideoTime = -1;
+let videoFrameHandle = null;
 
-const analysisCanvas = document.createElement("canvas");
-analysisCanvas.width = 48;
-analysisCanvas.height = 32;
-const analysisCtx = analysisCanvas.getContext("2d", { willReadFrequently: true });
-
-const filterMap = {
-  "STD": "none",
-  "CINE": "contrast(1.12) saturate(0.82)",
-  "VIVID": "contrast(1.08) saturate(1.35)",
-  "WARM": "saturate(1.08)",
-  "B&W": "grayscale(1) contrast(1.08)",
-  "RETRO": "sepia(0.35) contrast(1.08) saturate(0.8)"
+const looks = {
+  neutral: {contrast:1, saturation:1, brightness:1, sepia:0, grayscale:0, hue:0},
+  cinema:  {contrast:1.13,saturation:.86,brightness:.98,sepia:.04,grayscale:0,hue:0},
+  vivid:   {contrast:1.10,saturation:1.32,brightness:1.02,sepia:0,grayscale:0,hue:0},
+  warm:    {contrast:1.05,saturation:1.08,brightness:1.02,sepia:.20,grayscale:0,hue:0},
+  bw:      {contrast:1.12,saturation:0,brightness:1.02,sepia:0,grayscale:1,hue:0},
+  retro:   {contrast:1.06,saturation:.72,brightness:1.03,sepia:.28,grayscale:0,hue:-5}
 };
 
-function setMessage(text) {
-  messageEl.textContent = text;
+function setStatus(text) {$("status").textContent = text;}
+function setInfo(text) {$("recordInfo").textContent = text;}
+function fmtTime(seconds) {
+  const m = Math.floor(seconds/60).toString().padStart(2,"0");
+  const s = Math.floor(seconds%60).toString().padStart(2,"0");
+  return m + ":" + s;
 }
-
-function updateZoomUI() {
-  const z = Number(zoomSlider.value);
-  document.getElementById("zoomValue").textContent = z.toFixed(1) + "×";
-  document.getElementById("zoomBadge").textContent = "ZOOM " + z.toFixed(1) + "×";
+function stopTracks(stream) {
+  if (stream) stream.getTracks().forEach(t => { try {t.stop();} catch(e){} });
 }
-
-function updateFPSUI() {
-  document.getElementById("fpsBadge").textContent = targetFPS + " FPS";
-  fpsBtn.textContent = "FPS: " + targetFPS;
-}
-
-function updateManualValues() {
-  document.getElementById("tempValue").textContent = tempSlider.value;
-  document.getElementById("tintValue").textContent = tintSlider.value;
-}
-
-function setFilter(name) {
-  currentFilter = name;
-  document.querySelectorAll("[data-filter]").forEach(btn => {
-    btn.classList.toggle("active", btn.dataset.filter === name);
-  });
-}
-
-function drawWaitingFrame() {
-  canvas.width = 1280;
-  canvas.height = 720;
-  ctx.fillStyle = "#080b10";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = "#64e6c2";
-  ctx.font = "bold 34px system-ui";
-  ctx.textAlign = "center";
-  ctx.fillText("HORIZON FILM PRO", canvas.width / 2, canvas.height / 2 - 10);
-  ctx.fillStyle = "#b8c3cf";
-  ctx.font = "22px system-ui";
-  ctx.fillText("Start camera to preview", canvas.width / 2, canvas.height / 2 + 35);
-}
-
-function stopTracks(mediaStream) {
-  if (!mediaStream) return;
-  mediaStream.getTracks().forEach(track => {
-    try { track.stop(); } catch (_) {}
-  });
-}
-
-async function requestCamera() {
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    throw new Error("Camera access needs HTTPS or localhost in a supported browser.");
-  }
-
-  const constraints = {
-    audio: false,
-    video: {
-      facingMode: { ideal: facingMode },
-      width: { ideal: 1920 },
-      height: { ideal: 1080 },
-      frameRate: { ideal: targetFPS, max: 30 }
-    }
+function safeError(error, action) {
+  console.error(action, error);
+  const messages = {
+    NotAllowedError:"Permission denied. Allow camera/microphone access in browser settings.",
+    NotFoundError:"No matching camera or microphone was found.",
+    NotReadableError:"Camera is busy. Close other camera apps and try again.",
+    OverconstrainedError:"This camera does not support the requested setting.",
+    SecurityError:"Camera access was blocked by the browser's security policy."
   };
-
-  try {
-    return await navigator.mediaDevices.getUserMedia(constraints);
-  } catch (firstError) {
-    return await navigator.mediaDevices.getUserMedia({
-      audio: false,
-      video: { facingMode: facingMode }
-    });
-  }
+  alert(action + ": " + (messages[error && error.name] || (error && error.message) || "Unknown browser error."));
 }
-
-async function requestMicrophone() {
-  if (!micEnabled || !navigator.mediaDevices?.getUserMedia) return null;
-  try {
-    return await navigator.mediaDevices.getUserMedia({
-      audio: {
-        echoCancellation: false,
-        noiseSuppression: false,
-        autoGainControl: false
-      },
-      video: false
-    });
-  } catch (err) {
-    setMessage("Camera works, but microphone access was not granted.");
-    return null;
-  }
-}
-
-async function tryContinuousCameraModes() {
-  if (!cameraTrack || !cameraTrack.getCapabilities || !cameraTrack.applyConstraints) {
-    capabilitiesMessage = "Camera auto controls depend on device support.";
-    return;
-  }
-
-  try {
-    const caps = cameraTrack.getCapabilities();
-    const advanced = {};
-    if (Array.isArray(caps.focusMode) && caps.focusMode.includes("continuous")) {
-      advanced.focusMode = "continuous";
-    }
-    if (Array.isArray(caps.exposureMode) && caps.exposureMode.includes("continuous")) {
-      advanced.exposureMode = "continuous";
-    }
-    if (Array.isArray(caps.whiteBalanceMode) && caps.whiteBalanceMode.includes("continuous")) {
-      advanced.whiteBalanceMode = "continuous";
-    }
-
-    if (Object.keys(advanced).length) {
-      await cameraTrack.applyConstraints({ advanced: [advanced] });
-      capabilitiesMessage = "Supported camera auto modes enabled.";
-    } else {
-      capabilitiesMessage = "Using browser camera defaults.";
-    }
-  } catch (err) {
-    capabilitiesMessage = "Using browser camera defaults.";
-  }
+function videoConstraints() {
+  const h = Number($("resolution").value);
+  const w = Math.round(h * 16 / 9);
+  return {
+    facingMode:{ideal:facing},
+    width:{ideal:w},
+    height:{ideal:h},
+    frameRate:{ideal:Number($("fps").value), max:Number($("fps").value)}
+  };
 }
 
 async function startCamera() {
-  if (cameraStarting || cameraChanging) return;
-  if (stream) {
-    stopCamera();
-    return;
-  }
-
-  cameraStarting = true;
-  cameraBtn.disabled = true;
-  setMessage("Starting camera…");
-
+  if (cameraBusy || cameraStream) return;
+  cameraBusy = true;
+  $("startBtn").disabled = true;
+  setStatus("STARTING CAMERA…");
   try {
-    stream = await requestCamera();
-    cameraTrack = stream.getVideoTracks()[0];
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      throw new Error("Camera API unavailable. Open this page on HTTPS or localhost in a supported browser.");
+    }
+    let stream;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: videoConstraints(),
+        audio:false
+      });
+    } catch(firstError) {
+      console.warn("Preferred camera constraints failed; retrying with basic camera request.", firstError);
+      stream = await navigator.mediaDevices.getUserMedia({
+        video:{facingMode:{ideal:facing}},
+        audio:false
+      });
+    }
+    cameraStream = stream;
     video.srcObject = stream;
     await video.play();
-
-    if (video.videoWidth && video.videoHeight) {
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
+    if (!video.videoWidth || !video.videoHeight) {
+      await new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => reject(new Error("Camera did not produce video frames. Please stop and retry.")), 7000);
+        video.addEventListener("loadedmetadata", () => {clearTimeout(timeout);resolve();},{once:true});
+      });
     }
-
-    statusEl.textContent = "CAMERA ONLINE";
-    cameraBtn.textContent = "STOP CAMERA";
-    switchBtn.disabled = false;
-    recordBtn.disabled = false;
-    startMessage.style.display = "none";
-
-    await tryContinuousCameraModes();
-    startRenderLoop();
-    startAIAnalysis();
-
-    setMessage(capabilitiesMessage || "Camera ready.");
-  } catch (err) {
-    stopTracks(stream);
-    stream = null;
-    cameraTrack = null;
-    statusEl.textContent = "CAMERA OFFLINE";
-    setMessage(err.message || "Could not start camera. Check camera permissions.");
+    $("noCamera").classList.add("hidden");
+    $("switchBtn").disabled = false;
+    $("recordBtn").disabled = false;
+    $("startBtn").textContent = "CAMERA ON";
+    $("startBtn").classList.add("active");
+    setStatus("LIVE · CAMERA READY");
+    const track = cameraStream.getVideoTracks()[0];
+    actualSettings = track.getSettings ? track.getSettings() : {};
+    $("cameraInfo").textContent = `${actualSettings.width || video.videoWidth}×${actualSettings.height || video.videoHeight}`;
+    detectCapabilities();
+    resizeCanvas();
+    renderLoop();
+    analyseScene(true);
+    setInfo("Camera is live. Start recording when ready.");
+  } catch(error) {
+    stopTracks(cameraStream);
+    cameraStream = null;
+    video.srcObject = null;
+    setStatus("CAMERA OFFLINE");
+    safeError(error, "Could not start camera");
   } finally {
-    cameraStarting = false;
-    cameraBtn.disabled = false;
+    cameraBusy = false;
+    $("startBtn").disabled = !!cameraStream;
   }
 }
 
-function stopCamera() {
-  if (isRecording) stopRecording();
-  stopRenderLoop();
-  stopAIAnalysis();
-  stopTracks(stream);
-  stopTracks(audioStream);
-
-  stream = null;
-  cameraTrack = null;
-  audioStream = null;
-  audioTrack = null;
+async function stopCamera() {
+  if (recording) await stopRecording();
+  cancelAnimationFrame(raf);
+  if (videoFrameHandle !== null && video.cancelVideoFrameCallback) {
+    try { video.cancelVideoFrameCallback(videoFrameHandle); } catch(e){}
+    videoFrameHandle = null;
+  }
+  stopTracks(cameraStream);
+  cameraStream = null;
   video.srcObject = null;
+  $("noCamera").classList.remove("hidden");
+  $("startBtn").disabled = false;
+  $("startBtn").textContent = "START CAMERA";
+  $("startBtn").classList.remove("active");
+  $("switchBtn").disabled = true;
+  $("recordBtn").disabled = true;
+  $("stopBtn").disabled = true;
+  $("cameraInfo").textContent = "No active camera";
+  $("capLabel").textContent = "Camera off";
+  setStatus("CAMERA OFFLINE");
+  if (sensorEnabled) disableSensor();
+  clearCanvas();
+}
 
-  cameraBtn.textContent = "START CAMERA";
-  switchBtn.disabled = true;
-  recordBtn.disabled = true;
-  statusEl.textContent = "CAMERA OFFLINE";
-  startMessage.style.display = "flex";
-  drawWaitingFrame();
-  setMessage("Camera stopped.");
+function clearCanvas() {
+  canvas.width = 640; canvas.height = 360;
+  ctx.fillStyle = "#020406"; ctx.fillRect(0,0,canvas.width,canvas.height);
 }
 
 async function switchCamera() {
-  if (!stream || cameraChanging || cameraStarting) return;
-  if (isRecording) {
-    setMessage("Stop recording before switching cameras.");
+  if (cameraBusy) return;
+  const wasRecording = recording;
+  if (wasRecording) await stopRecording();
+  const wasOn = !!cameraStream;
+  if (!wasOn) { facing = facing === "environment" ? "user" : "environment"; return; }
+  await stopCamera();
+  facing = facing === "environment" ? "user" : "environment";
+  await startCamera();
+}
+
+function detectCapabilities() {
+  const track = cameraStream && cameraStream.getVideoTracks()[0];
+  if (!track) return;
+  supported = {};
+  capabilities = {};
+  try { capabilities = track.getCapabilities ? track.getCapabilities() : {}; } catch(e){}
+  const caps = capabilities;
+  $("exposure").disabled = !caps.exposureCompensation;
+  if (caps.exposureCompensation) {
+    const range = caps.exposureCompensation;
+    $("exposure").min = range.min;
+    $("exposure").max = range.max;
+    $("exposure").step = range.step || .1;
+    supported.exposureCompensation = true;
+  }
+  $("focus").disabled = !(caps.focusDistance || caps.focusMode);
+  if (caps.focusDistance) {
+    $("focus").min = caps.focusDistance.min;
+    $("focus").max = caps.focusDistance.max;
+    $("focus").step = caps.focusDistance.step || .01;
+    supported.focusDistance = true;
+  } else if (caps.focusMode) {
+    supported.focusMode = true;
+    $("focusOut").textContent = "Mode only";
+  }
+  $("whiteBalance").disabled = !(caps.whiteBalanceMode || caps.colorTemperature);
+  if (caps.whiteBalanceMode) {
+    supported.whiteBalanceMode = true;
+    $("whiteBalance").innerHTML = "";
+    ["continuous","manual"].forEach(value => {
+      if (Array.isArray(caps.whiteBalanceMode) && !caps.whiteBalanceMode.includes(value)) return;
+      const option = document.createElement("option");
+      option.value = value; option.textContent = value === "continuous" ? "Auto" : "Manual";
+      $("whiteBalance").appendChild(option);
+    });
+  } else if (caps.colorTemperature) {
+    supported.colorTemperature = true;
+  }
+  const count = Object.keys(supported).length;
+  $("capLabel").textContent = count ? count + " control type(s)" : "Limited browser controls";
+  $("manualInfo").textContent = count
+    ? "Controls are enabled only for camera capabilities exposed by this browser. Values can still be rejected by the driver."
+    : "This browser did not expose manual exposure/focus/white-balance controls. The controls cannot safely be simulated as hardware settings.";
+  updateSettingsInfo();
+}
+
+async function applyTrackConstraints(constraints, label) {
+  if (!cameraStream) return;
+  const track = cameraStream.getVideoTracks()[0];
+  try {
+    await track.applyConstraints(constraints);
+    actualSettings = track.getSettings ? track.getSettings() : {};
+    updateSettingsInfo();
+    setInfo(label + " applied where supported.");
+  } catch(error) {
+    setInfo(label + " is not supported by this camera/browser.");
+    console.warn(label, error);
+  }
+}
+function updateSettingsInfo() {
+  if (!cameraStream) return;
+  const s = actualSettings || {};
+  const res = `${s.width || video.videoWidth}×${s.height || video.videoHeight}`;
+  $("cameraInfo").textContent = res + (s.frameRate ? " · " + Math.round(s.frameRate) + "fps" : "");
+}
+
+$("exposure").addEventListener("input", () => {
+  $("exposureOut").textContent = Number($("exposure").value).toFixed(1);
+  if (supported.exposureCompensation) {
+    applyTrackConstraints({exposureCompensation:Number($("exposure").value)},"Exposure compensation");
+  }
+});
+$("focus").addEventListener("change", () => {
+  const val = Number($("focus").value);
+  if (supported.focusDistance) {
+    $("focusOut").textContent = val.toFixed(2);
+    applyTrackConstraints({focusDistance:val},"Focus distance");
+  } else if (supported.focusMode) {
+    const modes = capabilities.focusMode || [];
+    const mode = val < .3 ? "near" : val > .7 ? "far" : "continuous";
+    if (modes.includes(mode)) applyTrackConstraints({focusMode:mode},"Focus mode");
+    else setInfo("This camera does not support that focus mode.");
+  }
+});
+$("whiteBalance").addEventListener("change", () => {
+  const val = $("whiteBalance").value;
+  if (supported.whiteBalanceMode) applyTrackConstraints({whiteBalanceMode:val},"White balance");
+  else setInfo("Manual white balance is not available as a browser camera setting.");
+});
+$("fps").addEventListener("change", () => {
+  if (!cameraStream) return;
+  applyTrackConstraints({frameRate:{ideal:Number($("fps").value),max:Number($("fps").value)}},"Frame rate");
+});
+$("resolution").addEventListener("change", async () => {
+  if (!cameraStream) return;
+  const h = Number($("resolution").value);
+  try {
+    await applyTrackConstraints({width:{ideal:Math.round(h*16/9)},height:{ideal:h}},"Resolution");
+    resizeCanvas();
+  } catch(e){}
+});
+
+function resizeCanvas() {
+  const w = video.videoWidth || 1280;
+  const h = video.videoHeight || 720;
+  // Limit canvas work on slower phones; camera source remains at its own resolution.
+  const maxWidth = 1920;
+  const scale = Math.min(1, maxWidth / w);
+  canvas.width = Math.max(2,Math.round(w*scale));
+  canvas.height = Math.max(2,Math.round(h*scale));
+}
+function activeLookFilter() {
+  const look = looks[currentLook];
+  const amount = Number($("intensity").value)/100;
+  const mix = (base, target) => 1 + (target-1)*amount;
+  const contrast = mix(1,look.contrast);
+  const saturation = mix(1,look.saturation);
+  const brightness = mix(1,look.brightness);
+  const grayscale = look.grayscale * amount;
+  const sepia = look.sepia * amount;
+  const hue = look.hue * amount;
+  return `brightness(${brightness}) contrast(${contrast}) saturate(${saturation}) grayscale(${grayscale}) sepia(${sepia}) hue-rotate(${hue}deg)`;
+}
+function drawVideoFrame() {
+  if (!cameraStream || video.readyState < 2 || !video.videoWidth) return;
+  if (canvas.width < 2 || canvas.height < 2) resizeCanvas();
+  const w = canvas.width, h = canvas.height;
+  ctx.save();
+  ctx.clearRect(0,0,w,h);
+  ctx.fillStyle="#000";ctx.fillRect(0,0,w,h);
+  ctx.filter = activeLookFilter();
+  const angle = sensorEnabled ? -smoothRoll * Math.PI/180 : 0;
+  const zoom = digitalZoom;
+  // Rotate and crop to keep the image within the output frame.
+  ctx.translate(w/2,h/2);
+  ctx.rotate(angle);
+  ctx.scale(zoom,zoom);
+  const vw = video.videoWidth, vh = video.videoHeight;
+  const scale = Math.max(w/vw,h/vh);
+  const dw = vw*scale, dh = vh*scale;
+  ctx.drawImage(video,-dw/2,-dh/2,dw,dh);
+  ctx.restore();
+  ctx.filter = "none";
+}
+function renderLoop() {
+  if (!cameraStream) return;
+  drawVideoFrame();
+  const now = performance.now();
+  if (now-lastAnalysis > 1400) {
+    lastAnalysis = now;
+    analyseScene(false);
+  }
+  raf = requestAnimationFrame(renderLoop);
+}
+function analyseScene(force) {
+  if (!cameraStream || video.readyState < 2 || !video.videoWidth) return;
+  try {
+    pctx.drawImage(video,0,0,probe.width,probe.height);
+    const pixels = pctx.getImageData(0,0,probe.width,probe.height).data;
+    let r=0,g=0,b=0,lum=0,count=0;
+    for(let i=0;i<pixels.length;i+=4){
+      const rr=pixels[i], gg=pixels[i+1], bb=pixels[i+2];
+      r+=rr;g+=gg;b+=bb;
+      lum += .2126*rr + .7152*gg + .0722*bb;
+      count++;
+    }
+    r/=count;g/=count;b/=count;lum/=count;
+    scene={brightness:lum,r,g,b};
+    let suggestion, title, message;
+    if(lum<62){
+      suggestion="warm";title="LOW LIGHT";
+      message="The scene is dark. Add light, steady the phone and avoid digital zoom.";
+    }else if(lum>205){
+      suggestion="neutral";title="BRIGHT SCENE";
+      message="Highlights may be strong. Reduce exposure compensation if supported.";
+    }else if(b>r*1.14){
+      suggestion="cinema";title="COOL / BLUE";
+      message="The scene has a cool colour cast. Try Cinema or Warm for a more balanced look.";
+    }else if(r>b*1.2){
+      suggestion="neutral";title="WARM LIGHT";
+      message="Warm lighting detected. Neutral may preserve natural colours.";
+    }else if(lum>95 && lum<165){
+      suggestion="cinema";title="BALANCED LIGHT";
+      message="Lighting looks balanced. Cinema is a good starting point for a film-style image.";
+    }else{
+      suggestion="vivid";title="MUTED SCENE";
+      message="Try Vivid if you want stronger colour, or Neutral for a natural image.";
+    }
+    suggestedLook=suggestion;
+    $("sceneTag").textContent=title;
+    $("assistant").innerHTML=`<strong>${title}</strong> · Brightness ${Math.round(lum)}/255<br>${message}<br><span class="small">RGB sample: ${Math.round(r)} / ${Math.round(g)} / ${Math.round(b)}. This is a simple image heuristic, not a trained AI model.</span>`;
+  } catch(error) {
+    console.warn("Scene analysis unavailable",error);
+    $("sceneTag").textContent="UNAVAILABLE";
+    $("assistant").textContent="Scene analysis is unavailable on this browser.";
+  }
+}
+$("autoLookBtn").addEventListener("click",()=>setLook(suggestedLook));
+$("recheckBtn").addEventListener("click",()=>analyseScene(true));
+
+function setLook(name) {
+  if(!looks[name]) return;
+  currentLook=name;
+  $("lookName").textContent=name.toUpperCase();
+  document.querySelectorAll("[data-look]").forEach(btn=>{
+    btn.classList.toggle("active",btn.dataset.look===name);
+  });
+}
+document.querySelectorAll("[data-look]").forEach(btn=>{
+  btn.addEventListener("click",()=>setLook(btn.dataset.look));
+});
+$("intensity").addEventListener("input",()=>{
+  $("intensityOut").textContent=$("intensity").value+"%";
+});
+$("zoom").addEventListener("input",()=>{
+  digitalZoom=Number($("zoom").value);
+  $("zoomOut").textContent=digitalZoom.toFixed(1)+"×";
+  $("modeLabel").textContent=`LIVE · ${digitalZoom.toFixed(1)}×`;
+});
+
+async function enableSensor() {
+  if (sensorEnabled) { disableSensor(); return; }
+  if (!("DeviceOrientationEvent" in window)) {
+    setInfo("Device orientation sensor is not available in this browser.");
     return;
   }
-
-  cameraChanging = true;
-  switchBtn.disabled = true;
-  stopRenderLoop();
-  stopAIAnalysis();
-  stopTracks(stream);
-  stream = null;
-  cameraTrack = null;
-  facingMode = facingMode === "environment" ? "user" : "environment";
-
   try {
-    stream = await requestCamera();
-    cameraTrack = stream.getVideoTracks()[0];
-    video.srcObject = stream;
-    await video.play();
-    if (video.videoWidth && video.videoHeight) {
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
+    if (typeof DeviceOrientationEvent.requestPermission === "function") {
+      const permission = await DeviceOrientationEvent.requestPermission();
+      if (permission !== "granted") throw new Error("Orientation permission was not granted.");
     }
-    await tryContinuousCameraModes();
-    startRenderLoop();
-    startAIAnalysis();
-    setMessage("Camera switched.");
-  } catch (err) {
-    setMessage("Unable to switch camera. Try restarting the camera.");
-    cameraBtn.textContent = "START CAMERA";
-    statusEl.textContent = "CAMERA OFFLINE";
-    stopTracks(stream);
-    stream = null;
-    cameraTrack = null;
-    startMessage.style.display = "flex";
-    recordBtn.disabled = true;
-  } finally {
-    cameraChanging = false;
-    switchBtn.disabled = !stream;
+    sensorListener = event => {
+      let roll;
+      // gamma approximates roll when the phone is held upright in portrait.
+      if (typeof event.gamma === "number") roll = event.gamma;
+      else if (typeof event.beta === "number") roll = event.beta;
+      if (!Number.isFinite(roll)) return;
+      // Keep correction limited and smooth; do not claim to remove translational shake.
+      sensorRoll = Math.max(-45,Math.min(45,roll));
+      smoothRoll += (sensorRoll-smoothRoll)*.16;
+      const line = $("levelLine");
+      line.style.transform = `translate(-50%,-50%) rotate(${sensorRoll}deg)`;
+      line.classList.toggle("level",Math.abs(sensorRoll)<1.5);
+      $("sensorBtn").textContent = "DISABLE LEVEL";
+      $("sensorBtn").classList.add("active");
+    };
+    window.addEventListener("deviceorientation",sensorListener,true);
+    sensorEnabled = true;
+    sensorAvailable = true;
+    $("sensorBtn").textContent = "LEVEL ON";
+    setInfo("Level sensor enabled. Rotate the phone slowly to test it.");
+  } catch(error) {
+    setInfo("Could not enable orientation sensor: " + error.message);
   }
 }
-
-function startRenderLoop() {
-  stopRenderLoop();
-  lastRenderTime = 0;
-
-  function frame(now) {
-    if (!stream || video.readyState < 2) {
-      renderRAF = requestAnimationFrame(frame);
-      return;
-    }
-
-    const interval = 1000 / targetFPS;
-    if (!lastRenderTime || now - lastRenderTime >= interval) {
-      lastRenderTime = now;
-      renderFrame();
-    }
-    renderRAF = requestAnimationFrame(frame);
-  }
-
-  renderRAF = requestAnimationFrame(frame);
+function disableSensor() {
+  if(sensorListener) window.removeEventListener("deviceorientation",sensorListener,true);
+  sensorListener=null;
+  sensorEnabled=false;
+  sensorRoll=0;smoothRoll=0;
+  $("sensorBtn").textContent="ENABLE LEVEL";
+  $("sensorBtn").classList.remove("active");
+  $("levelLine").style.transform="translate(-50%,-50%)";
+  $("levelLine").classList.remove("level");
 }
+$("sensorBtn").addEventListener("click",enableSensor);
 
-function stopRenderLoop() {
-  if (renderRAF) cancelAnimationFrame(renderRAF);
-  renderRAF = 0;
-}
+$("micBtn").addEventListener("click",()=>{
+  micEnabled=!micEnabled;
+  $("micBtn").textContent=micEnabled?"MIC ON":"MIC OFF";
+  $("micBtn").classList.toggle("active",micEnabled);
+  setInfo(micEnabled?"Microphone will be requested when recording starts.":"Recording will be silent.");
+});
 
-function renderFrame() {
-  const vw = video.videoWidth;
-  const vh = video.videoHeight;
-  if (!vw || !vh) return;
-
-  if (canvas.width !== vw || canvas.height !== vh) {
-    canvas.width = vw;
-    canvas.height = vh;
-  }
-
-  const cw = canvas.width;
-  const ch = canvas.height;
-  const zoom = Number(zoomSlider.value);
-  const baseScale = Math.max(cw / vw, ch / vh);
-  const scale = baseScale * zoom;
-  const dw = vw * scale;
-  const dh = vh * scale;
-  const dx = (cw - dw) / 2;
-  const dy = (ch - dh) / 2;
-
-  let gain = aiEnabled ? aiGain : 1;
-  gain = Math.max(0.75, Math.min(1.30, gain));
-
-  ctx.save();
-  ctx.clearRect(0, 0, cw, ch);
-  ctx.filter = "brightness(" + gain.toFixed(3) + ") " + filterMap[currentFilter];
-  ctx.drawImage(video, dx, dy, dw, dh);
-  ctx.filter = "none";
-
-  // Warmth and tint are applied to the rendered preview and recording.
-  const warmth = Number(tempSlider.value);
-  const tint = Number(tintSlider.value);
-
-  if (warmth > 0) {
-    ctx.fillStyle = "rgba(255,145,40," + (warmth / 260).toFixed(3) + ")";
-    ctx.fillRect(0, 0, cw, ch);
-  } else if (warmth < 0) {
-    ctx.fillStyle = "rgba(45,130,255," + (-warmth / 300).toFixed(3) + ")";
-    ctx.fillRect(0, 0, cw, ch);
-  }
-
-  if (tint > 0) {
-    ctx.fillStyle = "rgba(220,55,150," + (tint / 320).toFixed(3) + ")";
-    ctx.fillRect(0, 0, cw, ch);
-  } else if (tint < 0) {
-    ctx.fillStyle = "rgba(40,210,135," + (-tint / 320).toFixed(3) + ")";
-    ctx.fillRect(0, 0, cw, ch);
-  }
-
-  ctx.restore();
-}
-
-function startAIAnalysis() {
-  stopAIAnalysis();
-  if (!stream) return;
-
-  aiTimer = window.setInterval(() => {
-    if (!stream || video.readyState < 2 || !video.videoWidth) return;
-
-    try {
-      analysisCtx.drawImage(video, 0, 0, 48, 32);
-      const pixels = analysisCtx.getImageData(0, 0, 48, 32).data;
-      let sumY = 0, sumR = 0, sumG = 0, sumB = 0;
-      const count = pixels.length / 4;
-
-      for (let i = 0; i < pixels.length; i += 4) {
-        const r = pixels[i];
-        const g = pixels[i + 1];
-        const b = pixels[i + 2];
-        sumR += r;
-        sumG += g;
-        sumB += b;
-        sumY += 0.2126 * r + 0.7152 * g + 0.0722 * b;
-      }
-
-      measuredBrightness = sumY / count;
-      measuredR = sumR / count;
-      measuredG = sumG / count;
-      measuredB = sumB / count;
-
-      updateAIReadout();
-      if (aiEnabled) adaptImage();
-    } catch (err) {
-      document.getElementById("aiScene").textContent = "Scene analysis unavailable";
-    }
-  }, 900);
-}
-
-function stopAIAnalysis() {
-  if (aiTimer) clearInterval(aiTimer);
-  aiTimer = 0;
-}
-
-function adaptImage() {
-  // Conservative image-level correction. This does not change physical shutter speed or ISO.
-  let targetGain = 1;
-  if (measuredBrightness < 65) {
-    targetGain = Math.min(1.30, 105 / Math.max(35, measuredBrightness));
-  } else if (measuredBrightness < 95) {
-    targetGain = Math.min(1.18, 100 / Math.max(50, measuredBrightness));
-  } else if (measuredBrightness > 205) {
-    targetGain = Math.max(0.78, 175 / measuredBrightness);
-  } else if (measuredBrightness > 175) {
-    targetGain = Math.max(0.88, 180 / measuredBrightness);
-  }
-
-  // Smooth the adjustment so brightness doesn't jump between frames.
-  aiGain += (targetGain - aiGain) * 0.22;
-  aiGain = Math.max(0.78, Math.min(1.28, aiGain));
-}
-
-function updateAIReadout() {
-  document.getElementById("aiBrightness").textContent =
-    Math.round(measuredBrightness) + " / 255";
-
-  let scene = "Balanced lighting";
-  if (measuredBrightness < 55) scene = "Very low light";
-  else if (measuredBrightness < 95) scene = "Low light detected";
-  else if (measuredBrightness > 205) scene = "Bright scene";
-  else if (measuredBrightness > 175) scene = "High brightness";
-
-  const differenceRG = measuredR - measuredG;
-  const differenceBG = measuredB - measuredG;
-  let colour = "Balanced";
-  if (differenceRG > 15 && differenceRG > differenceBG) colour = "Warm";
-  else if (differenceBG > 15 && differenceBG > differenceRG) colour = "Cool";
-  else if (differenceRG < -15 && differenceBG < -10) colour = "Greenish";
-  else if (differenceRG < -10 && differenceBG > 10) colour = "Mixed";
-
-  document.getElementById("aiScene").textContent =
-    aiEnabled ? scene + " • On-device analysis" : "Auto adjustments paused";
-
-  document.getElementById("aiExposure").textContent =
-    aiEnabled ? (aiGain > 1.04 ? "+" + Math.round((aiGain - 1) * 100) + "%" :
-    aiGain < 0.96 ? Math.round((aiGain - 1) * 100) + "%" : "Neutral") : "Manual";
-
-  document.getElementById("aiColour").textContent = colour;
-}
-
-function toggleAI() {
-  aiEnabled = !aiEnabled;
-  aiToggle.classList.toggle("active", aiEnabled);
-  aiToggle.textContent = aiEnabled ? "AI AUTO: ON" : "AI AUTO: OFF";
-  if (!aiEnabled) aiGain = 1;
-  updateAIReadout();
-}
-
-function getSupportedMimeType() {
+function supportedMimeType() {
   if (!window.MediaRecorder) return "";
-  const candidates = [
+  const types = [
     "video/webm;codecs=vp9,opus",
     "video/webm;codecs=vp8,opus",
-    "video/webm"
+    "video/webm",
+    "video/mp4"
   ];
-  return candidates.find(type => MediaRecorder.isTypeSupported(type)) || "";
+  return types.find(type => MediaRecorder.isTypeSupported(type)) || "";
 }
-
 async function startRecording() {
-  if (!stream || isRecording) return;
-
-  if (!canvas.captureStream || !window.MediaRecorder) {
-    setMessage("Recording is not supported by this browser.");
+  if(!cameraStream || recording) return;
+  if(!canvas.captureStream || !window.MediaRecorder) {
+    alert("This browser does not support canvas recording. Try a current Chrome-based Android browser.");
     return;
   }
-
-  setMessage("Preparing recording…");
-  recordBtn.disabled = true;
-
+  $("recordBtn").disabled=true;
   try {
-    recordedChunks = [];
-    recordStream = canvas.captureStream(targetFPS);
-
-    // Add microphone audio separately so the video is recorded from the processed canvas.
-    audioStream = await requestMicrophone();
-    if (audioStream) {
-      audioTrack = audioStream.getAudioTracks()[0];
-      if (audioTrack) recordStream.addTrack(audioTrack);
-    }
-
-    const mimeType = getSupportedMimeType();
-    recorder = new MediaRecorder(recordStream, mimeType ? { mimeType } : undefined);
-
-    recorder.ondataavailable = event => {
-      if (event.data && event.data.size > 0) recordedChunks.push(event.data);
-    };
-
-    recorder.onerror = () => {
-      setMessage("Recording error. Try again.");
-    };
-
-    recorder.onstop = () => {
-      const type = recorder && recorder.mimeType ? recorder.mimeType : "video/webm";
-      const blob = new Blob(recordedChunks, { type });
-      stopTracks(recordStream);
-      stopTracks(audioStream);
-      recordStream = null;
-      audioStream = null;
-      audioTrack = null;
-
-      if (blob.size > 0) {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "Horizon-Film-Pro-" + new Date().toISOString().replace(/[:.]/g, "-") + ".webm";
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        setTimeout(() => URL.revokeObjectURL(url), 60000);
-        setMessage("Recording saved. Check your Downloads folder.");
-      } else {
-        setMessage("No video data was captured. Please try again.");
+    const mime = supportedMimeType();
+    if(!mime) throw new Error("No supported MediaRecorder video format was found.");
+    recordingStream = canvas.captureStream(Number($("fps").value));
+    if(micEnabled) {
+      try {
+        const audioStream = await navigator.mediaDevices.getUserMedia({audio:{
+          echoCancellation:false,noiseSuppression:false,autoGainControl:false
+        },video:false});
+        audioStream.getAudioTracks().forEach(track=>recordingStream.addTrack(track));
+      } catch(audioError) {
+        console.warn("Microphone unavailable; continuing with silent video.",audioError);
+        setInfo("Microphone permission unavailable. Recording will continue without audio.");
       }
-
-      isRecording = false;
-      recordBtn.disabled = !stream;
-      recordBtn.textContent = "● RECORD";
-      recordBtn.classList.remove("recording");
-      stopBtn.classList.remove("show");
-      stopBtn.style.display = "none";
+    }
+    chunks=[];
+    const options={mimeType:mime,videoBitsPerSecond:8000000};
+    try { recorder = new MediaRecorder(recordingStream,options); }
+    catch(e) { recorder = new MediaRecorder(recordingStream,{mimeType:mime}); }
+    recorder.ondataavailable = event => {
+      if(event.data && event.data.size>0) chunks.push(event.data);
     };
-
-    recorder.start(500);
-    isRecording = true;
-    recordBtn.textContent = "● REC";
-    recordBtn.classList.add("recording");
-    stopBtn.classList.add("show");
-    stopBtn.style.display = "block";
-    setMessage("Recording video" + (audioStream ? " with microphone." : " without microphone audio."));
-  } catch (err) {
-    stopTracks(recordStream);
-    stopTracks(audioStream);
-    recordStream = null;
-    audioStream = null;
-    audioTrack = null;
-    isRecording = false;
-    recordBtn.disabled = !stream;
-    setMessage("Could not start recording: " + (err.message || "unsupported format"));
+    recorder.onerror = event => {
+      console.error("Recorder error",event.error);
+      setInfo("Recording error: " + (event.error?.message || "unknown error"));
+    };
+    recorder.onstop = () => {
+      const type = recorder && recorder.mimeType ? recorder.mimeType : mime;
+      const blob = new Blob(chunks,{type});
+      stopTracks(recordingStream);
+      recordingStream=null;
+      if(blob.size>0) {
+        if(lastUrl) URL.revokeObjectURL(lastUrl);
+        lastUrl=URL.createObjectURL(blob);
+        const ext=type.includes("mp4")?"mp4":"webm";
+        $("downloadLink").href=lastUrl;
+        $("downloadLink").download=`horizon-film-pro-${new Date().toISOString().replace(/[:.]/g,"-")}.${ext}`;
+        $("downloadLink").textContent=`DOWNLOAD RECORDING · ${(blob.size/1048576).toFixed(1)} MB`;
+        $("downloadLink").classList.add("show");
+        setInfo("Recording saved in browser memory. Tap Download recording to save it to your device.");
+      } else {
+        setInfo("No video data was captured. Please try recording again.");
+      }
+      $("recDot").classList.remove("on");
+      $("timer").textContent="00:00";
+      $("recordBtn").disabled=false;
+      $("stopBtn").disabled=true;
+      setStatus("LIVE · RECORDING SAVED");
+      recording=false;
+      clearInterval(timerInterval);
+    };
+    recorder.start(1000);
+    recording=true;
+    startTime=Date.now();
+    $("recDot").classList.add("on");
+    $("recordBtn").disabled=true;
+    $("stopBtn").disabled=false;
+    $("downloadLink").classList.remove("show");
+    setStatus("● RECORDING");
+    setInfo("Recording in progress. Press STOP / SAVE to finish the file.");
+    timerInterval=setInterval(()=>{
+      if(recording) $("timer").textContent=fmtTime((Date.now()-startTime)/1000);
+    },250);
+  } catch(error) {
+    stopTracks(recordingStream);
+    recordingStream=null;
+    recording=false;
+    $("recordBtn").disabled=false;
+    $("stopBtn").disabled=true;
+    safeError(error,"Could not start recording");
   }
 }
-
-function stopRecording() {
-  if (recorder && recorder.state !== "inactive") {
-    setMessage("Finishing video…");
-    try { recorder.stop(); }
-    catch (err) { setMessage("Unable to stop recording cleanly."); }
+async function stopRecording() {
+  if(!recording) return;
+  $("stopBtn").disabled=true;
+  setInfo("Finalising recording…");
+  try {
+    if(recorder && recorder.state!=="inactive") recorder.stop();
+    else {
+      recording=false;
+      stopTracks(recordingStream);
+      recordingStream=null;
+    }
+  } catch(error) {
+    console.error("Stopping recorder failed",error);
+    recording=false;
+    stopTracks(recordingStream);
+    recordingStream=null;
+    $("recordBtn").disabled=false;
+    $("stopBtn").disabled=true;
+    setInfo("Recorder stopped with an error. Please start a new recording.");
   }
 }
-
-cameraBtn.addEventListener("click", startCamera);
-switchBtn.addEventListener("click", switchCamera);
-recordBtn.addEventListener("click", startRecording);
-stopBtn.addEventListener("click", stopRecording);
-aiToggle.addEventListener("click", toggleAI);
-
-zoomSlider.addEventListener("input", updateZoomUI);
-tempSlider.addEventListener("input", updateManualValues);
-tintSlider.addEventListener("input", updateManualValues);
-
-document.querySelectorAll("[data-filter]").forEach(btn => {
-  btn.addEventListener("click", () => setFilter(btn.dataset.filter));
+$("recordBtn").addEventListener("click",startRecording);
+$("stopBtn").addEventListener("click",stopRecording);
+$("startBtn").addEventListener("click",async()=>{
+  if(cameraStream) await stopCamera();
+  else await startCamera();
 });
+$("switchBtn").addEventListener("click",switchCamera);
 
-micBtn.addEventListener("click", () => {
-  micEnabled = !micEnabled;
-  micBtn.textContent = micEnabled ? "MIC: ON" : "MIC: OFF";
-  micBtn.classList.toggle("active", micEnabled);
-  setMessage(micEnabled ? "Microphone will be requested when recording starts." :
-    "Microphone disabled for new recordings.");
-});
-
-fpsBtn.addEventListener("click", () => {
-  targetFPS = targetFPS === 30 ? 24 : targetFPS === 24 ? 60 : 30;
-  updateFPSUI();
-  if (stream && !isRecording) {
-    startRenderLoop();
+document.addEventListener("visibilitychange",()=>{
+  if(document.hidden && recording) {
+    // Backgrounding may suspend camera or canvas capture in mobile browsers.
+    setInfo("Keep this page in the foreground during recording for best reliability.");
   }
-  setMessage("Recording target set to " + targetFPS + " FPS. Actual camera FPS depends on device support.");
+});
+window.addEventListener("pagehide",()=>{
+  try {
+    if(recorder && recorder.state!=="inactive") recorder.stop();
+  } catch(e){}
+  stopTracks(recordingStream);
+  stopTracks(cameraStream);
+  if(sensorListener) window.removeEventListener("deviceorientation",sensorListener,true);
+  if(lastUrl) URL.revokeObjectURL(lastUrl);
+  cancelAnimationFrame(raf);
 });
 
-window.addEventListener("pagehide", () => {
-  if (recorder && recorder.state !== "inactive") {
-    try { recorder.stop(); } catch (_) {}
-  }
-  stopRenderLoop();
-  stopAIAnalysis();
-  stopTracks(stream);
-  stopTracks(audioStream);
-  stopTracks(recordStream);
-});
-
-updateZoomUI();
-updateManualValues();
-updateFPSUI();
-drawWaitingFrame();
-document.getElementById("aiScene").textContent = "Waiting for camera…";
+clearCanvas();
+})();
 </script>
 </body>
 </html>
