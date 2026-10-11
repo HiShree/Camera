@@ -3,217 +3,202 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport"
-      content="width=device-width, initial-scale=1, maximum-scale=1,
-               user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Horizon Film Pro</title>
 
 <style>
 :root {
-  --bg: #080a0d;
-  --panel: #14171c;
-  --text: #f5f7fa;
-  --muted: #9aa4b2;
-  --green: #47f0a0;
-  --red: #ff4557;
+  --bg:#090a0c;
+  --panel:#15171b;
+  --line:#30343b;
+  --text:#f5f5f5;
+  --muted:#9da4ae;
+  --accent:#f2c14e;
+  --red:#ff4055;
 }
-* { box-sizing: border-box; }
-html, body {
-  margin: 0;
-  width: 100%;
-  min-height: 100%;
-  background: var(--bg);
-  color: var(--text);
-  font-family: Arial, sans-serif;
+* { box-sizing:border-box; }
+body {
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:Arial,sans-serif;
 }
-body { padding: 0 0 env(safe-area-inset-bottom); }
-button, select { font: inherit; }
+button,select,input { font:inherit; }
 button {
-  color: var(--text);
-  border: 1px solid #333943;
-  background: #20242b;
-  border-radius: 12px;
-  padding: 12px 10px;
-  cursor: pointer;
-  touch-action: manipulation;
+  color:var(--text);
+  background:#22252b;
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:11px 10px;
+  cursor:pointer;
 }
-button:disabled { opacity: .45; }
-button:active { transform: scale(.98); }
+button:active { transform:scale(.98); }
+button:disabled { opacity:.45; }
 .app {
-  width: 100%;
-  max-width: 600px;
-  margin: auto;
-  padding: 12px;
+  max-width:600px;
+  margin:auto;
+  padding:12px 12px 24px;
 }
 header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 7px 2px 13px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:12px;
 }
-.brand { font-size: 19px; font-weight: 800; letter-spacing: .5px; }
-.brand span { color: var(--green); }
-.status { font-size: 11px; color: var(--muted); margin-top: 4px; }
-.live {
-  font-size: 11px;
-  border: 1px solid #353b44;
-  padding: 7px 9px;
-  border-radius: 20px;
+.logo { font-size:19px; font-weight:900; letter-spacing:1px; }
+.logo span { color:var(--accent); }
+.subtitle { color:var(--muted); font-size:10px; margin-top:4px; }
+.status {
+  color:var(--muted);
+  font-size:10px;
+  border:1px solid var(--line);
+  border-radius:20px;
+  padding:7px 9px;
 }
-.live::before {
-  content: "";
-  display: inline-block;
-  width: 7px;
-  height: 7px;
-  background: var(--red);
-  border-radius: 50%;
-  margin-right: 6px;
+#previewBox {
+  position:relative;
+  width:100%;
+  aspect-ratio:9/16;
+  max-height:65vh;
+  background:#000;
+  overflow:hidden;
+  border:1px solid #25282e;
+  border-radius:15px;
 }
-.live.ready::before { background: var(--green); }
-
-.preview {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 3 / 4;
-  max-height: 67vh;
-  margin: auto;
-  overflow: hidden;
-  border-radius: 18px;
-  background: #000;
-  border: 1px solid #252a31;
+#cameraVideo { display:none; }
+#viewCanvas {
+  width:100%;
+  height:100%;
+  display:block;
+  background:#000;
 }
-#cameraInput { display: none; }
-#processedCanvas {
-  display: block;
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  background: #000;
+.hud {
+  position:absolute;
+  left:10px;
+  right:10px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:5px;
+  pointer-events:none;
 }
-.overlay {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
+.hud.top { top:10px; }
+.hud.bottom { bottom:10px; }
+.chip {
+  background:#090a0cd9;
+  border:1px solid #ffffff20;
+  border-radius:7px;
+  padding:7px 8px;
+  font-size:10px;
+  white-space:nowrap;
 }
-.grid {
-  position: absolute;
-  inset: 0;
-  opacity: .4;
-  background-image:
-    linear-gradient(to right, transparent 33.1%, #ffffff 33.3%,
-      transparent 33.6%, transparent 66.4%, #ffffff 66.6%,
-      transparent 66.9%),
-    linear-gradient(to bottom, transparent 33.1%, #ffffff 33.3%,
-      transparent 33.6%, transparent 66.4%, #ffffff 66.6%,
-      transparent 66.9%);
+.rec-dot {
+  display:inline-block;
+  width:7px;
+  height:7px;
+  background:var(--red);
+  border-radius:50%;
+  margin-right:5px;
 }
-.horizon {
-  position: absolute;
-  top: 50%;
-  left: -15%;
-  width: 130%;
-  height: 1px;
-  background: var(--green);
-  box-shadow: 0 0 8px #47f0a077;
-  transform-origin: center;
+#gridOverlay {
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:
+    linear-gradient(to right,transparent 33.1%,#ffffff55 33.3%,transparent 33.6%,transparent 66.4%,#ffffff55 66.6%,transparent 66.9%),
+    linear-gradient(to bottom,transparent 33.1%,#ffffff55 33.3%,transparent 33.6%,transparent 66.4%,#ffffff55 66.6%,transparent 66.9%);
 }
-.center-mark {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 22px;
-  height: 22px;
-  border: 1px solid var(--green);
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
+.section-title {
+  color:var(--muted);
+  font-size:10px;
+  text-transform:uppercase;
+  letter-spacing:1.4px;
+  margin:17px 2px 9px;
 }
-.center-mark::before, .center-mark::after {
-  content: "";
-  position: absolute;
-  background: var(--green);
-}
-.center-mark::before {
-  width: 34px;
-  height: 1px;
-  left: -7px;
-  top: 10px;
-}
-.center-mark::after {
-  height: 34px;
-  width: 1px;
-  top: -7px;
-  left: 10px;
-}
-.top-info, .bottom-info {
-  position: absolute;
-  left: 10px;
-  right: 10px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 6px;
-}
-.top-info { top: 10px; }
-.bottom-info { bottom: 10px; }
-.pill {
-  font-size: 11px;
-  background: #080a0dcc;
-  border: 1px solid #ffffff20;
-  padding: 7px 9px;
-  border-radius: 8px;
-  backdrop-filter: blur(6px);
-}
-#rollLabel { color: var(--green); }
-.controls { margin-top: 13px; }
-.section-label {
-  color: var(--muted);
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin: 15px 2px 8px;
-}
-.row { display: flex; gap: 8px; }
-.row > * { flex: 1; min-width: 0; }
-.zoom-btn.selected, .mode-btn.selected {
-  border-color: var(--green);
-  color: var(--green);
-  background: #163126;
+.row { display:flex; gap:7px; }
+.row > * { flex:1; min-width:0; }
+.active {
+  color:var(--accent);
+  border-color:var(--accent);
+  background:#302a1b;
 }
 .primary {
-  background: var(--green);
-  color: #06120b;
-  font-weight: 800;
-  border: 0;
+  color:#15120a;
+  background:var(--accent);
+  border-color:var(--accent);
+  font-weight:800;
 }
 .recording {
-  background: var(--red);
-  color: white;
-  border: 0;
-  font-weight: 800;
+  color:#fff;
+  background:var(--red);
+  border-color:var(--red);
 }
-.info-card {
-  margin-top: 13px;
-  padding: 12px;
-  background: var(--panel);
-  border: 1px solid #252a31;
-  border-radius: 13px;
-  font-size: 12px;
-  line-height: 1.55;
-  color: var(--muted);
+.filter-list {
+  display:flex;
+  gap:8px;
+  overflow-x:auto;
+  padding:2px 0 8px;
+  scrollbar-width:thin;
 }
-.info-card strong { color: var(--text); }
-#message { color: var(--green); }
+.filter-item {
+  flex:0 0 83px;
+  padding:0;
+  overflow:hidden;
+  border-radius:10px;
+}
+.filter-preview {
+  height:56px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:23px;
+  background:linear-gradient(135deg,#9b7057,#344e64,#d3a65d);
+}
+.filter-name {
+  padding:8px 2px;
+  font-size:10px;
+  text-align:center;
+}
+.control-card {
+  background:var(--panel);
+  border:1px solid #282b31;
+  border-radius:12px;
+  padding:12px;
+  margin-top:9px;
+}
+.control-heading {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  font-size:12px;
+  margin-bottom:10px;
+}
+.control-heading span:last-child { color:var(--accent); }
+input[type=range] {
+  width:100%;
+  accent-color:var(--accent);
+}
+select {
+  width:100%;
+  color:var(--text);
+  background:#22252b;
+  border:1px solid var(--line);
+  border-radius:9px;
+  padding:10px;
+}
+.small { color:var(--muted); font-size:11px; line-height:1.5; }
+#message { color:var(--accent); }
+.record-row { margin-top:12px; }
 footer {
-  text-align: center;
-  font-size: 10px;
-  color: #6e7784;
-  padding: 16px 0 10px;
+  color:#737b86;
+  font-size:10px;
+  text-align:center;
+  margin-top:18px;
 }
-@media (max-height: 700px) {
-  .preview { max-height: 52vh; }
-  .app { padding-top: 6px; }
+@media(max-height:700px) {
+  #previewBox { max-height:50vh; }
+  .app { padding-top:7px; }
 }
 </style>
 </head>
@@ -222,184 +207,196 @@ footer {
 <div class="app">
   <header>
     <div>
-      <div class="brand">HORIZON <span>FILM PRO</span></div>
-      <div class="status">CAMERA • LEVEL • RECORD</div>
+      <div class="logo">HORIZON <span>FILM PRO</span></div>
+      <div class="subtitle">MOBILE CINEMA CAMERA</div>
     </div>
-    <div class="live" id="liveStatus">OFFLINE</div>
+    <div class="status" id="cameraStatus">CAMERA OFF</div>
   </header>
 
-  <div class="preview" id="preview">
-    <!-- Hidden camera input; the canvas is the actual live preview. -->
-    <video id="cameraInput" autoplay muted playsinline></video>
-    <canvas id="processedCanvas"></canvas>
+  <div id="previewBox">
+    <video id="cameraVideo" autoplay muted playsinline></video>
+    <canvas id="viewCanvas"></canvas>
+    <div id="gridOverlay"></div>
 
-    <div class="overlay">
-      <div class="grid" id="grid"></div>
-      <div class="horizon" id="horizon"></div>
-      <div class="center-mark"></div>
+    <div class="hud top">
+      <span class="chip" id="resolution">NO SIGNAL</span>
+      <span class="chip" id="fpsLabel">30 FPS</span>
     </div>
-
-    <div class="top-info">
-      <span class="pill" id="resolutionLabel">NO SIGNAL</span>
-      <span class="pill" id="rollLabel">ROLL 0.0°</span>
-    </div>
-
-    <div class="bottom-info">
-      <span class="pill" id="correctionLabel">LEVEL READY</span>
-      <span class="pill" id="timer">00:00</span>
+    <div class="hud bottom">
+      <span class="chip" id="zoomLabel">1.0×</span>
+      <span class="chip" id="timer">00:00</span>
     </div>
   </div>
 
-  <div class="controls">
-    <div class="section-label">Camera</div>
-    <div class="row">
-      <button id="startBtn" class="primary">Start Camera</button>
-      <button id="switchBtn">Switch Camera</button>
-    </div>
+  <div class="section-title">Camera</div>
+  <div class="row">
+    <button id="startBtn" class="primary">Start Camera</button>
+    <button id="switchBtn">⇄ Flip</button>
+  </div>
 
-    <div class="section-label">Digital zoom</div>
-    <div class="row">
-      <button class="zoom-btn selected" data-zoom="1">1×</button>
-      <button class="zoom-btn" data-zoom="1.5">1.5×</button>
-      <button class="zoom-btn" data-zoom="2">2×</button>
+  <div class="section-title">Zoom</div>
+  <div class="row">
+    <button class="zoomBtn active" data-zoom="1">1×</button>
+    <button class="zoomBtn" data-zoom="1.5">1.5×</button>
+    <button class="zoomBtn" data-zoom="2">2×</button>
+    <button class="zoomBtn" data-zoom="3">3×</button>
+  </div>
+  <div class="control-card">
+    <div class="control-heading">
+      <span>Smooth digital zoom</span>
+      <span id="zoomValue">1.0×</span>
     </div>
+    <input id="zoomSlider" type="range" min="1" max="3" step="0.1" value="1">
+  </div>
 
-    <div class="section-label">Horizon controls</div>
-    <div class="row">
-      <button id="calibrateBtn">Set Level</button>
-      <button id="sensorBtn">Enable Sensors</button>
-    </div>
-    <div class="row" style="margin-top:8px">
-      <button id="gridBtn" class="mode-btn selected">Grid: ON</button>
-      <button id="audioBtn" class="mode-btn selected">Audio: ON</button>
-    </div>
+  <div class="section-title">Colour filters</div>
+  <div class="filter-list" id="filterList">
+    <button class="filter-item active" data-filter="standard">
+      <div class="filter-preview">◉</div><div class="filter-name">Standard</div>
+    </button>
+    <button class="filter-item" data-filter="cinematic">
+      <div class="filter-preview" style="filter:contrast(1.2) saturate(.8) sepia(.18)">◉</div><div class="filter-name">Cinematic</div>
+    </button>
+    <button class="filter-item" data-filter="vivid">
+      <div class="filter-preview" style="filter:saturate(1.8)">◉</div><div class="filter-name">Vivid</div>
+    </button>
+    <button class="filter-item" data-filter="warm">
+      <div class="filter-preview" style="filter:sepia(.35) saturate(1.3)">◉</div><div class="filter-name">Warm</div>
+    </button>
+    <button class="filter-item" data-filter="cool">
+      <div class="filter-preview" style="filter:hue-rotate(15deg) saturate(.9)">◉</div><div class="filter-name">Cool</div>
+    </button>
+    <button class="filter-item" data-filter="bw">
+      <div class="filter-preview" style="filter:grayscale(1)">◉</div><div class="filter-name">B&W</div>
+    </button>
+    <button class="filter-item" data-filter="vintage">
+      <div class="filter-preview" style="filter:sepia(.55) contrast(.85)">◉</div><div class="filter-name">Vintage</div>
+    </button>
+    <button class="filter-item" data-filter="fade">
+      <div class="filter-preview" style="filter:contrast(.8) brightness(1.08) saturate(.7)">◉</div><div class="filter-name">Fade</div>
+    </button>
+  </div>
 
-    <div class="section-label">Recording</div>
-    <div class="row">
-      <button id="recordBtn" class="primary" disabled>● Record</button>
-      <button id="stopBtn" disabled>Stop</button>
+  <div class="section-title">Image controls</div>
+  <div class="control-card">
+    <div class="control-heading">
+      <span>Exposure / brightness</span>
+      <span id="exposureValue">0</span>
     </div>
+    <input id="exposureSlider" type="range" min="-50" max="50" step="1" value="0">
+  </div>
+  <div class="control-card">
+    <div class="control-heading">
+      <span>Contrast</span>
+      <span id="contrastValue">100%</span>
+    </div>
+    <input id="contrastSlider" type="range" min="50" max="160" value="100">
+  </div>
+  <div class="control-card">
+    <div class="control-heading">
+      <span>Saturation</span>
+      <span id="saturationValue">100%</span>
+    </div>
+    <input id="saturationSlider" type="range" min="0" max="200" value="100">
+  </div>
 
-    <div class="info-card">
-      <strong>System status</strong><br>
-      <span id="message">Press Start Camera to begin.</span><br><br>
-      Roll correction: <strong>limited to ±45°</strong>.<br>
-      Zoom is digital cropping, not optical zoom. Sensor availability and accuracy depend on your device and browser.
+  <div class="section-title">Recording setup</div>
+  <div class="row">
+    <div>
+      <div class="small" style="margin-bottom:6px">Aspect ratio</div>
+      <select id="aspectSelect">
+        <option value="9/16">9:16 Portrait</option>
+        <option value="16/9">16:9 Landscape</option>
+        <option value="4/3">4:3 Classic</option>
+        <option value="1/1">1:1 Square</option>
+      </select>
+    </div>
+    <div>
+      <div class="small" style="margin-bottom:6px">Frame rate</div>
+      <select id="fpsSelect">
+        <option value="30">30 FPS</option>
+        <option value="24">24 FPS</option>
+        <option value="25">25 FPS</option>
+        <option value="60">60 FPS*</option>
+      </select>
     </div>
   </div>
 
-  <footer>HORIZON FILM PRO • WEB CAMERA PROTOTYPE</footer>
+  <div class="row" style="margin-top:9px">
+    <button id="gridBtn" class="active">Grid: ON</button>
+    <button id="audioBtn" class="active">Microphone: ON</button>
+  </div>
+
+  <div class="row record-row">
+    <button id="recordBtn" class="primary" disabled>● Record</button>
+    <button id="stopBtn" disabled>Stop</button>
+  </div>
+
+  <div class="control-card small">
+    <strong style="color:#fff">Camera status</strong>
+    <p id="message">Start the camera to begin.</p>
+    Your selected colour look, zoom and image adjustments are applied to the preview and recorded video. Digital zoom crops the image and may reduce detail. Recording format is WebM on supported browsers.
+  </div>
+
+  <footer>HORIZON FILM PRO • FILMMAKING CAMERA PROTOTYPE</footer>
 </div>
 
 <script>
 "use strict";
 
-const video = document.getElementById("cameraInput");
-const canvas = document.getElementById("processedCanvas");
-const ctx = canvas.getContext("2d", { alpha: false });
+const video = document.getElementById("cameraVideo");
+const canvas = document.getElementById("viewCanvas");
+const ctx = canvas.getContext("2d", { alpha:false });
 
-const preview = document.getElementById("preview");
-const horizon = document.getElementById("horizon");
-const liveStatus = document.getElementById("liveStatus");
-const message = document.getElementById("message");
-const resolutionLabel = document.getElementById("resolutionLabel");
-const rollLabel = document.getElementById("rollLabel");
-const correctionLabel = document.getElementById("correctionLabel");
+const previewBox = document.getElementById("previewBox");
+const cameraStatus = document.getElementById("cameraStatus");
+const resolution = document.getElementById("resolution");
+const fpsLabel = document.getElementById("fpsLabel");
+const zoomLabel = document.getElementById("zoomLabel");
 const timerLabel = document.getElementById("timer");
+const message = document.getElementById("message");
 
-const startBtn = document.getElementById("startBtn");
-const switchBtn = document.getElementById("switchBtn");
-const calibrateBtn = document.getElementById("calibrateBtn");
-const sensorBtn = document.getElementById("sensorBtn");
-const gridBtn = document.getElementById("gridBtn");
-const audioBtn = document.getElementById("audioBtn");
-const recordBtn = document.getElementById("recordBtn");
-const stopBtn = document.getElementById("stopBtn");
-
-let cameraStream = null;
+let stream = null;
 let outputStream = null;
 let recorder = null;
-let recordedChunks = [];
-let animationId = 0;
-let timerInterval = null;
-let recordingStart = 0;
-let recordingSeconds = 0;
-
+let chunks = [];
 let facingMode = "environment";
 let zoom = 1;
-let showGrid = true;
-let audioEnabled = true;
-let sensorEnabled = false;
-let sensorPermissionGranted = false;
+let filterName = "standard";
+let exposure = 0;
+let contrast = 100;
+let saturation = 100;
+let gridOn = true;
+let audioOn = true;
+let raf = 0;
+let timerInterval = null;
+let recordStarted = 0;
 
-let sensorRoll = 0;
-let zeroOffset = 0;
-let filteredRoll = 0;
-let sensorSamples = 0;
-let lastSensorTime = 0;
+const filterMap = {
+  standard: "",
+  cinematic: "contrast(1.18) saturate(0.82) sepia(0.12)",
+  vivid: "contrast(1.08) saturate(1.55)",
+  warm: "sepia(0.24) saturate(1.25)",
+  cool: "hue-rotate(12deg) saturate(0.9) contrast(1.05)",
+  bw: "grayscale(1) contrast(1.12)",
+  vintage: "sepia(0.45) contrast(0.88) saturate(0.85)",
+  fade: "brightness(1.06) contrast(0.82) saturate(0.72)"
+};
 
-const MAX_ROLL = 45;
-const SMOOTHING = 0.12;
+function showMessage(text) {
+  message.textContent = text;
+}
 
-/* ---------- Camera ---------- */
+function setAspect() {
+  previewBox.style.aspectRatio = document.getElementById("aspectSelect").value;
+  setTimeout(resizeCanvas, 50);
+}
 
-async function startCamera() {
-  try {
-    message.textContent = "Requesting camera permission…";
-
-    if (!navigator.mediaDevices ||
-        !navigator.mediaDevices.getUserMedia) {
-      throw new Error("Camera API unavailable. Open this page over HTTPS.");
-    }
-
-    if (recorder && recorder.state !== "inactive") {
-      throw new Error("Stop recording before changing cameras.");
-    }
-
-    stopCameraTracks();
-
-    cameraStream = await navigator.mediaDevices.getUserMedia({
-      audio: true,
-      video: {
-        facingMode: { ideal: facingMode },
-        width: { ideal: 1920 },
-        height: { ideal: 1080 },
-        frameRate: { ideal: 30, max: 30 }
-      }
-    });
-
-    video.srcObject = cameraStream;
-    await video.play();
-
-    await waitForVideo();
-
-    liveStatus.textContent = "LIVE";
-    liveStatus.classList.add("ready");
-    startBtn.textContent = "Restart Camera";
-
-    const track = cameraStream.getVideoTracks()[0];
-    const settings = track ? track.getSettings() : {};
-
-    resolutionLabel.textContent =
-      (settings.width || video.videoWidth) + " × " +
-      (settings.height || video.videoHeight);
-
-    const audioTrack = cameraStream.getAudioTracks()[0];
-    if (audioTrack) audioTrack.enabled = audioEnabled;
-
-    resizeCanvas();
-    recordBtn.disabled = false;
-    message.textContent =
-      "Camera running. Enable sensors and set the level for best results.";
-
-    cancelAnimationFrame(animationId);
-    drawLoop();
-  } catch (err) {
-    console.error(err);
-    message.textContent = "Camera error: " + err.message;
-    liveStatus.textContent = "ERROR";
-    liveStatus.classList.remove("ready");
-  }
+function resizeCanvas() {
+  const rect = previewBox.getBoundingClientRect();
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.width = Math.max(1, Math.round(rect.width * dpr));
+  canvas.height = Math.max(1, Math.round(rect.height * dpr));
 }
 
 function waitForVideo() {
@@ -408,361 +405,316 @@ function waitForVideo() {
       resolve();
       return;
     }
-
     const timeout = setTimeout(() => {
       cleanup();
-      reject(new Error("Camera did not produce a video frame."));
+      reject(new Error("Timed out waiting for camera video."));
     }, 12000);
-
     function done() {
-      if (video.videoWidth > 0) {
+      if (video.videoWidth) {
         cleanup();
         resolve();
       }
     }
-
     function cleanup() {
       clearTimeout(timeout);
       video.removeEventListener("loadeddata", done);
       video.removeEventListener("resize", done);
     }
-
     video.addEventListener("loadeddata", done);
     video.addEventListener("resize", done);
   });
 }
 
-function stopCameraTracks() {
-  if (cameraStream) {
-    cameraStream.getTracks().forEach(track => track.stop());
+async function startCamera() {
+  try {
+    if (!navigator.mediaDevices?.getUserMedia) {
+      throw new Error("Camera access needs a supported browser and HTTPS.");
+    }
+    if (recorder && recorder.state !== "inactive") {
+      showMessage("Stop recording before restarting the camera.");
+      return;
+    }
+
+    stopTracks();
+    showMessage("Opening camera…");
+
+    stream = await navigator.mediaDevices.getUserMedia({
+      audio: true,
+      video: {
+        facingMode: { ideal:facingMode },
+        width: { ideal:1920 },
+        height: { ideal:1080 },
+        frameRate: { ideal:30 }
+      }
+    });
+
+    video.srcObject = stream;
+    await video.play();
+    await waitForVideo();
+
+    const settings = stream.getVideoTracks()[0].getSettings();
+    resolution.textContent =
+      (settings.width || video.videoWidth) + "×" +
+      (settings.height || video.videoHeight);
+
+    cameraStatus.textContent = "CAMERA ON";
+    document.getElementById("startBtn").textContent = "Restart";
+    stream.getAudioTracks().forEach(t => t.enabled = audioOn);
+
+    resizeCanvas();
+    drawLoop();
+
+    document.getElementById("recordBtn").disabled = false;
+    showMessage("Camera ready. Choose a look and record.");
+  } catch (err) {
+    showMessage("Camera error: " + err.message);
+    cameraStatus.textContent = "CAMERA ERROR";
   }
-  cameraStream = null;
+}
+
+function stopTracks() {
+  if (stream) stream.getTracks().forEach(t => t.stop());
+  stream = null;
   video.srcObject = null;
 }
 
-async function switchCamera() {
+async function flipCamera() {
   if (recorder && recorder.state !== "inactive") {
-    message.textContent = "Stop recording before switching cameras.";
+    showMessage("Stop recording before switching cameras.");
     return;
   }
-
   facingMode = facingMode === "environment" ? "user" : "environment";
   await startCamera();
 }
 
-/* ---------- Canvas preview and roll correction ---------- */
-
-function resizeCanvas() {
-  const rect = preview.getBoundingClientRect();
-  const dpr = Math.min(window.devicePixelRatio || 1, 2);
-
-  canvas.width = Math.max(1, Math.round(rect.width * dpr));
-  canvas.height = Math.max(1, Math.round(rect.height * dpr));
-}
-
-function clamp(value, min, max) {
-  return Math.min(max, Math.max(min, value));
-}
-
 function drawLoop() {
-  if (video.readyState >= 2 && video.videoWidth > 0) {
-    drawCorrectedFrame();
+  cancelAnimationFrame(raf);
+  function draw() {
+    if (video.readyState >= 2 && video.videoWidth) renderFrame();
+    raf = requestAnimationFrame(draw);
   }
-  animationId = requestAnimationFrame(drawLoop);
+  draw();
 }
 
-function drawCorrectedFrame() {
+function renderFrame() {
   const W = canvas.width;
   const H = canvas.height;
-  if (!W || !H || !video.videoWidth || !video.videoHeight) return;
-
-  // Stabilize roll only. Positive sensor roll rotates the image
-  // in the opposite direction to counter the measured tilt.
-  const correction = clamp(-(filteredRoll - zeroOffset), -MAX_ROLL, MAX_ROLL);
-  const radians = correction * Math.PI / 180;
+  if (!W || !H) return;
 
   ctx.save();
   ctx.fillStyle = "#000";
   ctx.fillRect(0, 0, W, H);
 
-  ctx.translate(W / 2, H / 2);
-  ctx.rotate(radians);
-
-  // Cover the output canvas, then crop further for digital zoom.
-  const baseScale = Math.max(
-    W / video.videoWidth,
-    H / video.videoHeight
-  );
+  // Cover the output canvas; extra zoom crops the image.
+  const baseScale = Math.max(W / video.videoWidth, H / video.videoHeight);
   const scale = baseScale * zoom;
-
   const drawW = video.videoWidth * scale;
   const drawH = video.videoHeight * scale;
 
-  ctx.drawImage(video, -drawW / 2, -drawH / 2, drawW, drawH);
+  // CSS-style filter effects are rendered into the canvas,
+  // so they are included in the saved recording.
+  const brightness = Math.max(0.5, 1 + exposure / 100);
+  const filter = [
+    filterMap[filterName],
+    "brightness(" + brightness + ")",
+    "contrast(" + contrast + "%)",
+    "saturate(" + saturation + "%)"
+  ].filter(Boolean).join(" ");
+
+  ctx.filter = filter;
+  ctx.drawImage(video, (W-drawW)/2, (H-drawH)/2, drawW, drawH);
+  ctx.filter = "none";
   ctx.restore();
 
-  rollLabel.textContent =
-    "ROLL " + (filteredRoll - zeroOffset).toFixed(1) + "°";
-
-  // The guide shows the estimated level error, not camera position.
-  horizon.style.transform =
-    "translateY(-50%) rotate(" +
-    clamp(filteredRoll - zeroOffset, -MAX_ROLL, MAX_ROLL) + "deg)";
-
-  correctionLabel.textContent =
-    Math.abs(filteredRoll - zeroOffset) > MAX_ROLL
-      ? "LIMIT ±45°"
-      : "ROLL CORRECTION";
+  zoomLabel.textContent = zoom.toFixed(1) + "×";
 }
 
-/* ---------- Motion sensors ---------- */
-
-function onOrientation(event) {
-  // gamma is a useful approximation for roll when the phone is
-  // held upright in portrait. It is not universally correct for
-  // every device orientation.
-  let rawRoll;
-
-  if (typeof event.gamma === "number") {
-    rawRoll = event.gamma;
-  } else {
-    return;
-  }
-
-  rawRoll = clamp(rawRoll, -90, 90);
-
-  const now = performance.now();
-  if (sensorSamples === 0) {
-    filteredRoll = rawRoll;
-  } else {
-    // Low-pass filter removes some sensor jitter.
-    filteredRoll += SMOOTHING * (rawRoll - filteredRoll);
-  }
-
-  sensorRoll = rawRoll;
-  sensorSamples++;
-  lastSensorTime = now;
+function selectZoom(value) {
+  zoom = Number(value);
+  document.getElementById("zoomSlider").value = zoom;
+  document.getElementById("zoomValue").textContent = zoom.toFixed(1) + "×";
+  document.querySelectorAll(".zoomBtn").forEach(btn => {
+    btn.classList.toggle("active", Number(btn.dataset.zoom) === zoom);
+  });
 }
 
-async function enableSensors() {
-  try {
-    if (!("DeviceOrientationEvent" in window)) {
-      throw new Error("This browser does not provide orientation sensors.");
-    }
+document.querySelectorAll(".zoomBtn").forEach(btn => {
+  btn.addEventListener("click", () => selectZoom(btn.dataset.zoom));
+});
 
-    // Some browsers require permission through a user gesture.
-    if (typeof DeviceOrientationEvent.requestPermission === "function") {
-      const permission = await DeviceOrientationEvent.requestPermission();
-      if (permission !== "granted") {
-        throw new Error("Motion sensor permission was not granted.");
-      }
-    }
+document.getElementById("zoomSlider").addEventListener("input", e => {
+  zoom = Number(e.target.value);
+  document.getElementById("zoomValue").textContent = zoom.toFixed(1) + "×";
+  document.querySelectorAll(".zoomBtn").forEach(btn => {
+    btn.classList.toggle("active", Number(btn.dataset.zoom) === zoom);
+  });
+});
 
-    window.addEventListener("deviceorientation", onOrientation, true);
-    sensorEnabled = true;
-    sensorPermissionGranted = true;
-    sensorBtn.textContent = "Sensors: ON";
-    sensorBtn.classList.add("selected");
-    message.textContent =
-      "Sensors enabled. Hold the phone level, then press Set Level.";
-  } catch (err) {
-    message.textContent = err.message;
-  }
-}
-
-function calibrateLevel() {
-  if (!sensorEnabled || sensorSamples === 0) {
-    message.textContent = "Enable sensors and wait for a sensor reading first.";
-    return;
-  }
-
-  zeroOffset = filteredRoll;
-  message.textContent = "Level calibrated. Keep the phone steady briefly.";
-}
-
-/* ---------- Zoom and interface ---------- */
-
-document.querySelectorAll(".zoom-btn").forEach(button => {
-  button.addEventListener("click", () => {
-    zoom = Number(button.dataset.zoom);
-    document.querySelectorAll(".zoom-btn").forEach(b => {
-      b.classList.toggle("selected", b === button);
+document.querySelectorAll(".filter-item").forEach(btn => {
+  btn.addEventListener("click", () => {
+    filterName = btn.dataset.filter;
+    document.querySelectorAll(".filter-item").forEach(b => {
+      b.classList.toggle("active", b === btn);
     });
   });
 });
 
-gridBtn.addEventListener("click", () => {
-  showGrid = !showGrid;
-  document.getElementById("grid").style.display = showGrid ? "block" : "none";
-  gridBtn.textContent = "Grid: " + (showGrid ? "ON" : "OFF");
-  gridBtn.classList.toggle("selected", showGrid);
+document.getElementById("exposureSlider").addEventListener("input", e => {
+  exposure = Number(e.target.value);
+  document.getElementById("exposureValue").textContent =
+    (exposure > 0 ? "+" : "") + exposure;
 });
 
-audioBtn.addEventListener("click", () => {
-  audioEnabled = !audioEnabled;
-
-  if (cameraStream) {
-    cameraStream.getAudioTracks().forEach(track => {
-      track.enabled = audioEnabled;
-    });
-  }
-
-  audioBtn.textContent = "Audio: " + (audioEnabled ? "ON" : "OFF");
-  audioBtn.classList.toggle("selected", audioEnabled);
+document.getElementById("contrastSlider").addEventListener("input", e => {
+  contrast = Number(e.target.value);
+  document.getElementById("contrastValue").textContent = contrast + "%";
 });
 
-startBtn.addEventListener("click", startCamera);
-switchBtn.addEventListener("click", switchCamera);
-sensorBtn.addEventListener("click", enableSensors);
-calibrateBtn.addEventListener("click", calibrateLevel);
-
-window.addEventListener("resize", resizeCanvas);
-window.addEventListener("orientationchange", () => {
-  setTimeout(resizeCanvas, 250);
+document.getElementById("saturationSlider").addEventListener("input", e => {
+  saturation = Number(e.target.value);
+  document.getElementById("saturationValue").textContent = saturation + "%";
 });
 
-/* ---------- Video recording ---------- */
+document.getElementById("aspectSelect").addEventListener("change", setAspect);
 
-function chooseRecorderType() {
-  const types = [
+document.getElementById("fpsSelect").addEventListener("change", e => {
+  fpsLabel.textContent = e.target.value + " FPS";
+  showMessage("The selected frame rate applies to canvas recording where supported. Actual capture rate may vary.");
+});
+
+document.getElementById("gridBtn").addEventListener("click", e => {
+  gridOn = !gridOn;
+  document.getElementById("gridOverlay").style.display = gridOn ? "block" : "none";
+  e.currentTarget.textContent = "Grid: " + (gridOn ? "ON" : "OFF");
+  e.currentTarget.classList.toggle("active", gridOn);
+});
+
+document.getElementById("audioBtn").addEventListener("click", e => {
+  audioOn = !audioOn;
+  if (stream) stream.getAudioTracks().forEach(t => t.enabled = audioOn);
+  e.currentTarget.textContent = "Microphone: " + (audioOn ? "ON" : "OFF");
+  e.currentTarget.classList.toggle("active", audioOn);
+});
+
+document.getElementById("startBtn").addEventListener("click", startCamera);
+document.getElementById("switchBtn").addEventListener("click", flipCamera);
+
+function supportedMime() {
+  if (!window.MediaRecorder) return "";
+  const options = [
     "video/webm;codecs=vp9,opus",
     "video/webm;codecs=vp8,opus",
     "video/webm"
   ];
-
-  for (const type of types) {
-    if (window.MediaRecorder &&
-        MediaRecorder.isTypeSupported(type)) {
-      return type;
-    }
-  }
-  return "";
+  return options.find(type => MediaRecorder.isTypeSupported(type)) || "";
 }
 
 function startRecording() {
-  if (!cameraStream || !video.videoWidth) {
-    message.textContent = "Start the camera before recording.";
+  if (!stream) {
+    showMessage("Start the camera first.");
+    return;
+  }
+  if (!canvas.captureStream || !window.MediaRecorder) {
+    showMessage("This browser does not support canvas video recording.");
     return;
   }
 
   try {
-    recordedChunks = [];
+    chunks = [];
+    const fps = Number(document.getElementById("fpsSelect").value);
+    outputStream = canvas.captureStream(fps);
 
-    // Record the corrected canvas, not the original camera video.
-    outputStream = canvas.captureStream(30);
-
-    // Include microphone audio, if available and enabled.
-    if (audioEnabled && cameraStream) {
-      cameraStream.getAudioTracks().forEach(track => {
-        if (track.readyState === "live") {
-          outputStream.addTrack(track);
-        }
+    if (audioOn) {
+      stream.getAudioTracks().forEach(track => {
+        if (track.readyState === "live") outputStream.addTrack(track);
       });
     }
 
-    const mimeType = chooseRecorderType();
-    recorder = new MediaRecorder(
-      outputStream,
-      mimeType ? { mimeType } : undefined
-    );
+    const mime = supportedMime();
+    recorder = new MediaRecorder(outputStream, mime ? { mimeType:mime } : undefined);
 
-    recorder.ondataavailable = event => {
-      if (event.data && event.data.size > 0) {
-        recordedChunks.push(event.data);
-      }
+    recorder.ondataavailable = e => {
+      if (e.data && e.data.size) chunks.push(e.data);
     };
-
-    recorder.onerror = event => {
-      message.textContent = "Recording error: " +
-        (event.error ? event.error.message : "unknown error");
-    };
-
+    recorder.onerror = () => showMessage("A recording error occurred.");
     recorder.onstop = saveRecording;
     recorder.start(250);
 
-    recordingStart = Date.now();
-    recordingSeconds = 0;
+    recordStarted = Date.now();
     timerLabel.textContent = "00:00";
-
     timerInterval = setInterval(updateTimer, 250);
 
-    recordBtn.disabled = true;
-    recordBtn.classList.add("recording");
-    recordBtn.textContent = "● Recording";
-    stopBtn.disabled = false;
-    message.textContent = "Recording the corrected canvas video…";
+    document.getElementById("recordBtn").disabled = true;
+    document.getElementById("recordBtn").classList.add("recording");
+    document.getElementById("recordBtn").textContent = "● Recording";
+    document.getElementById("stopBtn").disabled = false;
+    showMessage("Recording video with your selected colour look…");
   } catch (err) {
-    message.textContent = "Cannot start recording: " + err.message;
-    cleanupOutputStream();
+    showMessage("Could not record: " + err.message);
+    cleanupOutput();
   }
 }
 
 function updateTimer() {
-  recordingSeconds = Math.floor((Date.now() - recordingStart) / 1000);
-  const minutes = String(Math.floor(recordingSeconds / 60)).padStart(2, "0");
-  const seconds = String(recordingSeconds % 60).padStart(2, "0");
-  timerLabel.textContent = minutes + ":" + seconds;
+  const seconds = Math.floor((Date.now() - recordStarted) / 1000);
+  timerLabel.textContent =
+    String(Math.floor(seconds / 60)).padStart(2, "0") + ":" +
+    String(seconds % 60).padStart(2, "0");
 }
 
 function stopRecording() {
-  if (recorder && recorder.state !== "inactive") {
-    recorder.stop();
-  }
+  if (recorder && recorder.state !== "inactive") recorder.stop();
   clearInterval(timerInterval);
   timerInterval = null;
 
-  recordBtn.disabled = !cameraStream;
-  recordBtn.classList.remove("recording");
-  recordBtn.textContent = "● Record";
-  stopBtn.disabled = true;
+  document.getElementById("recordBtn").disabled = !stream;
+  document.getElementById("recordBtn").classList.remove("recording");
+  document.getElementById("recordBtn").textContent = "● Record";
+  document.getElementById("stopBtn").disabled = true;
 }
 
 function saveRecording() {
-  if (!recordedChunks.length) {
-    message.textContent = "No video data was recorded.";
-    cleanupOutputStream();
+  if (!chunks.length) {
+    showMessage("No video data was produced.");
+    cleanupOutput();
     return;
   }
 
-  const mimeType = recorder && recorder.mimeType
-    ? recorder.mimeType
-    : "video/webm";
-
-  const blob = new Blob(recordedChunks, { type: mimeType });
+  const type = recorder.mimeType || "video/webm";
+  const blob = new Blob(chunks, {type});
   const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
+  const a = document.createElement("a");
 
-  link.href = url;
-  link.download = "horizon-film-pro-" +
+  a.href = url;
+  a.download = "horizon-film-" +
     new Date().toISOString().replace(/[:.]/g, "-") + ".webm";
-
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-
-  // Revoke the URL after the browser has had time to start downloading.
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 60000);
 
-  message.textContent =
-    "Recording saved as a WebM video. Check your Downloads folder.";
-  cleanupOutputStream();
+  showMessage("Video saved. Check your Downloads folder.");
+  cleanupOutput();
 }
 
-function cleanupOutputStream() {
+function cleanupOutput() {
   if (outputStream) {
-    outputStream.getTracks().forEach(track => track.stop());
+    outputStream.getTracks().forEach(t => t.stop());
     outputStream = null;
   }
 }
 
-recordBtn.addEventListener("click", startRecording);
-stopBtn.addEventListener("click", stopRecording);
+document.getElementById("recordBtn").addEventListener("click", startRecording);
+document.getElementById("stopBtn").addEventListener("click", stopRecording);
+
+window.addEventListener("resize", resizeCanvas);
+window.addEventListener("orientationchange", () => setTimeout(resizeCanvas, 250));
 
 window.addEventListener("beforeunload", () => {
-  cancelAnimationFrame(animationId);
+  cancelAnimationFrame(raf);
   clearInterval(timerInterval);
-  stopCameraTracks();
-  cleanupOutputStream();
+  stopTracks();
+  cleanupOutput();
 });
 </script>
 </body>
