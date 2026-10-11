@@ -8,236 +8,95 @@
 
 <style>
 :root {
-  --bg:#0b0c0e;
-  --panel:#1b1d21;
-  --line:#33363d;
-  --text:#f5f5f5;
-  --muted:#a4a8af;
-  --accent:#f2c14e;
+  --bg:#0b0c0e; --panel:#1b1d21; --line:#33363d;
+  --text:#f5f5f5; --muted:#a4a8af; --accent:#f2c14e;
   --red:#ff4055;
 }
 * { box-sizing:border-box; }
 html,body {
-  margin:0;
-  width:100%;
-  height:100%;
-  overflow:hidden;
-  background:var(--bg);
-  color:var(--text);
+  margin:0; width:100%; height:100%; overflow:hidden;
+  background:var(--bg); color:var(--text);
   font-family:Arial,sans-serif;
 }
-button,input,select { font:inherit; }
+button,input { font:inherit; }
 button {
-  background:#292c31;
-  color:var(--text);
-  border:1px solid var(--line);
-  border-radius:8px;
-  padding:7px 8px;
-  font-size:11px;
+  background:#292c31; color:var(--text);
+  border:1px solid var(--line); border-radius:8px;
+  padding:7px 8px; font-size:11px;
   touch-action:manipulation;
 }
-button:active { transform:scale(.98); }
 button:disabled { opacity:.45; }
-.active {
-  border-color:var(--accent);
-  color:var(--accent);
-  background:#322c1d;
-}
-.primary {
-  background:var(--accent);
-  color:#15120a;
-  border-color:var(--accent);
-  font-weight:800;
-}
-.recording {
-  background:var(--red);
-  border-color:var(--red);
-  color:white;
-}
+.active { border-color:var(--accent); color:var(--accent); }
+.primary { background:var(--accent); color:#15120a; border-color:var(--accent); font-weight:bold; }
+.recording { background:var(--red); border-color:var(--red); color:white; }
 .app {
-  height:100dvh;
-  width:100%;
-  max-width:700px;
-  margin:auto;
-  padding:5px 8px max(5px, env(safe-area-inset-bottom));
-  display:flex;
-  flex-direction:column;
-  gap:5px;
-  overflow:hidden;
+  height:100dvh; width:100%; max-width:700px; margin:auto;
+  padding:5px 8px max(5px,env(safe-area-inset-bottom));
+  display:flex; flex-direction:column; gap:5px; overflow:hidden;
 }
 header {
-  min-height:32px;
-  flex-shrink:0;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
+  min-height:31px; flex-shrink:0;
+  display:flex; align-items:center; justify-content:space-between;
 }
-.logo {
-  font-size:14px;
-  font-weight:900;
-  letter-spacing:.8px;
-}
+.logo { font-size:14px; font-weight:900; letter-spacing:.8px; }
 .logo span { color:var(--accent); }
-.subtitle {
-  color:var(--muted);
-  font-size:8px;
-  margin-top:2px;
-}
-.status {
-  color:var(--muted);
-  font-size:9px;
-  border:1px solid var(--line);
-  border-radius:14px;
-  padding:5px 7px;
-}
+.subtitle { color:var(--muted); font-size:8px; margin-top:2px; }
+.status { color:var(--muted); font-size:9px; border:1px solid var(--line); border-radius:14px; padding:5px 7px; }
+
 #previewBox {
-  position:relative;
-  width:100%;
-  flex:1 1 auto;
-  min-height:0;
-  background:#000;
-  overflow:hidden;
-  border:1px solid #292c31;
-  border-radius:10px;
+  position:relative; width:100%; flex:1 1 auto; min-height:0;
+  background:#000; overflow:hidden; border:1px solid #292c31; border-radius:10px;
 }
 #cameraVideo { display:none; }
-#viewCanvas {
-  width:100%;
-  height:100%;
-  display:block;
-  background:#000;
-}
+#viewCanvas { display:block; width:100%; height:100%; background:#000; }
 .hud {
-  position:absolute;
-  left:6px;
-  right:6px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
+  position:absolute; left:6px; right:6px;
+  display:flex; align-items:center; justify-content:space-between;
   pointer-events:none;
 }
 .hud.top { top:6px; }
 .hud.bottom { bottom:6px; }
-.chip {
-  background:#08090bdc;
-  border:1px solid #ffffff20;
-  border-radius:5px;
-  padding:5px 6px;
-  font-size:9px;
-}
+.chip { background:#08090bdc; border:1px solid #ffffff20; border-radius:5px; padding:5px 6px; font-size:9px; }
 #gridOverlay {
-  position:absolute;
-  inset:0;
-  pointer-events:none;
+  position:absolute; inset:0; pointer-events:none;
   background:
     linear-gradient(to right,transparent 33.1%,#ffffff45 33.3%,transparent 33.6%,transparent 66.4%,#ffffff45 66.6%,transparent 66.9%),
     linear-gradient(to bottom,transparent 33.1%,#ffffff45 33.3%,transparent 33.6%,transparent 66.4%,#ffffff45 66.6%,transparent 66.9%);
 }
-.controls {
-  flex-shrink:0;
-  display:flex;
-  flex-direction:column;
-  gap:5px;
-}
-.section-label {
-  font-size:8px;
-  color:var(--muted);
-  text-transform:uppercase;
-  letter-spacing:1px;
-}
+.controls { flex-shrink:0; display:flex; flex-direction:column; gap:4px; }
 .row { display:flex; align-items:center; gap:5px; }
 .row > * { flex:1; min-width:0; }
+.section-label { font-size:8px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; }
 .zoom-panel {
-  display:flex;
-  align-items:center;
-  gap:8px;
-  background:var(--panel);
-  border:1px solid #292c31;
-  border-radius:8px;
-  padding:5px 8px;
+  display:flex; align-items:center; gap:8px;
+  background:var(--panel); border:1px solid #292c31;
+  border-radius:8px; padding:4px 8px;
 }
-.zoom-panel label {
-  color:var(--muted);
-  font-size:10px;
-  white-space:nowrap;
-}
+.zoom-panel label { color:var(--muted); font-size:10px; }
 .zoom-panel input { flex:1; min-width:0; }
-#zoomValue {
-  color:var(--accent);
-  font-size:10px;
-  width:30px;
-  text-align:right;
-}
-input[type=range] {
-  width:100%;
-  height:18px;
-  margin:0;
-  accent-color:var(--accent);
-}
-.whitebalance {
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:5px;
-}
-.wb-card {
-  background:var(--panel);
-  border:1px solid #292c31;
-  border-radius:8px;
-  padding:5px 7px;
-  min-width:0;
-}
-.wb-heading {
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:4px;
-  margin-bottom:3px;
-}
-.wb-heading span:first-child {
-  font-size:10px;
-  color:#e9e9e9;
-}
-.wb-heading span:last-child {
-  color:var(--accent);
-  font-size:10px;
-  white-space:nowrap;
-}
-.wb-card input { display:block; }
-.presets {
-  display:flex;
-  gap:4px;
-}
-.presets button {
-  flex:1;
-  padding:6px 2px;
-  font-size:9px;
-}
-.bottom-controls {
-  display:grid;
-  grid-template-columns:1fr 1fr 1.25fr;
-  gap:5px;
-}
-#message {
-  font-size:9px;
-  color:var(--muted);
-  min-height:11px;
-  overflow:hidden;
-  white-space:nowrap;
-  text-overflow:ellipsis;
-}
+#zoomValue { color:var(--accent); font-size:10px; width:32px; text-align:right; }
+input[type=range] { width:100%; height:18px; margin:0; accent-color:var(--accent); }
+.whitebalance { display:grid; grid-template-columns:1fr 1fr; gap:5px; }
+.wb-card { background:var(--panel); border:1px solid #292c31; border-radius:8px; padding:4px 7px; min-width:0; }
+.wb-heading { display:flex; align-items:center; justify-content:space-between; gap:4px; margin-bottom:2px; }
+.wb-heading span:first-child { font-size:10px; }
+.wb-heading span:last-child { color:var(--accent); font-size:10px; white-space:nowrap; }
+.presets { display:flex; gap:4px; }
+.presets button { flex:1; padding:5px 2px; font-size:9px; }
+.bottom-controls { display:grid; grid-template-columns:1fr 1fr 1.25fr; gap:5px; }
+#stopBtn { display:none; }
+#message { font-size:9px; color:var(--muted); min-height:11px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
 @media(max-height:680px) {
   .app { gap:3px; padding-top:3px; }
-  header { min-height:27px; }
+  header { min-height:26px; }
   .logo { font-size:12px; }
   .controls { gap:3px; }
   .wb-card { padding:3px 6px; }
-  .presets button { padding:4px 2px; }
-  button { padding:6px 6px; }
+  .presets button,button { padding:5px 5px; }
 }
 @media(max-height:570px) {
-  .subtitle { display:none; }
+  .subtitle,.section-label { display:none; }
   .wb-card input { height:14px; }
-  .section-label { display:none; }
 }
 </style>
 </head>
@@ -252,7 +111,6 @@ input[type=range] {
     <div class="status" id="cameraStatus">CAMERA OFF</div>
   </header>
 
-  <!-- Large camera preview -->
   <div id="previewBox">
     <video id="cameraVideo" autoplay muted playsinline></video>
     <canvas id="viewCanvas"></canvas>
@@ -274,7 +132,6 @@ input[type=range] {
       <button id="gridBtn" class="active">Grid ON</button>
     </div>
 
-    <!-- One zoom slider, no zoom buttons -->
     <div class="zoom-panel">
       <label for="zoomSlider">ZOOM</label>
       <input id="zoomSlider" type="range" min="1" max="3" step="0.05" value="1">
@@ -282,29 +139,22 @@ input[type=range] {
     </div>
 
     <div class="section-label">White balance</div>
-
     <div class="whitebalance">
       <div class="wb-card">
-        <div class="wb-heading">
-          <span>TEMP</span>
-          <span id="tempValue">6400 K</span>
-        </div>
+        <div class="wb-heading"><span>TEMP</span><span id="tempValue">6400 K</span></div>
         <input id="tempSlider" type="range" min="2500" max="10000" step="100" value="6400">
       </div>
       <div class="wb-card">
-        <div class="wb-heading">
-          <span>TINT</span>
-          <span id="tintValue">0</span>
-        </div>
+        <div class="wb-heading"><span>TINT</span><span id="tintValue">0</span></div>
         <input id="tintSlider" type="range" min="-100" max="100" value="0">
       </div>
     </div>
 
     <div class="presets">
-      <button data-temp="3200" data-tint="0">Bulb</button>
-      <button data-temp="4500" data-tint="0">Fluorescent</button>
-      <button data-temp="5600" data-tint="0">Daylight</button>
-      <button data-temp="6500" data-tint="0">Cloudy</button>
+      <button data-temp="3200">Bulb</button>
+      <button data-temp="4500">Fluorescent</button>
+      <button data-temp="5600">Daylight</button>
+      <button data-temp="6500">Cloudy</button>
       <button id="awbBtn" class="active">AWB</button>
     </div>
 
@@ -322,6 +172,7 @@ input[type=range] {
       <button id="audioBtn" class="active">Mic ON</button>
       <button id="fpsBtn">30 FPS</button>
       <button id="recordBtn" class="primary" disabled>● Record</button>
+      <button id="stopBtn">■ Stop</button>
     </div>
     <div id="message">Start the camera to begin.</div>
   </div>
@@ -330,10 +181,11 @@ input[type=range] {
 <script>
 "use strict";
 
-const video = document.getElementById("cameraVideo");
-const canvas = document.getElementById("viewCanvas");
+const $ = id => document.getElementById(id);
+const video = $("cameraVideo");
+const canvas = $("viewCanvas");
 const ctx = canvas.getContext("2d", {alpha:false});
-const previewBox = document.getElementById("previewBox");
+const previewBox = $("previewBox");
 
 let stream = null;
 let outputStream = null;
@@ -343,7 +195,6 @@ let raf = 0;
 let timerInterval = null;
 let recordStart = 0;
 let facingMode = "environment";
-
 let zoom = 1;
 let temperature = 6400;
 let tint = 0;
@@ -352,46 +203,47 @@ let audioEnabled = true;
 let gridEnabled = true;
 let fps = 30;
 let awb = true;
-
-const $ = id => document.getElementById(id);
-const message = text => $("message").textContent = text;
+let saving = false;
 
 const filterMap = {
-  standard: "",
-  cinematic: "contrast(1.16) saturate(.82) sepia(.10)",
-  vivid: "contrast(1.08) saturate(1.5)",
-  warm: "sepia(.22) saturate(1.2)",
-  bw: "grayscale(1) contrast(1.1)",
-  vintage: "sepia(.42) contrast(.9) saturate(.82)"
+  standard:"",
+  cinematic:"contrast(1.16) saturate(.82) sepia(.10)",
+  vivid:"contrast(1.08) saturate(1.5)",
+  warm:"sepia(.22) saturate(1.2)",
+  bw:"grayscale(1) contrast(1.1)",
+  vintage:"sepia(.42) contrast(.9) saturate(.82)"
 };
+
+function message(text) { $("message").textContent = text; }
 
 function resizeCanvas() {
   const r = previewBox.getBoundingClientRect();
-  const dpr = Math.min(devicePixelRatio || 1, 2);
-  canvas.width = Math.max(1, Math.round(r.width*dpr));
-  canvas.height = Math.max(1, Math.round(r.height*dpr));
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const w = Math.max(1, Math.round(r.width*dpr));
+  const h = Math.max(1, Math.round(r.height*dpr));
+  if (canvas.width !== w || canvas.height !== h) {
+    canvas.width = w;
+    canvas.height = h;
+  }
 }
 
 function waitForVideo() {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve,reject) => {
     if (video.readyState >= 2 && video.videoWidth) return resolve();
     const timeout = setTimeout(() => {
       cleanup();
       reject(new Error("Camera did not produce a video frame."));
-    }, 12000);
+    },12000);
     const done = () => {
-      if (video.videoWidth) {
-        cleanup();
-        resolve();
-      }
+      if (video.videoWidth) { cleanup(); resolve(); }
     };
     function cleanup() {
       clearTimeout(timeout);
-      video.removeEventListener("loadeddata", done);
-      video.removeEventListener("resize", done);
+      video.removeEventListener("loadeddata",done);
+      video.removeEventListener("resize",done);
     }
-    video.addEventListener("loadeddata", done);
-    video.addEventListener("resize", done);
+    video.addEventListener("loadeddata",done);
+    video.addEventListener("resize",done);
   });
 }
 
@@ -435,7 +287,7 @@ async function startCamera() {
     drawLoop();
     $("recordBtn").disabled = false;
     message("Camera ready.");
-  } catch (e) {
+  } catch(e) {
     message("Camera error: " + e.message);
     $("cameraStatus").textContent = "CAMERA ERROR";
   }
@@ -467,57 +319,55 @@ function drawLoop() {
 
 function renderFrame() {
   const W = canvas.width, H = canvas.height;
-  if (!W || !H) return;
+  if (!W || !H || !video.videoWidth || !video.videoHeight) return;
 
-  // Fill the preview and crop the image as zoom increases.
-  const scale = Math.max(W/video.videoWidth, H/video.videoHeight)*zoom;
-  const dw = video.videoWidth*scale;
-  const dh = video.videoHeight*scale;
-
-  // Approximate colour-temperature adjustment using a warm/cool
-  // colour overlay. This does not change the camera sensor's WB.
-  const warm = (6500-temperature)/7500;
-  const warmth = Math.max(-0.55, Math.min(0.55, warm));
-  const tintAmount = tint/250;
+  // Consistent centre crop: 1x fills the preview; slider values
+  // multiply that base scale to produce smooth digital zoom.
+  const baseScale = Math.max(W/video.videoWidth, H/video.videoHeight);
+  const scale = baseScale * zoom;
+  const dw = video.videoWidth * scale;
+  const dh = video.videoHeight * scale;
 
   ctx.save();
+  ctx.globalCompositeOperation = "source-over";
+  ctx.filter = filterMap[filterName] || "";
   ctx.fillStyle = "#000";
   ctx.fillRect(0,0,W,H);
-
-  ctx.filter = filterMap[filterName] || "";
   ctx.drawImage(video,(W-dw)/2,(H-dh)/2,dw,dh);
   ctx.filter = "none";
 
-  if (!awb && Math.abs(warmth) > 0.01) {
-    ctx.globalCompositeOperation = "soft-light";
-    ctx.fillStyle = warmth > 0
-      ? "rgba(255,150,55," + Math.abs(warmth)*0.55 + ")"
-      : "rgba(65,140,255," + Math.abs(warmth)*0.55 + ")";
-    ctx.fillRect(0,0,W,H);
+  // Approximate white-balance colour grading.
+  if (!awb) {
+    const warmth = Math.max(-.55,Math.min(.55,(6500-temperature)/7500));
+    if (Math.abs(warmth) > .01) {
+      ctx.globalCompositeOperation = "soft-light";
+      ctx.fillStyle = warmth > 0
+        ? "rgba(255,150,55," + Math.abs(warmth)*.55 + ")"
+        : "rgba(65,140,255," + Math.abs(warmth)*.55 + ")";
+      ctx.fillRect(0,0,W,H);
+    }
+    const ta = tint/250;
+    if (Math.abs(ta) > .005) {
+      ctx.globalCompositeOperation = "soft-light";
+      ctx.fillStyle = ta > 0
+        ? "rgba(255,45,150," + Math.abs(ta) + ")"
+        : "rgba(60,255,100," + Math.abs(ta) + ")";
+      ctx.fillRect(0,0,W,H);
+    }
   }
-
-  if (!awb && Math.abs(tintAmount) > 0.005) {
-    ctx.globalCompositeOperation = "soft-light";
-    ctx.fillStyle = tintAmount > 0
-      ? "rgba(255,45,150," + Math.abs(tintAmount) + ")"
-      : "rgba(60,255,100," + Math.abs(tintAmount) + ")";
-    ctx.fillRect(0,0,W,H);
-  }
-
-  ctx.globalCompositeOperation = "source-over";
   ctx.restore();
 
-  $("zoomHud").textContent = zoom.toFixed(1)+"×";
+  $("zoomHud").textContent = zoom.toFixed(2).replace(/0$/,"")+"×";
 }
 
-$("startBtn").addEventListener("click",startCamera);
-$("switchBtn").addEventListener("click",flipCamera);
-
+/* Zoom slider */
 $("zoomSlider").addEventListener("input",e => {
   zoom = Number(e.target.value);
-  $("zoomValue").textContent = zoom.toFixed(1)+"×";
+  $("zoomValue").textContent = zoom.toFixed(2).replace(/0$/,"")+"×";
+  $("zoomHud").textContent = zoom.toFixed(2).replace(/0$/,"")+"×";
 });
 
+/* White balance */
 $("tempSlider").addEventListener("input",e => {
   temperature = Number(e.target.value);
   awb = false;
@@ -535,12 +385,12 @@ $("tintSlider").addEventListener("input",e => {
 document.querySelectorAll("[data-temp]").forEach(btn => {
   btn.addEventListener("click",() => {
     temperature = Number(btn.dataset.temp);
-    tint = Number(btn.dataset.tint);
+    tint = 0;
     awb = false;
     $("tempSlider").value = temperature;
-    $("tintSlider").value = tint;
+    $("tintSlider").value = 0;
     $("tempValue").textContent = temperature+" K";
-    $("tintValue").textContent = tint;
+    $("tintValue").textContent = "0";
     $("awbBtn").classList.remove("active");
   });
 });
@@ -550,13 +400,13 @@ $("awbBtn").addEventListener("click",() => {
   temperature = 6400;
   tint = 0;
   $("tempSlider").value = temperature;
-  $("tintSlider").value = tint;
-  $("tempValue").textContent = temperature+" K";
+  $("tintSlider").value = 0;
+  $("tempValue").textContent = "6400 K";
   $("tintValue").textContent = "0";
   $("awbBtn").classList.add("active");
-  message("Automatic colour rendering selected.");
 });
 
+/* Filters */
 document.querySelectorAll(".filter").forEach(btn => {
   btn.addEventListener("click",() => {
     filterName = btn.dataset.filter;
@@ -566,6 +416,7 @@ document.querySelectorAll(".filter").forEach(btn => {
   });
 });
 
+/* Grid and audio */
 $("gridBtn").addEventListener("click",() => {
   gridEnabled = !gridEnabled;
   $("gridOverlay").style.display = gridEnabled ? "block" : "none";
@@ -586,6 +437,10 @@ $("fpsBtn").addEventListener("click",() => {
   $("fpsLabel").textContent = fps+" FPS";
 });
 
+$("startBtn").addEventListener("click",startCamera);
+$("switchBtn").addEventListener("click",flipCamera);
+
+/* Recording */
 function supportedMime() {
   if (!window.MediaRecorder) return "";
   const types = [
@@ -608,6 +463,7 @@ function startRecording() {
 
   try {
     chunks = [];
+    saving = false;
     outputStream = canvas.captureStream(fps);
 
     if (audioEnabled) {
@@ -624,7 +480,9 @@ function startRecording() {
     };
     recorder.onerror = () => message("Recording error.");
     recorder.onstop = saveRecording;
-    recorder.start(250);
+
+    // Collect data regularly so the final file is complete.
+    recorder.start(500);
 
     recordStart = Date.now();
     $("timer").textContent = "00:00";
@@ -638,39 +496,86 @@ function startRecording() {
     $("recordBtn").disabled = true;
     $("recordBtn").classList.add("recording");
     $("recordBtn").textContent = "● REC";
-    message("Recording…");
+
+    // Explicitly show and enable Stop while recording.
+    $("stopBtn").style.display = "block";
+    $("stopBtn").disabled = false;
+
+    message("Recording… press Stop to save the video.");
   } catch(e) {
-    message("Cannot record: "+e.message);
+    message("Cannot record: " + e.message);
     cleanupOutput();
+    resetRecordingButtons();
   }
 }
 
 function stopRecording() {
-  if (recorder && recorder.state !== "inactive") recorder.stop();
-  clearInterval(timerInterval);
-  $("recordBtn").disabled = !stream;
-  $("recordBtn").classList.remove("recording");
-  $("recordBtn").textContent = "● Record";
-}
-
-function saveRecording() {
-  if (!chunks.length) {
-    message("No video data recorded.");
-    cleanupOutput();
+  // Guard against presses when no recording is active.
+  if (!recorder || recorder.state === "inactive") {
+    message("There is no active recording.");
     return;
   }
 
-  const blob = new Blob(chunks,{type:recorder.mimeType || "video/webm"});
+  $("stopBtn").disabled = true;
+  message("Finishing video…");
+
+  clearInterval(timerInterval);
+  timerInterval = null;
+
+  try {
+    // Stop fires the onstop handler, which saves the collected data.
+    recorder.stop();
+  } catch(e) {
+    message("Could not stop recording: " + e.message);
+    resetRecordingButtons();
+  }
+}
+
+function saveRecording() {
+  if (saving) return;
+  saving = true;
+
+  clearInterval(timerInterval);
+  timerInterval = null;
+
+  if (!chunks.length) {
+    message("No video data was recorded.");
+    cleanupOutput();
+    resetRecordingButtons();
+    return;
+  }
+
+  const type = recorder && recorder.mimeType
+    ? recorder.mimeType : "video/webm";
+  const blob = new Blob(chunks,{type});
+
+  if (!blob.size) {
+    message("The recording is empty. Please try again.");
+    cleanupOutput();
+    resetRecordingButtons();
+    return;
+  }
+
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = "horizon-film-"+Date.now()+".webm";
+  a.download = "horizon-film-" + Date.now() + ".webm";
   document.body.appendChild(a);
   a.click();
   a.remove();
+
   setTimeout(() => URL.revokeObjectURL(url),60000);
-  message("Video saved to Downloads.");
+  message("Video saved. Check your Downloads folder.");
   cleanupOutput();
+  resetRecordingButtons();
+}
+
+function resetRecordingButtons() {
+  $("recordBtn").disabled = !stream;
+  $("recordBtn").classList.remove("recording");
+  $("recordBtn").textContent = "● Record";
+  $("stopBtn").style.display = "none";
+  $("stopBtn").disabled = true;
 }
 
 function cleanupOutput() {
@@ -681,17 +586,7 @@ function cleanupOutput() {
 }
 
 $("recordBtn").addEventListener("click",startRecording);
-$("recordBtn").insertAdjacentHTML("afterend",
-  '<button id="stopBtn" disabled>Stop</button>');
 $("stopBtn").addEventListener("click",stopRecording);
-
-// Keep both recording controls on the same bottom row.
-const stopBtn = $("stopBtn");
-stopBtn.style.display = "none";
-$("recordBtn").addEventListener("click",() => {
-  if (recorder && recorder.state === "recording") stopBtn.style.display = "inline-block";
-});
-stopBtn.addEventListener("click",() => stopBtn.style.display = "none");
 
 window.addEventListener("resize",resizeCanvas);
 window.addEventListener("orientationchange",() => setTimeout(resizeCanvas,250));
@@ -699,6 +594,7 @@ window.addEventListener("orientationchange",() => setTimeout(resizeCanvas,250));
 window.addEventListener("beforeunload",() => {
   cancelAnimationFrame(raf);
   clearInterval(timerInterval);
+  if (recorder && recorder.state !== "inactive") recorder.stop();
   stopTracks();
   cleanupOutput();
 });
