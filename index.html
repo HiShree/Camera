@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI Automatic Cinematic Camera</title>
+    <title>Autonomous AI Camera</title>
     <style>
         * {
             margin: 0;
@@ -37,7 +37,7 @@
             height: 100%;
             object-fit: cover;
         }
-        /* Top Toolbar & HUD */
+        /* Top Toolbar (Flip & Zoom Only) */
         .top-toolbar {
             position: absolute;
             top: 15px;
@@ -85,7 +85,7 @@
         }
         /* Shutter Controls */
         .controls {
-            height: 120px;
+            height: 130px;
             background: #0a0a0a;
             display: flex;
             justify-content: center;
@@ -93,8 +93,8 @@
             flex-shrink: 0;
         }
         .shutter-btn {
-            width: 68px;
-            height: 68px;
+            width: 72px;
+            height: 72px;
             border-radius: 50%;
             background: #fff;
             border: 4px solid #666;
@@ -178,7 +178,7 @@
 
     <!-- Preview Modal -->
     <div class="preview-modal" id="previewModal">
-        <h3 id="modeTitle" style="color: #ff4757; text-align: center; margin-top: 10px;">✨ Fully Automatic AI Enhancement</h3>
+        <h3 id="modeTitle" style="color: #ff4757; text-align: center; margin-top: 10px;">✨ Autonomous AI Enhanced</h3>
         
         <div class="preview-container">
             <img id="resultImage" alt="Enhanced Output">
@@ -248,7 +248,7 @@
             });
         });
 
-        // Fully Automatic Situational AI Engine
+        // Fully Autonomous AI Situational Engine
         captureBtn.addEventListener('click', () => {
             canvas.width = video.videoWidth || 1920;
             canvas.height = video.videoHeight || 1080;
@@ -261,10 +261,10 @@
             let centerY = canvas.height / 2;
             let maxDist = Math.sqrt(centerX * centerX + centerY * centerY);
 
-            // Step 1: Analyze overall lighting & color mix to automatically choose style
+            // Autonomous Image Analysis
             let totalBrightness = 0;
             let sampleR = 0, sampleG = 0, sampleB = 0;
-            for (let i = 0; i < data.length; i += 16) { // sample every 4th pixel for speed
+            for (let i = 0; i < data.length; i += 16) {
                 totalBrightness += (data[i] * 0.299 + data[i+1] * 0.587 + data[i+2] * 0.114);
                 sampleR += data[i];
                 sampleG += data[i+1];
@@ -272,31 +272,29 @@
             }
             let avgLum = totalBrightness / (data.length / 16);
 
-            // Automatic Situation Determination
-            let detectedStyle = 'cinematic_pop';
-            if (avgLum < 85) {
-                detectedStyle = 'moody_lowlight'; // Dark / Indoor environment
+            // AI determines the best artistic situation automatically
+            let chosenStyle = 'cinematic_pop';
+            if (avgLum < 90) {
+                chosenStyle = 'moody_lowlight';
             } else if (sampleR > sampleG && sampleG > sampleB) {
-                detectedStyle = 'golden_aesthetic'; // Warm / Portrait / Indoor close-up
+                chosenStyle = 'golden_aesthetic';
             } else {
-                detectedStyle = 'outdoor_vibrant'; // Bright / Landscape environment
+                chosenStyle = 'outdoor_vibrant';
             }
 
-            // Step 2: Apply the dynamically selected aesthetic automatically
+            // Apply selected aesthetic treatment pixel-by-pixel
             for (let y = 0; y < canvas.height; y++) {
                 for (let x = 0; x < canvas.width; x++) {
                     let i = (y * canvas.width + x) * 4;
                     let r = data[i], g = data[i+1], b = data[i+2];
 
-                    if (detectedStyle === 'moody_lowlight') {
-                        // Lift shadows cleanly and add rich dark contrast
+                    if (chosenStyle === 'moody_lowlight') {
                         r = ((r / 255 - 0.5) * 1.35 + 0.5) * 255;
                         g = ((g / 255 - 0.5) * 1.35 + 0.5) * 255;
                         b = ((b / 255 - 0.5) * 1.35 + 0.5) * 255;
                         r *= 1.1; b *= 1.15;
                     } 
-                    else if (detectedStyle === 'golden_aesthetic') {
-                        // Warm cinematic portrait glow with soft vintage fade
+                    else if (chosenStyle === 'golden_aesthetic') {
                         r = r * 1.12 + 10;
                         g = g * 1.04 + 5;
                         b = b * 0.92;
@@ -305,7 +303,6 @@
                         r *= vignette; g *= vignette; b *= vignette;
                     } 
                     else {
-                        // Vibrant outdoor contrast & pop
                         r = ((r / 255 - 0.5) * 1.25 + 0.5) * 255;
                         g = ((g / 255 - 0.5) * 1.25 + 0.5) * 255;
                         b = ((b / 255 - 0.5) * 1.25 + 0.5) * 255;
@@ -319,7 +316,7 @@
 
             ctx.putImageData(imgData, 0, 0);
 
-            modeTitle.innerText = `✨ Auto-Applied: ${detectedStyle.toUpperCase().replace('_', ' ')}`;
+            modeTitle.innerText = `✨ AI Selected: ${chosenStyle.toUpperCase().replace('_', ' ')}`;
 
             // Watermark stamp
             ctx.fillStyle = "#ffffff";
@@ -342,7 +339,7 @@
         downloadBtn.addEventListener('click', () => {
             const a = document.createElement('a');
             a.href = finalDataUrl;
-            a.download = `AI_Auto_Camera_${Date.now()}.jpg`;
+            a.download = `Autonomous_AI_${Date.now()}.jpg`;
             a.click();
         });
     </script>
