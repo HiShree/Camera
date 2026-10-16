@@ -1,588 +1,213 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<meta name="theme-color" content="#07090d">
-<title>Horizon Film Pro</title>
-<style>
-:root{--bg:#07090d;--panel:#121720;--line:#2a3442;--white:#f4f7fa;--muted:#99a8b8;--green:#83ffd5;--red:#ff5369}
-*{box-sizing:border-box}
-html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--white);font-family:system-ui,Arial,sans-serif}
-button,select,input{font:inherit}
-button{border:1px solid var(--line);background:#1a2330;color:var(--white);border-radius:11px;padding:10px;min-height:40px}
-button:disabled{opacity:.4}
-button:active{transform:scale(.98)}
-select{width:100%;background:#0a1017;color:white;border:1px solid var(--line);padding:9px;border-radius:9px}
-input[type=range]{width:100%;accent-color:var(--green)}
-#app{height:100dvh;max-width:650px;margin:auto;display:flex;flex-direction:column;padding:env(safe-area-inset-top) 10px env(safe-area-inset-bottom);gap:8px}
-header{flex:0 0 44px;display:flex;align-items:center;justify-content:space-between}
-#brand{font-size:15px;letter-spacing:1.3px;font-weight:900;cursor:pointer;user-select:none}
-#brand span{color:var(--green)}
-#status{font-size:10px;color:var(--muted);text-align:right}
-#view{position:relative;flex:1;min-height:100px;overflow:hidden;border-radius:17px;background:#020304;border:1px solid #26303b}
-#preview{width:100%;height:100%;display:block}
-#video{position:fixed;width:2px;height:2px;left:-10px;top:-10px;opacity:.001}
-.overlay{position:absolute;inset:0;pointer-events:none}
-.top{position:absolute;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;gap:6px}
-.pill{font-size:10px;letter-spacing:.5px;background:#07090dcc;border:1px solid #ffffff2b;border-radius:20px;padding:6px 9px}
-#recDot{color:var(--red);display:none}
-#recDot.on{display:inline}
-#levelLine{position:absolute;left:50%;top:50%;width:65%;height:2px;background:#ffffff9c;transform:translate(-50%,-50%);box-shadow:0 0 4px #000}
-#levelLine.level{background:var(--green);box-shadow:0 0 8px var(--green)}
-#cross{position:absolute;left:50%;top:50%;width:15px;height:15px;border:1px solid #ffffff80;border-radius:50%;transform:translate(-50%,-50%)}
-#hint{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:24px;color:#9caabb;font-size:13px}
-#bottom{flex:0 0 auto;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:10px}
-.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.actions button{height:54px;font-weight:900;letter-spacing:1px;font-size:14px}
-#recordBtn{background:var(--red);color:white;border-color:var(--red)}
-#stopBtn{background:#202936}
-#recordInfo{font-size:10px;color:var(--muted);text-align:center;margin-top:8px;min-height:14px}
-#download{display:none;text-align:center;color:var(--green);font-size:12px;margin-top:7px}
-#download.show{display:block}
-#aiBar{font-size:11px;color:#d4e2ed;margin-top:8px;line-height:1.4}
-#aiBar b{color:var(--green)}
-#panel{position:absolute;z-index:10;inset:0;background:#080b10f7;backdrop-filter:blur(18px);padding:14px;overflow-y:auto;display:none}
-#panel.open{display:block}
-.panelHead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}
-.panelHead h2{font-size:15px;margin:0}
-.panelHead span{font-size:10px;color:var(--muted)}
-.section{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:11px;margin-bottom:9px}
-.sectionTitle{font-size:10px;letter-spacing:1px;font-weight:900;color:#c7d6e5;margin-bottom:10px;display:flex;justify-content:space-between;gap:8px}
-.row{display:flex;gap:8px;align-items:center}
-.row>*{flex:1;min-width:0}
-.control{margin-bottom:10px}
-.control:last-child{margin-bottom:0}
-.label{display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px;color:#dce5ee}
-.label output{color:var(--green)}
-.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
-.grid3 button{font-size:11px;padding:8px 2px}
-.active{border-color:var(--green)!important;color:var(--green)!important}
-.note{font-size:10px;color:var(--muted);line-height:1.45}
-#closePanel{color:var(--green)}
-#modelStatus{color:var(--muted)}
-#faceBadge{color:var(--green)}
-.hidden{display:none!important}
-@media(max-height:690px){
- header{flex-basis:36px}
- #bottom{padding:7px}
- .actions button{height:45px}
- #panel{padding:9px}
- .section{padding:8px;margin-bottom:6px}
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto 4K Camera App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background-color: #000;
+            color: #fff;
+            font-family: sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+        /* Viewfinder Container */
+        .viewfinder {
+            position: relative;
+            flex: 1;
+            width: 100%;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        /* Custom Camera Grid Overlay */
+        .grid-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 20px solid rgba(0, 0, 0, 0.3);
+            pointer-events: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .focus-circle {
+            width: 200px;
+            height: 200px;
+            border: 1px dashed rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+        }
+        /* Controls Section */
+        .controls {
+            height: 120px;
+            background: #111;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+        }
+        .shutter-btn {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: #fff;
+            border: 4px solid #888;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        .shutter-btn:active {
+            transform: scale(0.9);
+        }
+        /* Result Preview Modal */
+        .preview-modal {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+        .preview-modal img {
+            max-width: 90%;
+            max-height: 70%;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(255,255,255,0.2);
+        }
+        .actions {
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
+        }
+        .btn {
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .btn-secondary {
+            background: #444;
+        }
+    </style>
 </head>
 <body>
-<div id="app">
-<header>
-  <div id="brand" title="Tap to open camera controls">HORIZON <span>FILM PRO</span> ▾</div>
-  <div id="status">READY · TAP RECORD</div>
-</header>
 
-<div id="view">
-  <canvas id="preview"></canvas>
-  <video id="video" autoplay playsinline muted></video>
-  <div class="overlay">
-    <div class="top">
-      <span class="pill" id="lensLabel">1× · CINEMA</span>
-      <span class="pill"><span id="recDot">● REC </span><span id="timer">00:00</span></span>
-    </div>
-    <div id="levelLine"></div>
-    <div id="cross"></div>
-    <div id="hint">Tap RECORD to start the camera and recording.<br><br>Tap the title above for settings.</div>
-  </div>
-
-  <div id="panel">
-    <div class="panelHead">
-      <div><h2>CAMERA CONTROL</h2><span>Horizon Film Pro · Mobile edition</span></div>
-      <button id="closePanel">DONE ✕</button>
-    </div>
-
-    <div class="section">
-      <div class="sectionTitle">CAMERA</div>
-      <div class="row">
-        <button id="switchBtn">SWITCH CAMERA</button>
-        <button id="cameraBtn">STOP CAMERA</button>
-      </div>
-      <div class="control" style="margin-top:10px">
-        <div class="label"><label for="zoom">Digital zoom</label><output id="zoomOut">1.0×</output></div>
-        <input id="zoom" type="range" min="1" max="3" step=".1" value="1">
-      </div>
-      <div class="row">
-        <div class="control">
-          <div class="label">Frame rate</div>
-          <select id="fps"><option value="24">24 fps</option><option value="30" selected>30 fps</option><option value="60">60 fps</option></select>
+    <!-- Camera Viewfinder -->
+    <div class="viewfinder">
+        <video id="cameraStream" autoplay playsinline></video>
+        <div class="grid-overlay">
+            <div class="focus-circle"></div>
         </div>
-        <div class="control">
-          <div class="label">Resolution</div>
-          <select id="resolution"><option value="720">720p</option><option value="1080" selected>1080p</option><option value="2160">4K*</option></select>
+    </div>
+
+    <!-- Bottom Controls -->
+    <div class="controls">
+        <button class="shutter-btn" id="captureBtn" title="Capture"></button>
+    </div>
+
+    <!-- Hidden Canvas for Processing -->
+    <canvas id="photoCanvas" style="display:none;"></canvas>
+
+    <!-- Preview & Enhanced Result Screen -->
+    <div class="preview-modal" id="previewModal">
+        <h2 style="margin-bottom: 15px; color: #4cd137;">✨ Auto-Enhanced 4K</h2>
+        <img id="resultImage" alt="Captured Photo">
+        <div class="actions">
+            <button class="btn" id="downloadBtn">Download Photo</button>
+            <button class="btn btn-secondary" id="retakeBtn">Retake</button>
         </div>
-      </div>
-      <div class="note">*The camera/browser may choose a lower resolution or frame rate than requested.</div>
     </div>
 
-    <div class="section">
-      <div class="sectionTitle">GIMBAL & HORIZON</div>
-      <div class="row">
-        <button id="gimbalBtn">DIGITAL GIMBAL: OFF</button>
-        <button id="levelBtn">HORIZON GUIDE: ON</button>
-      </div>
-      <div class="control" style="margin-top:10px">
-        <div class="label"><label for="strength">Roll correction strength</label><output id="strengthOut">100%</output></div>
-        <input id="strength" type="range" min="0" max="100" value="100">
-      </div>
-      <div class="note">Digital gimbal mode uses the orientation sensor to correct roll. It cannot remove all walking shake or replace a physical gimbal. Permission may be required.</div>
-    </div>
+    <script>
+        const video = document.getElementById('cameraStream');
+        const captureBtn = document.getElementById('captureBtn');
+        const canvas = document.getElementById('photoCanvas');
+        const ctx = canvas.getContext('2d');
+        const previewModal = document.getElementById('previewModal');
+        const resultImage = document.getElementById('resultImage');
+        const retakeBtn = document.getElementById('retakeBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
 
-    <div class="section">
-      <div class="sectionTitle">EXPOSURE & FOCUS <span id="capLabel">CHECKING</span></div>
-      <div class="control">
-        <div class="label"><label for="exposure">Exposure compensation</label><output id="exposureOut">0</output></div>
-        <input id="exposure" type="range" min="-2" max="2" step=".1" value="0" disabled>
-      </div>
-      <div class="control">
-        <div class="label"><label for="focus">Focus control</label><output id="focusOut">Auto</output></div>
-        <input id="focus" type="range" min="0" max="1" step=".01" value=".5" disabled>
-      </div>
-      <div class="control">
-        <div class="label">White balance</div>
-        <select id="wb" disabled><option value="continuous">Auto</option><option value="manual">Manual (if supported)</option></select>
-      </div>
-      <div class="note" id="manualInfo">Controls are enabled only when the browser exposes the actual camera capability.</div>
-    </div>
+        let enhancedDataUrl = '';
 
-    <div class="section">
-      <div class="sectionTitle">CINEMATIC LOOK</div>
-      <div class="grid3" id="looks">
-        <button data-look="neutral">NATURAL</button>
-        <button data-look="cinema" class="active">CINEMA</button>
-        <button data-look="vivid">VIVID</button>
-        <button data-look="warm">WARM</button>
-        <button data-look="bw">B&W</button>
-        <button data-look="retro">RETRO</button>
-      </div>
-      <div class="control" style="margin-top:10px">
-        <div class="label"><label for="intensity">Effect intensity</label><output id="intensityOut">70%</output></div>
-        <input id="intensity" type="range" min="0" max="100" value="70">
-      </div>
-    </div>
+        // Initialize back camera stream
+        async function initCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } },
+                    audio: false
+                });
+                video.srcObject = stream;
+            } catch (err) {
+                alert("Camera access error: " + err.message);
+            }
+        }
+        initCamera();
 
-    <div class="section">
-      <div class="sectionTitle">AI SCENE ASSISTANT <span id="modelStatus">LOADING MODEL…</span></div>
-      <div id="aiDetails" class="note">The assistant analyses the image, estimates lighting and attempts scene classification.</div>
-      <div class="row" style="margin-top:10px">
-        <button id="autoBtn">APPLY AI LOOK</button>
-        <button id="micBtn">MICROPHONE: ON</button>
-      </div>
-      <div class="note" style="margin-top:8px">AI suggestions are estimates. Lighting corrections are conservative and cannot guarantee correct colour or exposure for every scene.</div>
-    </div>
+        // Capture and Enhance Filter Logic
+        captureBtn.addEventListener('click', () => {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            
+            // Draw current frame onto canvas
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    <div class="section">
-      <div class="sectionTitle">RECORDING</div>
-      <div class="note">Recording uses the processed canvas preview. Audio is optional. Keep this page open in the foreground while recording.</div>
-    </div>
-  </div>
-</div>
+            // Apply Automated Enhancement Filter (Simulating the 4K Auto-Edit pop)
+            let imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            let data = imgData.data;
+            
+            let contrast = 1.15; // Increase contrast slightly
+            let brightness = 10;  // Lift brightness slightly
 
-<div id="bottom">
-  <div class="actions">
-    <button id="recordBtn">● RECORD</button>
-    <button id="stopBtn" disabled>■ STOP</button>
-  </div>
-  <div id="aiBar"><b>SCENE ASSISTANT</b> · Waiting for camera</div>
-  <div id="recordInfo">Tap RECORD to begin. Tap the title for controls.</div>
-  <a id="download" download="horizon-film-pro.webm">DOWNLOAD RECORDING</a>
-</div>
-</div>
+            for (let i = 0; i < data.length; i += 4) {
+                // Adjust RGB for contrast and brightness
+                data[i] = data[i] * contrast + brightness;     // Red
+                data[i+1] = data[i+1] * contrast + brightness; // Green
+                data[i+2] = data[i+2] * contrast + brightness; // Blue
+            }
+            ctx.putImageData(imgData, 0, 0);
 
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/dist/tf.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.1"></script>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/blazeface@0.0.7"></script>
-<script>
-(() => {
-"use strict";
-const $ = id => document.getElementById(id);
-const video=$("video"), canvas=$("preview"), ctx=canvas.getContext("2d",{alpha:false});
-const sample=document.createElement("canvas"); sample.width=64; sample.height=40;
-const sctx=sample.getContext("2d",{willReadFrequently:true});
+            // Generate image URL
+            enhancedDataUrl = canvas.toDataURL('image/jpeg', 0.95);
+            resultImage.src = enhancedDataUrl;
+            previewModal.style.display = 'flex';
+        });
 
-let stream=null, recStream=null, recorder=null, chunks=[];
-let recording=false, starting=false, mic=true, facing="environment";
-let gimbal=false, guide=true, sensorActive=false, sensorHandler=null;
-let roll=0, smoothRoll=0, zoom=1, look="cinema", raf=0, lastAI=0;
-let mobilenetModel=null, faceModel=null, modelLoading=false, modelReady=false;
-let lastObject="Analysing scene", lastFaceCount=0, suggestedLook="cinema";
-let lastBlobUrl=null, timerId=0, recordingStart=0, cameraCapabilities={};
-let settings={}, supported={}, exposureBusy=false;
-let brightness=128, lightMessage="Waiting for camera";
-let aiPredictions=[], cameraError=false;
-const looks={
- neutral:{contrast:1,sat:1,bright:1,sepia:0,gray:0,hue:0},
- cinema:{contrast:1.12,sat:.88,bright:1,sepia:.035,gray:0,hue:0},
- vivid:{contrast:1.1,sat:1.28,bright:1.02,sepia:0,gray:0,hue:0},
- warm:{contrast:1.04,sat:1.08,bright:1.02,sepia:.18,gray:0,hue:0},
- bw:{contrast:1.12,sat:0,bright:1.02,sepia:0,gray:1,hue:0},
- retro:{contrast:1.05,sat:.75,bright:1.03,sepia:.25,gray:0,hue:-4}
-};
-const sceneTerms={
- sunset:["sunset","sunrise","dusk","dawn","orange sky","red sky"],
- sunrise:["sunrise","dawn","morning","sunset"],
- waterfall:["waterfall","cascade","rapids","stream"],
- beach:["seashore","beach","ocean","sea","coast"],
- water:["lakeside","lake","river","water","seashore","waterfall"],
- landscape:["valley","mountain","alp","cliff","desert","promontory","volcano","lakeside","valley"],
- forest:["forest","wood","jungle","grove","tree"],
- night:["night","streetlight","dark","spotlight"],
- portrait:["face","person","people","groom","bride","suit","jersey","maillot","wig","mask"]
-};
-function status(t){$("status").textContent=t}
-function info(t){$("recordInfo").textContent=t}
-function timeString(sec){return String(Math.floor(sec/60)).padStart(2,"0")+":"+String(Math.floor(sec%60)).padStart(2,"0")}
-function stopTracks(s){if(s) s.getTracks().forEach(t=>{try{t.stop()}catch(e){}})}
-function showPanel(open){$("panel").classList.toggle("open",open)}
-$("brand").addEventListener("click",()=>showPanel(true));
-$("closePanel").addEventListener("click",()=>showPanel(false));
-function preferredConstraints(){
- const h=Number($("resolution").value);
- return {facingMode:{ideal:facing},width:{ideal:Math.round(h*16/9)},height:{ideal:h},frameRate:{ideal:Number($("fps").value),max:Number($("fps").value)}};
-}
-async function startCamera(){
- if(stream||starting)return;
- starting=true;cameraError=false;status("STARTING CAMERA…");
- try{
-  if(!navigator.mediaDevices?.getUserMedia) throw new Error("Camera API unavailable. Open this page on HTTPS or localhost in a supported browser.");
-  let s;
-  try{s=await navigator.mediaDevices.getUserMedia({video:preferredConstraints(),audio:false})}
-  catch(e){console.warn("Retrying basic camera constraints",e);s=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:facing}},audio:false})}
-  stream=s;video.srcObject=s;
-  await video.play();
-  if(!video.videoWidth) await new Promise((resolve,reject)=>{
-   let timeout=setTimeout(()=>reject(new Error("Camera did not produce video frames.")),7000);
-   video.addEventListener("loadedmetadata",()=>{clearTimeout(timeout);resolve()},{once:true});
-  });
-  $("hint").classList.add("hidden");resizeCanvas();detectCapabilities();
-  status("CAMERA READY");info("Camera ready. Recording will start now.");
-  renderLoop();loadAIModels();
-  analyseScene(true);
- }catch(e){
-  console.error(e);cameraError=true;stopTracks(stream);stream=null;video.srcObject=null;
-  status("CAMERA ERROR");info("Camera could not start: "+(e.message||e.name));
-  alert("Could not start camera.\n\n"+(e.message||e.name)+"\n\nAllow camera access and use HTTPS or localhost.");
- }finally{starting=false}
-}
-async function stopCamera(){
- if(recording) await stopRecording();
- if(sensorHandler) window.removeEventListener("deviceorientation",sensorHandler,true);
- sensorHandler=null;sensorActive=false;
- cancelAnimationFrame(raf);stopTracks(stream);stream=null;video.srcObject=null;
- $("hint").classList.remove("hidden");$("hint").innerHTML="Camera stopped.<br><br>Tap RECORD to start again.";
- $("cameraBtn").textContent="START CAMERA";status("CAMERA OFFLINE");
- $("levelLine").style.transform="translate(-50%,-50%)";drawBlank();
-}
-function drawBlank(){
- canvas.width=640;canvas.height=360;ctx.fillStyle="#020304";ctx.fillRect(0,0,640,360);
-}
-function resizeCanvas(){
- const vw=video.videoWidth||1280,vh=video.videoHeight||720;
- const scale=Math.min(1,1920/vw);
- canvas.width=Math.max(2,Math.round(vw*scale));canvas.height=Math.max(2,Math.round(vh*scale));
-}
-function filterCSS(){
- const l=looks[look],a=Number($("intensity").value)/100;
- const mix=(v)=>1+(v-1)*a;
- return `brightness(${mix(l.bright)}) contrast(${mix(l.contrast)}) saturate(${mix(l.sat)}) grayscale(${l.gray*a}) sepia(${l.sepia*a}) hue-rotate(${l.hue*a}deg)`;
-}
-function drawFrame(){
- if(!stream||video.readyState<2||!video.videoWidth)return;
- const w=canvas.width,h=canvas.height;
- ctx.save();ctx.fillStyle="#000";ctx.fillRect(0,0,w,h);ctx.filter=filterCSS();
- const correction=gimbal&&sensorActive?-smoothRoll*(Number($("strength").value)/100)*Math.PI/180:0;
- const angle=correction, z=zoom;
- ctx.translate(w/2,h/2);ctx.rotate(angle);ctx.scale(z,z);
- const scale=Math.max(w/video.videoWidth,h/video.videoHeight);
- const dw=video.videoWidth*scale,dh=video.videoHeight*scale;
- ctx.drawImage(video,-dw/2,-dh/2,dw,dh);ctx.restore();ctx.filter="none";
-}
-function renderLoop(){
- if(!stream)return;
- drawFrame();raf=requestAnimationFrame(renderLoop);
-}
-function updateLabels(){
- $("lensLabel").textContent=zoom.toFixed(1)+"× · "+look.toUpperCase();
- $("zoomOut").textContent=zoom.toFixed(1)+"×";
- $("intensityOut").textContent=$("intensity").value+"%";
- $("strengthOut").textContent=$("strength").value+"%";
-}
-$("zoom").addEventListener("input",()=>{zoom=Number($("zoom").value);updateLabels()});
-$("intensity").addEventListener("input",updateLabels);
-$("strength").addEventListener("input",updateLabels);
-function setLook(name){
- if(!looks[name])return;look=name;
- document.querySelectorAll("[data-look]").forEach(b=>b.classList.toggle("active",b.dataset.look===name));
- updateLabels();
-}
-document.querySelectorAll("[data-look]").forEach(b=>b.addEventListener("click",()=>setLook(b.dataset.look)));
+        // Retake button handler
+        retakeBtn.addEventListener('click', () => {
+            previewModal.style.display = 'none';
+        });
 
-function detectCapabilities(){
- const track=stream?.getVideoTracks()[0];if(!track)return;
- cameraCapabilities={};supported={};
- try{cameraCapabilities=track.getCapabilities?track.getCapabilities():{}}catch(e){}
- const c=cameraCapabilities;
- $("exposure").disabled=!c.exposureCompensation;
- if(c.exposureCompensation){
-  $("exposure").min=c.exposureCompensation.min;$("exposure").max=c.exposureCompensation.max;
-  $("exposure").step=c.exposureCompensation.step||.1;supported.exposure=true;
- }
- $("focus").disabled=!(c.focusDistance||c.focusMode);
- if(c.focusDistance){$("focus").min=c.focusDistance.min;$("focus").max=c.focusDistance.max;$("focus").step=c.focusDistance.step||.01;supported.focusDistance=true}
- else if(c.focusMode)supported.focusMode=true;
- $("wb").disabled=!(c.whiteBalanceMode||c.colorTemperature);
- if(c.whiteBalanceMode){
-  $("wb").innerHTML="";
-  ["continuous","manual"].forEach(m=>{
-   if(Array.isArray(c.whiteBalanceMode)&&!c.whiteBalanceMode.includes(m))return;
-   const o=document.createElement("option");o.value=m;o.textContent=m==="continuous"?"Auto":"Manual";$("wb").appendChild(o);
-  });supported.wb=true;
- }
- const n=Object.keys(supported).length;
- $("capLabel").textContent=n?n+" CAPABILITY TYPES":"LIMITED";
- $("manualInfo").textContent=n?"These settings are exposed by the current camera. Some requests may still be rejected by the browser or device.":"Your browser did not expose these manual controls. True shutter speed and ISO are not available through this standard interface.";
- updateCameraSettings();
-}
-async function applySetting(c,label){
- const track=stream?.getVideoTracks()[0];if(!track)return;
- try{await track.applyConstraints(c);settings=track.getSettings?track.getSettings():{};updateCameraSettings();info(label+" applied where supported.")}
- catch(e){console.warn(label,e);info(label+" is not supported by this camera/browser.")}
-}
-function updateCameraSettings(){
- if(!stream)return;
- settings=stream.getVideoTracks()[0].getSettings?.()||{};
- $("cameraBtn").textContent="STOP CAMERA";
-}
-$("exposure").addEventListener("input",()=>{
- $("exposureOut").textContent=Number($("exposure").value).toFixed(1);
- if(supported.exposure&&!exposureBusy){exposureBusy=true;applySetting({exposureCompensation:Number($("exposure").value)},"Exposure").finally(()=>exposureBusy=false)}
-});
-$("focus").addEventListener("change",()=>{
- const v=Number($("focus").value);
- if(supported.focusDistance){$("focusOut").textContent=v.toFixed(2);applySetting({focusDistance:v},"Focus")}
- else if(supported.focusMode){
-  const modes=cameraCapabilities.focusMode||[],m=v<.3?"near":v>.7?"far":"continuous";
-  if(modes.includes(m))applySetting({focusMode:m},"Focus mode");else info("That focus mode is unsupported.");
- }
-});
-$("wb").addEventListener("change",()=>{
- if(supported.wb)applySetting({whiteBalanceMode:$("wb").value},"White balance");
- else info("Manual white balance is unavailable.");
-});
-$("fps").addEventListener("change",()=>applySetting({frameRate:{ideal:Number($("fps").value),max:Number($("fps").value)}},"Frame rate"));
-$("resolution").addEventListener("change",async()=>{
- const h=Number($("resolution").value);
- await applySetting({width:{ideal:Math.round(h*16/9)},height:{ideal:h}},"Resolution");if(stream)resizeCanvas();
-});
-
-async function enableGimbal(){
- if(gimbal){gimbal=false;$("gimbalBtn").textContent="DIGITAL GIMBAL: OFF";$("gimbalBtn").classList.remove("active");return}
- if(!("DeviceOrientationEvent" in window)){info("Orientation sensor is unavailable in this browser.");return}
- try{
-  if(typeof DeviceOrientationEvent.requestPermission==="function"){
-   const p=await DeviceOrientationEvent.requestPermission();if(p!=="granted")throw new Error("Sensor permission denied");
-  }
-  sensorHandler=e=>{
-   let r=typeof e.gamma==="number"?e.gamma:e.beta;
-   if(!Number.isFinite(r))return;
-   roll=Math.max(-45,Math.min(45,r));smoothRoll+=(roll-smoothRoll)*.18;
-   if(guide){
-    $("levelLine").style.transform=`translate(-50%,-50%) rotate(${roll}deg)`;
-    $("levelLine").classList.toggle("level",Math.abs(roll)<1.5);
-   }
-  };
-  window.addEventListener("deviceorientation",sensorHandler,true);sensorActive=true;gimbal=true;
-  $("gimbalBtn").textContent="DIGITAL GIMBAL: ON";$("gimbalBtn").classList.add("active");
-  info("Digital roll correction enabled. Hold the phone upright and test the horizon.");
- }catch(e){info("Could not enable sensor: "+e.message)}
-}
-$("gimbalBtn").addEventListener("click",enableGimbal);
-$("levelBtn").addEventListener("click",()=>{
- guide=!guide;$("levelLine").style.display=guide?"block":"none";
- $("levelBtn").textContent="HORIZON GUIDE: "+(guide?"ON":"OFF");
-});
-$("switchBtn").addEventListener("click",async()=>{
- if(recording){info("Stop recording before switching cameras.");return}
- const wasOn=!!stream;if(wasOn)await stopCamera();
- facing=facing==="environment"?"user":"environment";
- if(wasOn)await startCamera();
-});
-$("cameraBtn").addEventListener("click",async()=>{
- if(stream)await stopCamera();else await startCamera();
-});
-
-async function loadAIModels(){
- if(modelLoading||modelReady)return;
- modelLoading=true;$("modelStatus").textContent="LOADING AI…";
- try{
-  if(!window.tf||!window.mobilenet||!window.blazeface)throw new Error("AI libraries could not be loaded. Check internet access.");
-  await tf.ready();
-  mobilenetModel=await mobilenet.load({version:2,alpha:1.0});
-  try{faceModel=await blazeface.load()}catch(e){console.warn("Face model failed to load",e)}
-  modelReady=true;$("modelStatus").textContent=faceModel?"SCENE + FACE AI READY":"SCENE AI READY";
-  $("aiDetails").textContent="Image classifier ready. Scene labels are estimates; sunset/sunrise recognition depends on the model's predictions and colour analysis.";
- }catch(e){
-  console.warn("AI model loading failed",e);
-  $("modelStatus").textContent="AI MODEL UNAVAILABLE";
-  $("aiDetails").textContent="The optional models did not load. Basic brightness and colour analysis will still work. An internet connection is needed to download the models.";
- }finally{modelLoading=false}
-}
-function classifyScene(predictions,avg){
- const labels=predictions.map(p=>({label:(p.className||"").toLowerCase(),prob:p.probability||0}));
- const has=(terms)=>labels.some(p=>terms.some(t=>p.label.includes(t))&&p.prob>.08);
- let scene="General scene",suggest="cinema",reason="Balanced cinematic look recommended.";
- if(has(["waterfall","cascade"])){scene="Waterfall / flowing water";suggest="cinema";reason="Preserve water texture; avoid excessive saturation and digital zoom."}
- else if(has(["seashore","beach","ocean","lakeside","lake","river"])){scene="Water / shoreline";suggest="neutral";reason="Natural colour helps preserve water and sky detail."}
- else if(has(["mountain","valley","alp","cliff","desert","volcano","promontory"])){scene="Landscape";suggest="cinema";reason="Cinema look adds gentle contrast for landscape depth."}
- else if(has(["forest","wood","jungle","grove"])){scene="Forest / greenery";suggest="vivid";reason="A modest colour boost can enrich greenery; reduce intensity if colours look artificial."}
- else if(has(["sunset","sunrise","dawn","dusk"])){scene="Sunrise / sunset candidate";suggest="warm";reason="Warm look may suit golden light. Verify the scene yourself; sunrise and sunset can look alike."}
- else if(has(["person","groom","bride","suit","jersey","face","wig","mask"])){scene="Person / portrait candidate";suggest="neutral";reason="Natural skin tones are usually best preserved with the Natural look."}
- else if(avg.lum<60){scene="Low-light scene";suggest="neutral";reason="Add light if possible. A bright filter cannot recover detail missing from dark footage."}
- else if(avg.r>avg.b*1.22 && avg.r>avg.g*1.06 && avg.lum>65){scene="Warm sky / golden-hour candidate";suggest="warm";reason="Warm light detected. This is a colour heuristic, not a guaranteed sunset detection."}
- else if(avg.b>avg.r*1.18 && avg.b>avg.g*1.02){scene="Cool / blue-toned scene";suggest="cinema";reason="Cool colour cast detected. Cinema or Natural may work well."}
- else if(avg.lum>205){scene="Bright scene";suggest="neutral";reason="Protect highlights. Reduce exposure compensation if supported."}
- else {scene="General daylight";suggest="cinema";reason="A gentle cinematic contrast is a reasonable starting point."}
- return {scene,suggest,reason};
-}
-async function analyseScene(force){
- if(!stream||video.readyState<2||!video.videoWidth)return;
- try{
-  sctx.drawImage(video,0,0,sample.width,sample.height);
-  const data=sctx.getImageData(0,0,sample.width,sample.height).data;
-  let r=0,g=0,b=0,lum=0,n=0;
-  for(let i=0;i<data.length;i+=4){r+=data[i];g+=data[i+1];b+=data[i+2];lum+=.2126*data[i]+.7152*data[i+1]+.0722*data[i+2];n++}
-  r/=n;g/=n;b/=n;lum/=n;brightness=lum;
-  const avg={r,g,b,lum};
-  let predictions=[];
-  if(mobilenetModel){
-   try{predictions=await mobilenetModel.classify(sample,5)}catch(e){console.warn("Scene classify failed",e)}
-  }
-  let faces=0;
-  if(faceModel){
-   try{const f=await faceModel.estimateFaces(sample,false);faces=f.length}catch(e){console.warn("Face detection failed",e)}
-  }
-  lastFaceCount=faces;
-  const result=classifyScene(predictions,avg);
-  suggestedLook=result.suggest;
-  lastObject=result.scene;
-  const best=predictions.slice(0,3).map(p=>`${p.className} ${Math.round(p.probability*100)}%`).join(" · ");
-  const light=lum<55?"Very low light":lum<90?"Low light":lum>210?"Bright / highlight risk":"Moderate light";
-  $("aiBar").innerHTML=`<b>${result.scene.toUpperCase()}</b> · ${light}${faces?` · ${faces} face${faces===1?"":"s"} detected`:""}`;
-  $("aiDetails").innerHTML=
-   `<b style="color:var(--green)">${result.scene}</b><br>${result.reason}<br>`+
-   `Brightness: ${Math.round(lum)}/255 · Average RGB: ${Math.round(r)}/${Math.round(g)}/${Math.round(b)}<br>`+
-   `Faces: ${faces?faces+" detected":"none detected"}<br>`+
-   `Model labels: ${best||"No confident scene label"}<br>`+
-   `<span class="note">Scene classification is probabilistic. It may confuse sunrise with sunset and may not identify waterfalls in every frame.</span>`;
-  applyAutoExposure(lum);
- }catch(e){console.warn("Scene analysis error",e)}
-}
-async function applyAutoExposure(lum){
- // Gentle, capability-gated exposure-compensation assistance.
- // Limit how often this can alter the camera; never claim to set ISO or shutter speed.
- if(!stream||!supported.exposure||exposureBusy)return;
- let desired=0;
- if(lum<48)desired=.7;
- else if(lum<75)desired=.35;
- else if(lum>220)desired=-.7;
- else if(lum>195)desired=-.3;
- const min=Number($("exposure").min),max=Number($("exposure").max);
- desired=Math.max(min,Math.min(max,desired));
- const current=Number($("exposure").value);
- if(Math.abs(desired-current)<.25)return;
- exposureBusy=true;
- try{
-  await stream.getVideoTracks()[0].applyConstraints({exposureCompensation:desired});
-  $("exposure").value=desired;$("exposureOut").textContent=desired.toFixed(1);
- }catch(e){/* unsupported on this camera */}
- finally{exposureBusy=false}
-}
-$("autoBtn").addEventListener("click",()=>{setLook(suggestedLook);info("AI suggested look applied: "+suggestedLook.toUpperCase())});
-$("micBtn").addEventListener("click",()=>{mic=!mic;$("micBtn").textContent="MICROPHONE: "+(mic?"ON":"OFF");info(mic?"Microphone will be requested when recording starts.":"Recording will be silent.")});
-
-function mimeType(){
- if(!window.MediaRecorder)return "";
- const options=["video/webm;codecs=vp9,opus","video/webm;codecs=vp8,opus","video/webm","video/mp4"];
- return options.find(x=>MediaRecorder.isTypeSupported(x))||"";
-}
-async function startRecording(){
- if(recording||starting)return;
- starting=true;$("recordBtn").disabled=true;
- try{
-  if(!stream){await startCamera();if(!stream)throw new Error("Camera did not start.");}
-  if(!canvas.captureStream||!window.MediaRecorder)throw new Error("Canvas recording is not supported in this browser.");
-  const type=mimeType();if(!type)throw new Error("No supported recording format was found.");
-  recStream=canvas.captureStream(Number($("fps").value));
-  if(mic){
-   try{
-    const audio=await navigator.mediaDevices.getUserMedia({audio:true,video:false});
-    audio.getAudioTracks().forEach(t=>recStream.addTrack(t));
-   }catch(e){console.warn("Microphone unavailable; recording silently",e);info("Microphone unavailable; continuing with silent video.")}
-  }
-  chunks=[];
-  try{recorder=new MediaRecorder(recStream,{mimeType:type,videoBitsPerSecond:8000000})}
-  catch(e){recorder=new MediaRecorder(recStream,{mimeType:type})}
-  recorder.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data)};
-  recorder.onerror=e=>{console.error(e);info("Recorder error. Try stopping and starting a new recording.")};
-  recorder.onstop=()=>{
-   const blob=new Blob(chunks,{type:recorder?.mimeType||type});
-   stopTracks(recStream);recStream=null;recording=false;clearInterval(timerId);
-   $("recDot").classList.remove("on");$("timer").textContent="00:00";
-   $("recordBtn").disabled=false;$("stopBtn").disabled=true;
-   if(blob.size){
-    if(lastBlobUrl)URL.revokeObjectURL(lastBlobUrl);
-    lastBlobUrl=URL.createObjectURL(blob);
-    const ext=(recorder?.mimeType||type).includes("mp4")?"mp4":"webm";
-    $("download").href=lastBlobUrl;
-    $("download").download="horizon-film-pro-"+new Date().toISOString().replace(/[:.]/g,"-")+"."+ext;
-    $("download").textContent="DOWNLOAD VIDEO · "+(blob.size/1048576).toFixed(1)+" MB";
-    $("download").classList.add("show");
-    info("Recording ready. Tap Download video to save it.");
-    status("VIDEO READY");
-   }else{info("No video data was captured. Try again.");status("CAMERA READY")}
-  };
-  recorder.start(1000);recording=true;recordingStart=Date.now();
-  $("recDot").classList.add("on");$("stopBtn").disabled=false;
-  $("download").classList.remove("show");status("● RECORDING");
-  info("Recording in progress. Keep the page open.");
-  timerId=setInterval(()=>{if(recording)$("timer").textContent=timeString((Date.now()-recordingStart)/1000)},250);
- }catch(e){
-  console.error(e);stopTracks(recStream);recStream=null;recording=false;
-  $("recordBtn").disabled=false;$("stopBtn").disabled=true;
-  alert("Could not start recording:\n"+(e.message||e.name));
- }finally{starting=false}
-}
-async function stopRecording(){
- if(!recording)return;
- $("stopBtn").disabled=true;info("Finalising video…");
- try{if(recorder&&recorder.state!=="inactive")recorder.stop()}
- catch(e){console.error(e);recording=false;stopTracks(recStream);recStream=null;$("recordBtn").disabled=false;info("Could not finish recording.")}
-}
-$("recordBtn").addEventListener("click",startRecording);
-$("stopBtn").addEventListener("click",stopRecording);
-
-$("cameraBtn").addEventListener("click",async()=>{
- if(stream)await stopCamera();else await startCamera();
-});
-document.addEventListener("visibilitychange",()=>{
- if(document.hidden&&recording)info("Keep the page in the foreground while recording.");
-});
-window.addEventListener("pagehide",()=>{
- try{if(recorder&&recorder.state!=="inactive")recorder.stop()}catch(e){}
- stopTracks(recStream);stopTracks(stream);
- if(sensorHandler)window.removeEventListener("deviceorientation",sensorHandler,true);
- if(lastBlobUrl)URL.revokeObjectURL(lastBlobUrl);
- cancelAnimationFrame(raf);
-});
-drawBlank();updateLabels();
-})();
-</script>
+        // Download button handler
+        downloadBtn.addEventListener('click', () => {
+            const a = document.createElement('a');
+            a.href = enhancedDataUrl;
+            a.download = `Enhanced_4K_${Date.now()}.jpg`;
+            a.click();
+        });
+    </script>
 </body>
 </html>
