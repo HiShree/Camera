@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>True AI Situational Camera</title>
+    <title>Aesthetic & Classic Camera Studio</title>
     <style>
         * {
             margin: 0;
@@ -83,7 +83,7 @@
             background: #ff4757;
             border-color: #ff4757;
         }
-        /* Style Selector Bar */
+        /* Aesthetic Style Selector Bar */
         .filter-bar {
             height: 55px;
             background: rgba(0, 0, 0, 0.95);
@@ -195,12 +195,12 @@
         </div>
     </div>
 
-    <!-- AI Situational Style Bar -->
+    <!-- Aesthetic & Classic Style Bar -->
     <div class="filter-bar" id="filterBar">
-        <button class="filter-chip active" data-mode="auto_match">✨ Smart AI Auto-Match</button>
-        <button class="filter-chip" data-mode="portrait">👤 Selfie / Portrait Mode</button>
-        <button class="filter-chip" data-mode="forest_path">🌲 Forest Canopy & Path</button>
-        <button class="filter-chip" data-mode="street_vehicle">🚙 Moody Street / Vehicle</button>
+        <button class="filter-chip active" data-mode="vintage_film">🎞️ Retro Vintage Film</button>
+        <button class="filter-chip" data-mode="golden_hour">🌅 Golden Hour Aesthetic</button>
+        <button class="filter-chip" data-mode="classic_noir">🖤 Classic B&W Noir</button>
+        <button class="filter-chip" data-mode="moody_cinematic">🎬 Moody Cinematic</button>
     </div>
 
     <!-- Shutter Controls -->
@@ -212,7 +212,7 @@
 
     <!-- Preview Modal -->
     <div class="preview-modal" id="previewModal">
-        <h3 id="modeTitle" style="color: #ff4757; text-align: center; margin-top: 10px;">✨ AI Situational Enhancement Ready</h3>
+        <h3 id="modeTitle" style="color: #ff4757; text-align: center; margin-top: 10px;">✨ Aesthetic Style Applied</h3>
         
         <div class="preview-container">
             <img id="resultImage" alt="Enhanced Output">
@@ -242,7 +242,7 @@
 
         let currentFacingMode = 'environment';
         let currentZoom = 1;
-        let selectedMode = 'auto_match';
+        let selectedMode = 'vintage_film';
         let currentStream = null;
         let finalDataUrl = '';
 
@@ -292,7 +292,7 @@
             });
         });
 
-        // Capture & Dynamic Situational AI Processing Engine
+        // Capture & Aesthetic Enhancement Engine
         captureBtn.addEventListener('click', () => {
             canvas.width = video.videoWidth || 1920;
             canvas.height = video.videoHeight || 1080;
@@ -305,66 +305,43 @@
             let centerY = canvas.height / 2;
             let maxDist = Math.sqrt(centerX * centerX + centerY * centerY);
 
-            // Smart Auto-Match Analysis: Check center brightness & skin tone proximity to decide scene type
-            let activeMode = selectedMode;
-            if (activeMode === 'auto_match') {
-                let sampleR = 0, sampleG = 0, sampleB = 0, count = 0;
-                // Sample center box pixels (where a face or subject usually is)
-                for (let y = Math.floor(centerY - canvas.height*0.15); y < Math.floor(centerY + canvas.height*0.15); y++) {
-                    for (let x = Math.floor(centerX - canvas.width*0.15); x < Math.floor(centerX + canvas.width*0.15); x++) {
-                        let idx = (y * canvas.width + x) * 4;
-                        sampleR += data[idx];
-                        sampleG += data[idx+1];
-                        sampleB += data[idx+2];
-                        count++;
-                    }
-                }
-                let avgR = sampleR / count;
-                let avgG = sampleG / count;
-                let avgB = sampleB / count;
-
-                // If warm/skin tones dominate center or it's an indoor close-up shot, choose Portrait Mode
-                if (avgR > avgG && avgG > avgB && avgR > 110) {
-                    activeMode = 'portrait';
-                } else {
-                    activeMode = 'forest_path';
-                }
-            }
-
-            // Apply style based on the detected or selected situational mode
             for (let y = 0; y < canvas.height; y++) {
                 for (let x = 0; x < canvas.width; x++) {
                     let i = (y * canvas.width + x) * 4;
                     let r = data[i], g = data[i+1], b = data[i+2];
 
-                    let lum = 0.299 * r + 0.587 * g + 0.114 * b;
-
-                    if (activeMode === 'portrait') {
-                        // Soft portrait enhancement: smooth skin highlights, warm glow, gentle vignette
-                        r = Math.min(255, r * 1.08);
-                        g = Math.min(255, g * 1.05);
-                        b = Math.min(255, b * 1.02);
-
-                        let distX = x - centerX;
-                        let distY = y - centerY;
-                        let distance = Math.sqrt(distX * distX + distY * distY);
-                        let vignette = Math.max(0.6, 1 - (distance / maxDist) * 0.4); // Softer vignette for selfies
+                    if (selectedMode === 'vintage_film') {
+                        // Retro warm fade with grain tone
+                        r = r * 1.15 + 15;
+                        g = g * 1.05 + 10;
+                        b = b * 0.9;
+                        // Soft Vignette
+                        let distance = Math.sqrt(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2));
+                        let vignette = Math.max(0.5, 1 - (distance / maxDist) * 0.5);
                         r *= vignette; g *= vignette; b *= vignette;
                     } 
-                    else if (activeMode === 'forest_path') {
-                        if (lum > 150) { r *= 1.15; g *= 1.2; b *= 1.05; }
-                        else if (lum < 90) { r *= 0.8; g *= 0.85; b *= 0.8; }
-                        r = ((r / 255 - 0.5) * 1.25 + 0.5) * 255;
-                        g = ((g / 255 - 0.5) * 1.25 + 0.5) * 255;
-                        b = ((b / 255 - 0.5) * 1.25 + 0.5) * 255;
+                    else if (selectedMode === 'golden_hour') {
+                        // Warm rich golden sunlight aesthetic
+                        r *= 1.25;
+                        g *= 1.1;
+                        b *= 0.85;
+                        r = ((r / 255 - 0.5) * 1.2 + 0.5) * 255;
                     } 
-                    else if (activeMode === 'street_vehicle') {
-                        r = ((r / 255 - 0.5) * 1.4 + 0.5) * 255;
-                        g = ((g / 255 - 0.5) * 1.4 + 0.5) * 255;
-                        b = ((b / 255 - 0.5) * 1.4 + 0.5) * 255;
-
+                    else if (selectedMode === 'classic_noir') {
+                        // High-contrast dramatic black and white film
+                        let avg = 0.299 * r + 0.587 * g + 0.114 * b;
+                        avg = ((avg / 255 - 0.5) * 1.4 + 0.5) * 255;
                         let distance = Math.sqrt(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2));
-                        let vignette = Math.max(0.3, 1 - (distance / maxDist) * 0.65);
+                        let vignette = Math.max(0.4, 1 - (distance / maxDist) * 0.6);
+                        r = avg * vignette; g = avg * vignette; b = avg * vignette;
+                    }
+                    else if (selectedMode === 'moody_cinematic') {
+                        // Cool teal shadows & warm skin/highlights
+                        r = ((r / 255 - 0.5) * 1.35 + 0.5) * 255;
+                        g *= 0.95;
+                        b *= 1.15;
+                        let distance = Math.sqrt(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2));
+                        let vignette = Math.max(0.35, 1 - (distance / maxDist) * 0.65);
                         r *= vignette; g *= vignette; b *= vignette;
                     }
 
@@ -376,8 +353,7 @@
 
             ctx.putImageData(imgData, 0, 0);
 
-            // Update title text to show which style was applied
-            modeTitle.innerText = `✨ Applied: ${activeMode.toUpperCase().replace('_', ' ')} Style`;
+            modeTitle.innerText = `✨ Style: ${selectedMode.toUpperCase().replace('_', ' ')}`;
 
             // Watermark stamp
             ctx.fillStyle = "#ffffff";
@@ -400,7 +376,7 @@
         downloadBtn.addEventListener('click', () => {
             const a = document.createElement('a');
             a.href = finalDataUrl;
-            a.download = `AI_Smart_Camera_${Date.now()}.jpg`;
+            a.download = `Aesthetic_Camera_${Date.now()}.jpg`;
             a.click();
         });
     </script>
