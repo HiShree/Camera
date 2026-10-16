@@ -2,21 +2,23 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Situational Cinematic Camera</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Pro Mobile Camera Suite</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            user-select: none;
         }
         body {
             background-color: #000;
             color: #fff;
-            font-family: sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             display: flex;
             flex-direction: column;
-            height: 100vh;
+            height: 100dvh;
+            width: 100vw;
             overflow: hidden;
         }
         /* Viewfinder Container */
@@ -24,6 +26,7 @@
             position: relative;
             flex: 1;
             width: 100%;
+            background: #000;
             overflow: hidden;
             display: flex;
             justify-content: center;
@@ -34,49 +37,93 @@
             height: 100%;
             object-fit: cover;
         }
-        /* On-Screen HUD Overlay */
-        .hud-overlay {
+        /* Top Toolbar & HUD */
+        .top-toolbar {
             position: absolute;
-            top: 0;
+            top: 15px;
             left: 0;
             width: 100%;
-            height: 100%;
-            pointer-events: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            z-index: 5;
+            pointer-events: auto;
+        }
+        .tool-btn {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+        }
+        .zoom-cluster {
+            display: flex;
+            gap: 6px;
+        }
+        .zoom-btn {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #fff;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+        .zoom-btn.active {
+            background: #ff4757;
+            border-color: #ff4757;
+        }
+        /* Exposure / Lighting Slider Overlay */
+        .exposure-container {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
-            padding: 20px;
-        }
-        .top-hud {
-            display: flex;
-            justify-content: space-between;
-            font-size: 13px;
-            background: rgba(0,0,0,0.6);
-            padding: 6px 14px;
+            align-items: center;
+            gap: 8px;
+            z-index: 5;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 12px 6px;
             border-radius: 20px;
-            align-self: center;
-            letter-spacing: 1px;
+            backdrop-filter: blur(5px);
             border: 1px solid rgba(255,255,255,0.2);
         }
-        .golden-ratio-overlay {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 220px;
-            height: 220px;
-            border: 1px dashed rgba(255, 255, 255, 0.4);
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
+        .exposure-container span {
+            font-size: 10px;
+            color: #ff4757;
+            font-weight: bold;
+        }
+        .exposure-slider {
+            writing-mode: bt-lr; /* IE */
+            writing-mode: vertical-lr;
+            direction: rtl;
+            width: 8px;
+            height: 120px;
+            accent-color: #ff4757;
+            cursor: pointer;
         }
         /* Style Selector Bar */
         .filter-bar {
             height: 55px;
-            background: rgba(0, 0, 0, 0.9);
+            background: rgba(0, 0, 0, 0.95);
             display: flex;
             align-items: center;
             gap: 10px;
             padding: 0 15px;
             overflow-x: auto;
+            flex-shrink: 0;
         }
         .filter-chip {
             padding: 6px 14px;
@@ -84,7 +131,7 @@
             border: 1px solid #444;
             color: white;
             border-radius: 20px;
-            font-size: 13px;
+            font-size: 12px;
             cursor: pointer;
             white-space: nowrap;
         }
@@ -95,15 +142,16 @@
         }
         /* Shutter Controls */
         .controls {
-            height: 110px;
+            height: 100px;
             background: #0a0a0a;
             display: flex;
             justify-content: center;
             align-items: center;
+            flex-shrink: 0;
         }
         .shutter-btn {
-            width: 70px;
-            height: 70px;
+            width: 68px;
+            height: 68px;
             border-radius: 50%;
             background: #fff;
             border: 4px solid #666;
@@ -114,7 +162,7 @@
         .shutter-btn:active {
             transform: scale(0.92);
         }
-        /* Post-Capture Modal */
+        /* Preview Modal */
         .preview-modal {
             position: absolute;
             top: 0;
@@ -126,7 +174,7 @@
             flex-direction: column;
             justify-content: space-between;
             padding: 20px;
-            z-index: 10;
+            z-index: 20;
         }
         .preview-container {
             flex: 1;
@@ -164,22 +212,31 @@
 <body>
 
     <!-- Camera Viewfinder -->
-    <div class="viewfinder">
+    <div class="viewfinder" id="viewfinder">
         <video id="cameraStream" autoplay playsinline></video>
-        <div class="hud-overlay">
-            <div class="top-hud">
-                <span>🤖 AI SITUATIONAL AUTO-ENHANCE • 4K</span>
+        
+        <!-- Top Tool Bar (Flip Camera & Zoom) -->
+        <div class="top-toolbar">
+            <button class="tool-btn" id="flipCamBtn">🔄 Flip</button>
+            <div class="zoom-cluster">
+                <button class="zoom-btn active" data-zoom="1">1x</button>
+                <button class="zoom-btn" data-zoom="2">2x</button>
+                <button class="zoom-btn" data-zoom="3">3x</button>
             </div>
-            <div class="golden-ratio-overlay"></div>
+        </div>
+
+        <!-- Live Lighting / Exposure Slider Side Control -->
+        <div class="exposure-container">
+            <span>☀️ EXP</span>
+            <input type="range" id="exposureSlider" class="exposure-slider" min="0.5" max="2" step="0.1" value="1">
         </div>
     </div>
 
     <!-- Situational Style Bar -->
     <div class="filter-bar" id="filterBar">
-        <button class="filter-chip active" data-mode="auto_match">✨ Auto-Match Scene</button>
-        <button class="filter-chip" data-mode="forest_path">🌲 Forest Canopy & Path</button>
-        <button class="filter-chip" data-mode="street_vehicle">🚙 Moody Vehicle / Street</button>
-        <button class="filter-chip" data-mode="cinematic_hdr">🌅 Cinematic HDR Pop</button>
+        <button class="filter-chip active" data-mode="forest_path">🌲 Forest Path</button>
+        <button class="filter-chip" data-mode="street_vehicle">🚙 Street / Vehicle</button>
+        <button class="filter-chip" data-mode="cinematic_hdr">🌅 Cinematic HDR</button>
     </div>
 
     <!-- Shutter Controls -->
@@ -189,9 +246,9 @@
 
     <canvas id="photoCanvas" style="display:none;"></canvas>
 
-    <!-- Preview Screen -->
+    <!-- Preview Modal -->
     <div class="preview-modal" id="previewModal">
-        <h3 style="color: #ff4757; text-align: center; margin-top: 10px;">✨ Situational Enhancement Applied</h3>
+        <h3 style="color: #ff4757; text-align: center; margin-top: 10px;">✨ Enhanced Output Ready</h3>
         
         <div class="preview-container">
             <img id="resultImage" alt="Enhanced Output">
@@ -199,7 +256,7 @@
 
         <div class="actions">
             <button class="btn btn-secondary" id="retakeBtn">Retake</button>
-            <button class="btn" id="downloadBtn">Download 4K Photo</button>
+            <button class="btn" id="downloadBtn">Download Photo</button>
         </div>
     </div>
 
@@ -213,25 +270,67 @@
         const resultImage = document.getElementById('resultImage');
         const retakeBtn = document.getElementById('retakeBtn');
         const downloadBtn = document.getElementById('downloadBtn');
+        
+        const flipCamBtn = document.getElementById('flipCamBtn');
+        const zoomBtns = document.querySelectorAll('.zoom-btn');
+        const exposureSlider = document.getElementById('exposureSlider');
         const modeChips = document.querySelectorAll('.filter-chip');
 
-        let selectedMode = 'auto_match';
+        let currentFacingMode = 'environment'; // Start with back camera
+        let currentZoom = 1;
+        let selectedMode = 'forest_path';
+        let currentStream = null;
         let finalDataUrl = '';
 
-        // Initialize Camera
+        // Initialize Camera Stream with Constraints
         async function initCamera() {
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+            }
+
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: 'environment', width: { ideal: 3840 }, height: { ideal: 2160 } },
+                const constraints = {
+                    video: {
+                        facingMode: currentFacingMode,
+                        width: { ideal: 3840 },
+                        height: { ideal: 2160 }
+                    },
                     audio: false
-                });
-                video.srcObject = stream;
+                };
+
+                currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+                video.srcObject = currentStream;
             } catch (err) {
-                alert("Camera access error: " + err.message);
+                alert("Camera error: " + err.message);
             }
         }
         initCamera();
 
+        // Flip Camera (Front / Back)
+        flipCamBtn.addEventListener('click', () => {
+            currentFacingMode = (currentFacingMode === 'environment') ? 'user' : 'environment';
+            initCamera();
+        });
+
+        // Zoom Control Handler
+        zoomBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                zoomBtns.forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                currentZoom = parseFloat(e.target.getAttribute('data-zoom'));
+
+                // Apply CSS scale zoom to video feed preview
+                video.style.transform = `scale(${currentZoom})`;
+            });
+        });
+
+        // Live Lighting / Exposure Preview Filter
+        exposureSlider.addEventListener('input', (e) => {
+            let val = e.target.value;
+            video.style.filter = `brightness(${val})`;
+        });
+
+        // Mode Selector
         modeChips.forEach(chip => {
             chip.addEventListener('click', (e) => {
                 modeChips.forEach(c => c.classList.remove('active'));
@@ -240,63 +339,48 @@
             });
         });
 
-        // Capture & Situational Enhancement Engine
+        // Capture & Processing Engine
         captureBtn.addEventListener('click', () => {
             canvas.width = video.videoWidth || 1920;
             canvas.height = video.videoHeight || 1080;
             
+            // Draw current video frame onto canvas
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
             let imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
             let data = imgData.data;
 
+            let expMultiplier = parseFloat(exposureSlider.value);
             let centerX = canvas.width / 2;
             let centerY = canvas.height / 2;
             let maxDist = Math.sqrt(centerX * centerX + centerY * centerY);
-
-            // Determine profile based on selection or auto-analysis
-            let mode = selectedMode;
-            if (mode === 'auto_match') {
-                // Simple heuristic: if top center is bright, assume path/forest style, else vehicle style
-                mode = 'forest_path'; 
-            }
 
             for (let y = 0; y < canvas.height; y++) {
                 for (let x = 0; x < canvas.width; x++) {
                     let i = (y * canvas.width + x) * 4;
                     let r = data[i], g = data[i+1], b = data[i+2];
 
+                    // Apply live exposure setting chosen by user
+                    r *= expMultiplier; g *= expMultiplier; b *= expMultiplier;
+
                     let lum = 0.299 * r + 0.587 * g + 0.114 * b;
 
-                    if (mode === 'forest_path') {
-                        // Mimic the sunlit path & rich green canopy look (Reference[span_2](start_span)[span_2](end_span))
-                        if (lum > 160) {
-                            // Highlight glow from the canopy opening
-                            r *= 1.15; g *= 1.2; b *= 1.05;
-                        } else if (lum < 90) {
-                            // Deep shadow vignette on edges
-                            r *= 0.8; g *= 0.85; b *= 0.8;
-                        }
-                        // Rich contrast and warm earthy tone
+                    if (selectedMode === 'forest_path') {
+                        if (lum > 150) { r *= 1.15; g *= 1.2; b *= 1.05; }
+                        else if (lum < 90) { r *= 0.8; g *= 0.85; b *= 0.8; }
                         r = ((r / 255 - 0.5) * 1.25 + 0.5) * 255;
                         g = ((g / 255 - 0.5) * 1.25 + 0.5) * 255;
                         b = ((b / 255 - 0.5) * 1.25 + 0.5) * 255;
                     } 
-                    else if (mode === 'street_vehicle') {
-                        // Mimic the moody vehicle headlight pop & heavy vignette (Reference[span_3](start_span)[span_3](end_span))
+                    else if (selectedMode === 'street_vehicle') {
                         r = ((r / 255 - 0.5) * 1.4 + 0.5) * 255;
                         g = ((g / 255 - 0.5) * 1.4 + 0.5) * 255;
                         b = ((b / 255 - 0.5) * 1.4 + 0.5) * 255;
 
-                        let distX = x - centerX;
-                        let distY = y - centerY;
-                        let distance = Math.sqrt(distX * distX + distY * distY);
-                        let vignette = 1 - (distance / maxDist) * 0.7;
-                        vignette = Math.max(0.25, Math.min(1, vignette));
-
+                        let distance = Math.sqrt(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2));
+                        let vignette = Math.max(0.3, 1 - (distance / maxDist) * 0.65);
                         r *= vignette; g *= vignette; b *= vignette;
                     }
                     else {
-                        // Cinematic HDR Pop
                         r = ((r / 255 - 0.5) * 1.2 + 0.5) * 255;
                         g = ((g / 255 - 0.5) * 1.2 + 0.5) * 255;
                         b = ((b / 255 - 0.5) * 1.2 + 0.5) * 255;
@@ -310,14 +394,12 @@
 
             ctx.putImageData(imgData, 0, 0);
 
-            // Burn Professional Camera Stamp at Bottom (Matching reference style)[span_4](start_span)[span_4](end_span)[span_5](start_span)[span_5](end_span)
+            // Watermark stamp
             ctx.fillStyle = "#ffffff";
             ctx.fillRect(0, canvas.height - 120, canvas.width, 120);
-
             ctx.fillStyle = "#111111";
             ctx.font = `bold ${Math.max(18, canvas.width / 42)}px sans-serif`;
             ctx.fillText("ASUS_I003DD", 50, canvas.height - 60);
-
             ctx.font = `${Math.max(15, canvas.width / 50)}px sans-serif`;
             ctx.fillText("5mm f/1.8  1/320 ISO25", canvas.width - 430, canvas.height - 60);
 
@@ -333,7 +415,7 @@
         downloadBtn.addEventListener('click', () => {
             const a = document.createElement('a');
             a.href = finalDataUrl;
-            a.download = `Situational_Enhanced_${Date.now()}.jpg`;
+            a.download = `Pro_Camera_${Date.now()}.jpg`;
             a.click();
         });
     </script>
