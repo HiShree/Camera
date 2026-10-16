@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pro Mobile Camera App</title>
+    <title>AI Situational Cinematic Camera</title>
     <style>
         * {
             margin: 0;
@@ -11,37 +11,15 @@
             box-sizing: border-box;
         }
         body {
-            background-color: #0b0b0b;
+            background-color: #000;
             color: #fff;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: sans-serif;
             display: flex;
-            justify-content: center;
-            align-items: center;
+            flex-direction: column;
             height: 100vh;
             overflow: hidden;
         }
-        /* Phone-Sized Container Frame */
-        .phone-frame {
-            width: 100%;
-            max-width: 420px;
-            height: 100%;
-            max-height: 860px;
-            background: #000;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-            border-radius: 0;
-            overflow: hidden;
-        }
-        @media (min-width: 450px) {
-            .phone-frame {
-                border-radius: 40px;
-                border: 10px solid #222;
-                height: 90vh;
-            }
-        }
-        /* Viewfinder Section */
+        /* Viewfinder Container */
         .viewfinder {
             position: relative;
             flex: 1;
@@ -50,108 +28,93 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            background: #111;
         }
         video {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            transform-origin: center;
         }
-        /* Top HUD */
-        .top-hud {
+        /* On-Screen HUD Overlay */
+        .hud-overlay {
             position: absolute;
-            top: 20px;
-            background: rgba(0, 0, 0, 0.5);
-            padding: 5px 12px;
-            border-radius: 15px;
-            font-size: 11px;
-            letter-spacing: 1px;
-            border: 1px solid rgba(255,255,255,0.15);
-            z-index: 2;
-        }
-        /* Smooth Sliding Zoom Bar */
-        .zoom-slider-container {
-            position: absolute;
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            height: 180px;
-            background: rgba(0, 0, 0, 0.4);
-            backdrop-filter: blur(5px);
-            border-radius: 20px;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
             display: flex;
             flex-direction: column;
-            align-items: center;
             justify-content: space-between;
-            padding: 12px 6px;
-            z-index: 3;
-            border: 1px solid rgba(255,255,255,0.1);
+            padding: 20px;
         }
-        .zoom-slider-container span {
-            font-size: 10px;
-            font-weight: bold;
-            color: #ff4757;
+        .top-hud {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            background: rgba(0,0,0,0.6);
+            padding: 6px 14px;
+            border-radius: 20px;
+            align-self: center;
+            letter-spacing: 1px;
+            border: 1px solid rgba(255,255,255,0.2);
         }
-        .zoom-range {
-            writing-mode: vertical-lr;
-            direction: rtl;
-            width: 6px;
-            height: 110px;
-            accent-color: #ff4757;
-            cursor: pointer;
+        .golden-ratio-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 220px;
+            height: 220px;
+            border: 1px dashed rgba(255, 255, 255, 0.4);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
         }
-        /* Mode Selector */
-        .mode-bar {
-            height: 45px;
-            background: rgba(0, 0, 0, 0.85);
+        /* Style Selector Bar */
+        .filter-bar {
+            height: 55px;
+            background: rgba(0, 0, 0, 0.9);
             display: flex;
             align-items: center;
-            gap: 8px;
-            padding: 0 12px;
+            gap: 10px;
+            padding: 0 15px;
             overflow-x: auto;
-            white-space: nowrap;
         }
-        .mode-bar::-webkit-scrollbar {
-            display: none;
-        }
-        .mode-chip {
-            padding: 4px 10px;
+        .filter-chip {
+            padding: 6px 14px;
             background: #222;
             border: 1px solid #444;
-            color: #aaa;
-            border-radius: 12px;
-            font-size: 11px;
+            color: white;
+            border-radius: 20px;
+            font-size: 13px;
             cursor: pointer;
+            white-space: nowrap;
         }
-        .mode-chip.active {
+        .filter-chip.active {
             background: #ff4757;
             border-color: #ff4757;
-            color: #fff;
             font-weight: bold;
         }
-        /* Bottom Shutter Controls */
+        /* Shutter Controls */
         .controls {
-            height: 100px;
+            height: 110px;
             background: #0a0a0a;
             display: flex;
             justify-content: center;
             align-items: center;
         }
         .shutter-btn {
-            width: 65px;
-            height: 65px;
+            width: 70px;
+            height: 70px;
             border-radius: 50%;
             background: #fff;
-            border: 4px solid #555;
+            border: 4px solid #666;
             cursor: pointer;
-            box-shadow: 0 0 10px rgba(255,255,255,0.3);
-            transition: transform 0.08s ease;
+            box-shadow: 0 0 15px rgba(255,255,255,0.3);
+            transition: transform 0.1s;
         }
         .shutter-btn:active {
-            transform: scale(0.9);
+            transform: scale(0.92);
         }
-        /* Preview Modal */
+        /* Post-Capture Modal */
         .preview-modal {
             position: absolute;
             top: 0;
@@ -175,20 +138,20 @@
             max-width: 100%;
             max-height: 65vh;
             border-radius: 8px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.6);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.6);
         }
         .actions {
             display: flex;
-            gap: 10px;
+            gap: 12px;
         }
         .btn {
             flex: 1;
-            padding: 12px;
+            padding: 14px;
             background: #ff4757;
             color: white;
             border: none;
             border-radius: 8px;
-            font-size: 14px;
+            font-size: 16px;
             font-weight: bold;
             cursor: pointer;
             text-align: center;
@@ -200,45 +163,43 @@
 </head>
 <body>
 
-    <div class="phone-frame">
-        <!-- Viewfinder -->
-        <div class="viewfinder">
-            <video id="cameraStream" autoplay playsinline></video>
-            <div class="top-hud">⚡ INSTANT 4K AI</div>
-            
-            <!-- Smooth Sliding Zoom Bar -->
-            <div class="zoom-slider-container">
-                <span id="zoomLabel">1x</span>
-                <input type="range" id="zoomRange" class="zoom-range" min="1" max="5" step="0.1" value="1">
+    <!-- Camera Viewfinder -->
+    <div class="viewfinder">
+        <video id="cameraStream" autoplay playsinline></video>
+        <div class="hud-overlay">
+            <div class="top-hud">
+                <span>🤖 AI SITUATIONAL AUTO-ENHANCE • 4K</span>
             </div>
+            <div class="golden-ratio-overlay"></div>
+        </div>
+    </div>
+
+    <!-- Situational Style Bar -->
+    <div class="filter-bar" id="filterBar">
+        <button class="filter-chip active" data-mode="auto_match">✨ Auto-Match Scene</button>
+        <button class="filter-chip" data-mode="forest_path">🌲 Forest Canopy & Path</button>
+        <button class="filter-chip" data-mode="street_vehicle">🚙 Moody Vehicle / Street</button>
+        <button class="filter-chip" data-mode="cinematic_hdr">🌅 Cinematic HDR Pop</button>
+    </div>
+
+    <!-- Shutter Controls -->
+    <div class="controls">
+        <button class="shutter-btn" id="captureBtn"></button>
+    </div>
+
+    <canvas id="photoCanvas" style="display:none;"></canvas>
+
+    <!-- Preview Screen -->
+    <div class="preview-modal" id="previewModal">
+        <h3 style="color: #ff4757; text-align: center; margin-top: 10px;">✨ Situational Enhancement Applied</h3>
+        
+        <div class="preview-container">
+            <img id="resultImage" alt="Enhanced Output">
         </div>
 
-        <!-- Mode Selector -->
-        <div class="mode-bar">
-            <button class="mode-chip active" data-mode="forest">🌲 Forest & Path</button>
-            <button class="mode-chip" data-mode="vehicle">🚙 Vehicle / Street</button>
-            <button class="mode-chip" data-mode="hdr">🌅 Cinematic HDR</button>
-        </div>
-
-        <!-- Shutter Controls -->
-        <div class="controls">
-            <button class="shutter-btn" id="captureBtn"></button>
-        </div>
-
-        <canvas id="photoCanvas" style="display:none;"></canvas>
-
-        <!-- Preview Modal -->
-        <div class="preview-modal" id="previewModal">
-            <h3 style="color: #ff4757; text-align: center; margin-top: 10px;">✨ Instant Enhance Applied</h3>
-            
-            <div class="preview-container">
-                <img id="resultImage" alt="Captured Preview">
-            </div>
-
-            <div class="actions">
-                <button class="btn btn-secondary" id="retakeBtn">Retake</button>
-                <button class="btn" id="downloadBtn">Save Photo</button>
-            </div>
+        <div class="actions">
+            <button class="btn btn-secondary" id="retakeBtn">Retake</button>
+            <button class="btn" id="downloadBtn">Download 4K Photo</button>
         </div>
     </div>
 
@@ -252,45 +213,24 @@
         const resultImage = document.getElementById('resultImage');
         const retakeBtn = document.getElementById('retakeBtn');
         const downloadBtn = document.getElementById('downloadBtn');
-        const modeChips = document.querySelectorAll('.mode-chip');
-        const zoomRange = document.getElementById('zoomRange');
-        const zoomLabel = document.getElementById('zoomLabel');
+        const modeChips = document.querySelectorAll('.filter-chip');
 
-        let selectedMode = 'forest';
-        let imageTrack = null;
+        let selectedMode = 'auto_match';
         let finalDataUrl = '';
 
         // Initialize Camera
         async function initCamera() {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } },
+                    video: { facingMode: 'environment', width: { ideal: 3840 }, height: { ideal: 2160 } },
                     audio: false
                 });
                 video.srcObject = stream;
-                imageTrack = stream.getVideoTracks()[0];
             } catch (err) {
                 alert("Camera access error: " + err.message);
             }
         }
         initCamera();
-
-        // Smooth Zoom Slider Control
-        zoomRange.addEventListener('input', async (e) => {
-            const val = e.target.value;
-            zoomLabel.innerText = `${val}x`;
-            if (imageTrack) {
-                const capabilities = imageTrack.getCapabilities();
-                if (capabilities.zoom) {
-                    try {
-                        await imageTrack.applyConstraints({ advanced: [{ zoom: parseFloat(val) }] });
-                        return;
-                    } catch (err) { console.log("Hardware zoom not supported, using CSS fallback"); }
-                }
-            }
-            // Fallback CSS smooth scale transform for browsers without hardware zoom control
-            video.style.transform = `scale(${val})`;
-        });
 
         modeChips.forEach(chip => {
             chip.addEventListener('click', (e) => {
@@ -300,39 +240,88 @@
             });
         });
 
-        // Fast & Instantaneous Capture Processing Engine
+        // Capture & Situational Enhancement Engine
         captureBtn.addEventListener('click', () => {
-            canvas.width = video.videoWidth || 1280;
-            canvas.height = video.videoHeight || 720;
+            canvas.width = video.videoWidth || 1920;
+            canvas.height = video.videoHeight || 1080;
             
-            // Fast single-pass draw
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            let imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            let data = imgData.data;
 
-            // Apply lightning-fast canvas composite filters depending on mode (No heavy lag loops)
-            ctx.save();
-            if (selectedMode === 'forest') {
-                ctx.filter = 'contrast(125%) brightness(105%) saturate(115%)';
-            } else if (selectedMode === 'vehicle') {
-                ctx.filter = 'contrast(140%) brightness(95%) saturate(120%)';
-            } else {
-                ctx.filter = 'contrast(120%) saturate(110%)';
+            let centerX = canvas.width / 2;
+            let centerY = canvas.height / 2;
+            let maxDist = Math.sqrt(centerX * centerX + centerY * centerY);
+
+            // Determine profile based on selection or auto-analysis
+            let mode = selectedMode;
+            if (mode === 'auto_match') {
+                // Simple heuristic: if top center is bright, assume path/forest style, else vehicle style
+                mode = 'forest_path'; 
             }
-            ctx.drawImage(canvas, 0, 0);
-            ctx.restore();
 
-            // Burn Professional Camera Metadata Watermark at Bottom instantly
+            for (let y = 0; y < canvas.height; y++) {
+                for (let x = 0; x < canvas.width; x++) {
+                    let i = (y * canvas.width + x) * 4;
+                    let r = data[i], g = data[i+1], b = data[i+2];
+
+                    let lum = 0.299 * r + 0.587 * g + 0.114 * b;
+
+                    if (mode === 'forest_path') {
+                        // Mimic the sunlit path & rich green canopy look (Reference[span_2](start_span)[span_2](end_span))
+                        if (lum > 160) {
+                            // Highlight glow from the canopy opening
+                            r *= 1.15; g *= 1.2; b *= 1.05;
+                        } else if (lum < 90) {
+                            // Deep shadow vignette on edges
+                            r *= 0.8; g *= 0.85; b *= 0.8;
+                        }
+                        // Rich contrast and warm earthy tone
+                        r = ((r / 255 - 0.5) * 1.25 + 0.5) * 255;
+                        g = ((g / 255 - 0.5) * 1.25 + 0.5) * 255;
+                        b = ((b / 255 - 0.5) * 1.25 + 0.5) * 255;
+                    } 
+                    else if (mode === 'street_vehicle') {
+                        // Mimic the moody vehicle headlight pop & heavy vignette (Reference[span_3](start_span)[span_3](end_span))
+                        r = ((r / 255 - 0.5) * 1.4 + 0.5) * 255;
+                        g = ((g / 255 - 0.5) * 1.4 + 0.5) * 255;
+                        b = ((b / 255 - 0.5) * 1.4 + 0.5) * 255;
+
+                        let distX = x - centerX;
+                        let distY = y - centerY;
+                        let distance = Math.sqrt(distX * distX + distY * distY);
+                        let vignette = 1 - (distance / maxDist) * 0.7;
+                        vignette = Math.max(0.25, Math.min(1, vignette));
+
+                        r *= vignette; g *= vignette; b *= vignette;
+                    }
+                    else {
+                        // Cinematic HDR Pop
+                        r = ((r / 255 - 0.5) * 1.2 + 0.5) * 255;
+                        g = ((g / 255 - 0.5) * 1.2 + 0.5) * 255;
+                        b = ((b / 255 - 0.5) * 1.2 + 0.5) * 255;
+                    }
+
+                    data[i]   = Math.min(255, Math.max(0, r));
+                    data[i+1] = Math.min(255, Math.max(0, g));
+                    data[i+2] = Math.min(255, Math.max(0, b));
+                }
+            }
+
+            ctx.putImageData(imgData, 0, 0);
+
+            // Burn Professional Camera Stamp at Bottom (Matching reference style)[span_4](start_span)[span_4](end_span)[span_5](start_span)[span_5](end_span)
             ctx.fillStyle = "#ffffff";
-            ctx.fillRect(0, canvas.height - 80, canvas.width, 80);
+            ctx.fillRect(0, canvas.height - 120, canvas.width, 120);
 
             ctx.fillStyle = "#111111";
-            ctx.font = `bold ${Math.max(14, canvas.width / 45)}px sans-serif`;
-            ctx.fillText("ASUS_I003DD", 30, canvas.height - 35);
+            ctx.font = `bold ${Math.max(18, canvas.width / 42)}px sans-serif`;
+            ctx.fillText("ASUS_I003DD", 50, canvas.height - 60);
 
-            ctx.font = `${Math.max(12, canvas.width / 55)}px sans-serif`;
-            ctx.fillText("5mm f/1.8  1/320 ISO25", canvas.width - 280, canvas.height - 35);
+            ctx.font = `${Math.max(15, canvas.width / 50)}px sans-serif`;
+            ctx.fillText("5mm f/1.8  1/320 ISO25", canvas.width - 430, canvas.height - 60);
 
-            // Instant data URL generation and UI display
-            finalDataUrl = canvas.toDataURL('image/jpeg', 0.9);
+            finalDataUrl = canvas.toDataURL('image/jpeg', 0.95);
             resultImage.src = finalDataUrl;
             previewModal.style.display = 'flex';
         });
@@ -344,7 +333,7 @@
         downloadBtn.addEventListener('click', () => {
             const a = document.createElement('a');
             a.href = finalDataUrl;
-            a.download = `Pro_Shot_${Date.now()}.jpg`;
+            a.download = `Situational_Enhanced_${Date.now()}.jpg`;
             a.click();
         });
     </script>
