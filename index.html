@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI Pro Mobile Camera</title>
+    <title>True AI Situational Camera</title>
     <style>
         * {
             margin: 0;
@@ -197,9 +197,10 @@
 
     <!-- AI Situational Style Bar -->
     <div class="filter-bar" id="filterBar">
-        <button class="filter-chip active" data-mode="auto_match">✨ AI Auto-Match Scene</button>
+        <button class="filter-chip active" data-mode="auto_match">✨ Smart AI Auto-Match</button>
+        <button class="filter-chip" data-mode="portrait">👤 Selfie / Portrait Mode</button>
         <button class="filter-chip" data-mode="forest_path">🌲 Forest Canopy & Path</button>
-        <button class="filter-chip" data-mode="street_vehicle">🚙 Moody Vehicle / Street</button>
+        <button class="filter-chip" data-mode="street_vehicle">🚙 Moody Street / Vehicle</button>
     </div>
 
     <!-- Shutter Controls -->
@@ -211,7 +212,7 @@
 
     <!-- Preview Modal -->
     <div class="preview-modal" id="previewModal">
-        <h3 style="color: #ff4757; text-align: center; margin-top: 10px;">✨ AI Situational Enhancement Ready</h3>
+        <h3 id="modeTitle" style="color: #ff4757; text-align: center; margin-top: 10px;">✨ AI Situational Enhancement Ready</h3>
         
         <div class="preview-container">
             <img id="resultImage" alt="Enhanced Output">
@@ -233,6 +234,7 @@
         const resultImage = document.getElementById('resultImage');
         const retakeBtn = document.getElementById('retakeBtn');
         const downloadBtn = document.getElementById('downloadBtn');
+        const modeTitle = document.getElementById('modeTitle');
         
         const flipCamBtn = document.getElementById('flipCamBtn');
         const zoomBtns = document.querySelectorAll('.zoom-btn');
@@ -244,7 +246,7 @@
         let currentStream = null;
         let finalDataUrl = '';
 
-        // Initialize Camera Stream
+        // Initialize Camera
         async function initCamera() {
             if (currentStream) {
                 currentStream.getTracks().forEach(track => track.stop());
@@ -268,13 +270,11 @@
         }
         initCamera();
 
-        // Flip Camera
         flipCamBtn.addEventListener('click', () => {
             currentFacingMode = (currentFacingMode === 'environment') ? 'user' : 'environment';
             initCamera();
         });
 
-        // Zoom Control
         zoomBtns.forEach(btn => {
             btn.addEventListener('click', (e) => {
                 zoomBtns.forEach(b => b.classList.remove('active'));
@@ -284,7 +284,6 @@
             });
         });
 
-        // Mode Selector
         modeChips.forEach(chip => {
             chip.addEventListener('click', (e) => {
                 modeChips.forEach(c => c.classList.remove('active'));
@@ -293,7 +292,7 @@
             });
         });
 
-        // Capture & Situational AI Processing Engine
+        // Capture & Dynamic Situational AI Processing Engine
         captureBtn.addEventListener('click', () => {
             canvas.width = video.videoWidth || 1920;
             canvas.height = video.videoHeight || 1080;
@@ -306,13 +305,33 @@
             let centerY = canvas.height / 2;
             let maxDist = Math.sqrt(centerX * centerX + centerY * centerY);
 
-            // Determine profile
-            let mode = selectedMode;
-            if (mode === 'auto_match') {
-                // Intelligent default situational profile matching the reference aesthetic
-                mode = 'forest_path'; 
+            // Smart Auto-Match Analysis: Check center brightness & skin tone proximity to decide scene type
+            let activeMode = selectedMode;
+            if (activeMode === 'auto_match') {
+                let sampleR = 0, sampleG = 0, sampleB = 0, count = 0;
+                // Sample center box pixels (where a face or subject usually is)
+                for (let y = Math.floor(centerY - canvas.height*0.15); y < Math.floor(centerY + canvas.height*0.15); y++) {
+                    for (let x = Math.floor(centerX - canvas.width*0.15); x < Math.floor(centerX + canvas.width*0.15); x++) {
+                        let idx = (y * canvas.width + x) * 4;
+                        sampleR += data[idx];
+                        sampleG += data[idx+1];
+                        sampleB += data[idx+2];
+                        count++;
+                    }
+                }
+                let avgR = sampleR / count;
+                let avgG = sampleG / count;
+                let avgB = sampleB / count;
+
+                // If warm/skin tones dominate center or it's an indoor close-up shot, choose Portrait Mode
+                if (avgR > avgG && avgG > avgB && avgR > 110) {
+                    activeMode = 'portrait';
+                } else {
+                    activeMode = 'forest_path';
+                }
             }
 
+            // Apply style based on the detected or selected situational mode
             for (let y = 0; y < canvas.height; y++) {
                 for (let x = 0; x < canvas.width; x++) {
                     let i = (y * canvas.width + x) * 4;
@@ -320,14 +339,26 @@
 
                     let lum = 0.299 * r + 0.587 * g + 0.114 * b;
 
-                    if (mode === 'forest_path') {
+                    if (activeMode === 'portrait') {
+                        // Soft portrait enhancement: smooth skin highlights, warm glow, gentle vignette
+                        r = Math.min(255, r * 1.08);
+                        g = Math.min(255, g * 1.05);
+                        b = Math.min(255, b * 1.02);
+
+                        let distX = x - centerX;
+                        let distY = y - centerY;
+                        let distance = Math.sqrt(distX * distX + distY * distY);
+                        let vignette = Math.max(0.6, 1 - (distance / maxDist) * 0.4); // Softer vignette for selfies
+                        r *= vignette; g *= vignette; b *= vignette;
+                    } 
+                    else if (activeMode === 'forest_path') {
                         if (lum > 150) { r *= 1.15; g *= 1.2; b *= 1.05; }
                         else if (lum < 90) { r *= 0.8; g *= 0.85; b *= 0.8; }
                         r = ((r / 255 - 0.5) * 1.25 + 0.5) * 255;
                         g = ((g / 255 - 0.5) * 1.25 + 0.5) * 255;
                         b = ((b / 255 - 0.5) * 1.25 + 0.5) * 255;
                     } 
-                    else if (mode === 'street_vehicle') {
+                    else if (activeMode === 'street_vehicle') {
                         r = ((r / 255 - 0.5) * 1.4 + 0.5) * 255;
                         g = ((g / 255 - 0.5) * 1.4 + 0.5) * 255;
                         b = ((b / 255 - 0.5) * 1.4 + 0.5) * 255;
@@ -345,7 +376,10 @@
 
             ctx.putImageData(imgData, 0, 0);
 
-            // Watermark stamp matching reference style
+            // Update title text to show which style was applied
+            modeTitle.innerText = `✨ Applied: ${activeMode.toUpperCase().replace('_', ' ')} Style`;
+
+            // Watermark stamp
             ctx.fillStyle = "#ffffff";
             ctx.fillRect(0, canvas.height - 120, canvas.width, 120);
             ctx.fillStyle = "#111111";
@@ -366,7 +400,7 @@
         downloadBtn.addEventListener('click', () => {
             const a = document.createElement('a');
             a.href = finalDataUrl;
-            a.download = `AI_Situational_Camera_${Date.now()}.jpg`;
+            a.download = `AI_Smart_Camera_${Date.now()}.jpg`;
             a.click();
         });
     </script>
