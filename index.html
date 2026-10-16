@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auto 4K Camera App</title>
+    <title>Pro Studio 4K Camera</title>
     <style>
         * {
             margin: 0;
@@ -34,79 +34,151 @@
             height: 100%;
             object-fit: cover;
         }
-        /* Custom Camera Grid Overlay */
-        .grid-overlay {
+        /* On-Screen HUD Overlays */
+        .hud-overlay {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            border: 20px solid rgba(0, 0, 0, 0.3);
             pointer-events: none;
             display: flex;
-            justify-content: center;
-            align-items: center;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
         }
-        .focus-circle {
-            width: 200px;
-            height: 200px;
-            border: 1px dashed rgba(255, 255, 255, 0.6);
+        .top-hud {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            background: rgba(0,0,0,0.4);
+            padding: 6px 12px;
+            border-radius: 4px;
+            align-self: center;
+        }
+        .horizon-leveler {
+            width: 100px;
+            height: 4px;
+            background: rgba(255,255,255,0.3);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 2px;
+        }
+        .horizon-bubble {
+            width: 12px;
+            height: 12px;
+            background: #4cd137;
             border-radius: 50%;
+            position: absolute;
+            top: -4px;
+            left: 44px;
+            transition: transform 0.05s linear;
+        }
+        /* Filter Selector Bar */
+        .filter-bar {
+            height: 50px;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0 15px;
+            overflow-x: auto;
+        }
+        .filter-chip {
+            padding: 6px 12px;
+            background: #333;
+            border: none;
+            color: white;
+            border-radius: 15px;
+            font-size: 12px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .filter-chip.active {
+            background: #007bff;
         }
         /* Controls Section */
         .controls {
-            height: 120px;
+            height: 100px;
             background: #111;
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 20px;
         }
         .shutter-btn {
-            width: 70px;
-            height: 70px;
+            width: 65px;
+            height: 65px;
             border-radius: 50%;
             background: #fff;
-            border: 4px solid #888;
+            border: 4px solid #777;
             cursor: pointer;
             transition: transform 0.1s;
         }
         .shutter-btn:active {
             transform: scale(0.9);
         }
-        /* Result Preview Modal */
+        /* Preview & Studio Edit Modal */
         .preview-modal {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: #000;
+            background: #111;
             display: none;
             flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+            z-index: 10;
+            overflow-y: auto;
+        }
+        .preview-container {
+            flex: 1;
+            display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 10;
+            margin: 10px 0;
         }
-        .preview-modal img {
-            max-width: 90%;
-            max-height: 70%;
+        .preview-container img {
+            max-width: 100%;
+            max-height: 45vh;
             border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(255,255,255,0.2);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+        .edit-controls {
+            background: #222;
+            padding: 15px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .slider-group {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 14px;
+        }
+        .slider-group input {
+            width: 65%;
         }
         .actions {
-            margin-top: 20px;
             display: flex;
-            gap: 15px;
+            gap: 10px;
+            margin-top: 10px;
         }
         .btn {
-            padding: 10px 20px;
+            flex: 1;
+            padding: 12px;
             background: #007bff;
             color: white;
             border: none;
             border-radius: 5px;
-            font-size: 16px;
+            font-size: 15px;
             cursor: pointer;
+            text-align: center;
         }
         .btn-secondary {
             background: #444;
@@ -118,9 +190,25 @@
     <!-- Camera Viewfinder -->
     <div class="viewfinder">
         <video id="cameraStream" autoplay playsinline></video>
-        <div class="grid-overlay">
-            <div class="focus-circle"></div>
+        
+        <!-- On-Screen HUD & Gyro Leveler -->
+        <div class="hud-overlay">
+            <div class="top-hud">
+                <span id="resolutionBadge">4K ULTRA • 24FPS</span>
+            </div>
+            <div class="horizon-leveler">
+                <div class="horizon-bubble" id="horizonBubble"></div>
+            </div>
         </div>
+    </div>
+
+    <!-- Live Filter Selector -->
+    <div class="filter-bar" id="filterBar">
+        <button class="filter-chip active" data-filter="normal">Normal</button>
+        <button class="filter-chip" data-filter="cinematic">Cinematic</button>
+        <button class="filter-chip" data-filter="warm">Warm Glow</button>
+        <button class="filter-chip" data-filter="vibrant">Vibrant Pop</button>
+        <button class="filter-chip" data-filter="mono">Noir B&W</button>
     </div>
 
     <!-- Bottom Controls -->
@@ -131,13 +219,32 @@
     <!-- Hidden Canvas for Processing -->
     <canvas id="photoCanvas" style="display:none;"></canvas>
 
-    <!-- Preview & Enhanced Result Screen -->
+    <!-- Post-Capture Studio Modal -->
     <div class="preview-modal" id="previewModal">
-        <h2 style="margin-bottom: 15px; color: #4cd137;">✨ Auto-Enhanced 4K</h2>
-        <img id="resultImage" alt="Captured Photo">
+        <h3 style="color: #4cd137; text-align: center;">✨ Studio Suite & Watermark</h3>
+        
+        <div class="preview-container">
+            <img id="resultImage" alt="Enhanced Output">
+        </div>
+
+        <div class="edit-controls">
+            <div class="slider-group">
+                <label>Brightness</label>
+                <input type="range" id="brightnessSlider" min="0.5" max="1.5" step="0.05" value="1">
+            </div>
+            <div class="slider-group">
+                <label>Contrast</label>
+                <input type="range" id="contrastSlider" min="0.5" max="1.8" step="0.05" value="1.15">
+            </div>
+            <div class="slider-group">
+                <label>Saturation</label>
+                <input type="range" id="saturationSlider" min="0" max="2" step="0.05" value="1.2">
+            </div>
+        </div>
+
         <div class="actions">
-            <button class="btn" id="downloadBtn">Download Photo</button>
             <button class="btn btn-secondary" id="retakeBtn">Retake</button>
+            <button class="btn" id="downloadBtn">Save Photo</button>
         </div>
     </div>
 
@@ -146,18 +253,27 @@
         const captureBtn = document.getElementById('captureBtn');
         const canvas = document.getElementById('photoCanvas');
         const ctx = canvas.getContext('2d');
+        
         const previewModal = document.getElementById('previewModal');
         const resultImage = document.getElementById('resultImage');
         const retakeBtn = document.getElementById('retakeBtn');
         const downloadBtn = document.getElementById('downloadBtn');
+        
+        const horizonBubble = document.getElementById('horizonBubble');
+        const filterChips = document.querySelectorAll('.filter-chip');
+        
+        const brightnessSlider = document.getElementById('brightnessSlider');
+        const contrastSlider = document.getElementById('contrastSlider');
+        const saturationSlider = document.getElementById('saturationSlider');
 
-        let enhancedDataUrl = '';
+        let currentFilter = 'normal';
+        let rawCapturedImage = null; // Store base captured snapshot
 
-        // Initialize back camera stream
+        // Initialize Rear Camera
         async function initCamera() {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } },
+                    video: { facingMode: 'environment', width: { ideal: 3840 }, height: { ideal: 2160 } },
                     audio: false
                 });
                 video.srcObject = stream;
@@ -167,45 +283,116 @@
         }
         initCamera();
 
-        // Capture and Enhance Filter Logic
-        captureBtn.addEventListener('click', () => {
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            
-            // Draw current frame onto canvas
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-            // Apply Automated Enhancement Filter (Simulating the 4K Auto-Edit pop)
-            let imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            let data = imgData.data;
-            
-            let contrast = 1.15; // Increase contrast slightly
-            let brightness = 10;  // Lift brightness slightly
-
-            for (let i = 0; i < data.length; i += 4) {
-                // Adjust RGB for contrast and brightness
-                data[i] = data[i] * contrast + brightness;     // Red
-                data[i+1] = data[i+1] * contrast + brightness; // Green
-                data[i+2] = data[i+2] * contrast + brightness; // Blue
+        // Gyroscope Horizon Stabilization Sensor Listener
+        window.addEventListener('deviceorientation', (event) => {
+            let gamma = event.gamma; // Left/Right tilt (-90 to 90)
+            if (gamma !== null) {
+                let position = Math.max(-40, Math.min(40, gamma));
+                horizonBubble.style.transform = `translateX(${position}px)`;
             }
-            ctx.putImageData(imgData, 0, 0);
+        });
 
-            // Generate image URL
-            enhancedDataUrl = canvas.toDataURL('image/jpeg', 0.95);
-            resultImage.src = enhancedDataUrl;
+        // Filter Switching
+        filterChips.forEach(chip => {
+            chip.addEventListener('click', (e) => {
+                filterChips.forEach(c => c.classList.remove('active'));
+                e.target.classList.add('active');
+                currentFilter = e.target.getAttribute('data-filter');
+            });
+        });
+
+        // Capture Handler
+        captureBtn.addEventListener('click', () => {
+            canvas.width = video.videoWidth || 1920;
+            canvas.height = video.videoHeight || 1080;
+            
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            rawCapturedImage = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+            updateProcessedPreview();
             previewModal.style.display = 'flex';
         });
 
-        // Retake button handler
+        // Real-time Slider & Filter Image Processor
+        function updateProcessedPreview() {
+            if (!rawCapturedImage) return;
+
+            // Copy raw snapshot data to manipulate safely
+            let imgData = new ImageData(
+                new Uint8ClampedArray(rawCapturedImage.data), 
+                rawCapturedImage.width, 
+                rawCapturedImage.height
+            );
+            let data = imgData.data;
+
+            let brightness = parseFloat(brightnessSlider.value);
+            let contrast = parseFloat(contrastSlider.value);
+            let saturation = parseFloat(saturationSlider.value);
+
+            for (let i = 0; i < data.length; i += 4) {
+                let r = data[i], g = data[i+1], b = data[i+2];
+
+                // 1. Preset Adjustments
+                if (currentFilter === 'cinematic') {
+                    r *= 0.9; b *= 1.1; // Cool cinematic tint
+                } else if (currentFilter === 'warm') {
+                    r *= 1.15; b *= 0.9; // Warm golden glow
+                } else if (currentFilter === 'vibrant') {
+                    contrast *= 1.1;
+                } else if (currentFilter === 'mono') {
+                    let avg = (r * 0.3 + g * 0.59 + b * 0.11);
+                    r = avg; g = avg; b = avg;
+                }
+
+                // 2. Manual Sliders (Brightness, Contrast, Saturation)
+                // Contrast & Brightness
+                r = ((r / 255 - 0.5) * contrast + 0.5) * 255 * brightness;
+                g = ((g / 255 - 0.5) * contrast + 0.5) * 255 * brightness;
+                b = ((b / 255 - 0.5) * contrast + 0.5) * 255 * brightness;
+
+                // Saturation adjustment
+                let gray = 0.2989 * r + 0.5870 * g + 0.1140 * b;
+                r = gray + saturation * (r - gray);
+                g = gray + saturation * (g - gray);
+                b = gray + saturation * (b - gray);
+
+                data[i]   = Math.min(255, Math.max(0, r));
+                data[i+1] = Math.min(255, Math.max(0, g));
+                data[i+2] = Math.min(255, Math.max(0, b));
+            }
+
+            ctx.putImageData(imgData, 0, 0);
+
+            // 3. Burn Professional Camera Watermark Stamp at Bottom
+            ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+            ctx.fillRect(0, canvas.height - 100, canvas.width, 100);
+
+            ctx.fillStyle = "#ffffff";
+            ctx.font = `${Math.max(16, canvas.width / 45)}px sans-serif`;
+            ctx.fillText("PRO STUDIO 4K  •  24mm f/1.8  1/320s  ISO 25", 50, canvas.height - 50);
+            
+            ctx.fillStyle = "#4cd137";
+            ctx.font = `bold ${Math.max(14, canvas.width / 50)}px sans-serif`;
+            ctx.fillText("AI ENHANCED", canvas.width - 250, canvas.height - 50);
+
+            resultImage.src = canvas.toDataURL('image/jpeg', 0.95);
+        }
+
+        // Hook up slider change events
+        brightnessSlider.addEventListener('input', updateProcessedPreview);
+        contrastSlider.addEventListener('input', updateProcessedPreview);
+        saturationSlider.addEventListener('input', updateProcessedPreview);
+
+        // Retake
         retakeBtn.addEventListener('click', () => {
             previewModal.style.display = 'none';
         });
 
-        // Download button handler
+        // Download Final Result
         downloadBtn.addEventListener('click', () => {
             const a = document.createElement('a');
-            a.href = enhancedDataUrl;
-            a.download = `Enhanced_4K_${Date.now()}.jpg`;
+            a.href = resultImage.src;
+            a.download = `Pro_Studio_4K_${Date.now()}.jpg`;
             a.click();
         });
     </script>
