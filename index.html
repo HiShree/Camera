@@ -259,11 +259,11 @@
             });
         });
 
-        // Fully Autonomous AI Engine with Bulletproof Full-Frame Capture
+        // Fully Autonomous AI Engine with Permanent Full-Screen Canvas Match
         captureBtn.addEventListener('click', () => {
-            // Use actual video rendering size to guarantee full canvas coverage
-            const w = video.videoWidth || video.clientWidth || 1280;
-            const h = video.videoHeight || video.clientHeight || 720;
+            // Force canvas to match the exact displayed client dimensions of the video box on screen
+            const w = video.clientWidth || window.innerWidth;
+            const h = video.clientHeight || (window.innerHeight - 130);
             canvas.width = w;
             canvas.height = h;
             
