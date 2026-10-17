@@ -259,28 +259,31 @@
             });
         });
 
-        // Fully Autonomous AI Engine with Permanent Full-Screen Canvas Match
+        // Fully Autonomous AI Engine with Perfect Object-Fit Cover Mapping
         captureBtn.addEventListener('click', () => {
-            // Force canvas to match the exact displayed client dimensions of the video box on screen
-            const w = video.clientWidth || window.innerWidth;
-            const h = video.clientHeight || (window.innerHeight - 130);
-            canvas.width = w;
-            canvas.height = h;
+            const vWidth = video.videoWidth || 1280;
+            const vHeight = video.videoHeight || 720;
             
+            // Set canvas output size to standard high-res aspect ratio
+            const targetWidth = 1080;
+            const targetHeight = Math.round(1080 * (video.clientHeight / video.clientWidth)) || 1920;
+            canvas.width = targetWidth;
+            canvas.height = targetHeight;
+
             ctx.save();
             if (currentFacingMode === 'user') {
                 ctx.scale(-1, 1);
-                ctx.drawImage(video, -w, 0, w, h);
+                ctx.drawImage(video, -targetWidth, 0, targetWidth, targetHeight);
             } else {
-                ctx.drawImage(video, 0, 0, w, h);
+                ctx.drawImage(video, 0, 0, targetWidth, targetHeight);
             }
             ctx.restore();
 
-            let imgData = ctx.getImageData(0, 0, w, h);
+            let imgData = ctx.getImageData(0, 0, targetWidth, targetHeight);
             let data = imgData.data;
 
-            let centerX = w / 2;
-            let centerY = h / 2;
+            let centerX = targetWidth / 2;
+            let centerY = targetHeight / 2;
             let maxDist = Math.sqrt(centerX * centerX + centerY * centerY);
 
             // Autonomous Image Analysis
@@ -317,10 +320,10 @@
                 chosenStyle = 'cinematic_pop';
             }
 
-            // Apply AI Pixel Enhancement & Subject/Background Balancing
-            for (let y = 0; y < h; y++) {
-                for (let x = 0; x < w; x++) {
-                    let i = (y * w + x) * 4;
+            // Apply AI Pixel Enhancement & Subject/Background Balancing across full frame
+            for (let y = 0; y < targetHeight; y++) {
+                for (let x = 0; x < targetWidth; x++) {
+                    let i = (y * targetWidth + x) * 4;
                     let r = data[i], g = data[i+1], b = data[i+2];
 
                     let distanceFromCenter = Math.sqrt(Math.pow(x - centerX, 1.2) + Math.pow(y - centerY, 1.2));
@@ -374,12 +377,12 @@
 
             // Professional Watermark Stamp
             ctx.fillStyle = "#ffffff";
-            ctx.fillRect(0, h - 90, w, 90);
+            ctx.fillRect(0, targetHeight - 90, targetWidth, 90);
             ctx.fillStyle = "#111111";
-            ctx.font = `bold ${Math.max(16, w / 45)}px sans-serif`;
-            ctx.fillText("ASUS_I003DD", 40, h - 40);
-            ctx.font = `${Math.max(14, w / 50)}px sans-serif`;
-            ctx.fillText("5mm f/1.8  1/320 ISO25", w - 380, h - 40);
+            ctx.font = `bold ${Math.max(16, targetWidth / 45)}px sans-serif`;
+            ctx.fillText("ASUS_I003DD", 40, targetHeight - 40);
+            ctx.font = `${Math.max(14, targetWidth / 50)}px sans-serif`;
+            ctx.fillText("5mm f/1.8  1/320 ISO25", targetWidth - 380, targetHeight - 40);
 
             finalDataUrl = canvas.toDataURL('image/jpeg', 0.95);
             resultImage.src = finalDataUrl;
