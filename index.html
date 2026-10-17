@@ -248,13 +248,12 @@
             });
         });
 
-        // Autonomous AI Capture & Full-Frame Processing Engine
+        // Fully Autonomous AI Engine with Strict Full-Frame Sizing & Subject/Background Balancing
         captureBtn.addEventListener('click', () => {
-            // Force strict canvas sizing based on active video stream resolution
+            // Guarantee correct matching resolution so it never crops or corners the output
             canvas.width = video.videoWidth || video.clientWidth || 1280;
             canvas.height = video.videoHeight || video.clientHeight || 720;
             
-            // Draw the complete video frame onto the canvas
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
             let imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
             let data = imgData.data;
@@ -263,7 +262,42 @@
             let centerY = canvas.height / 2;
             let maxDist = Math.sqrt(centerX * centerX + centerY * centerY);
 
-            // Autonomous pixel processing for subject highlighting and background harmony
+            // Multi-Factor Image Analysis
+            let totalBrightness = 0;
+            let totalR = 0, totalG = 0, totalB = 0;
+            let pixelCount = data.length / 16;
+
+            for (let i = 0; i < data.length; i += 16) {
+                let r = data[i], g = data[i+1], b = data[i+2];
+                let lum = r * 0.299 + g * 0.587 + b * 0.114;
+                totalBrightness += lum;
+                totalR += r;
+                totalG += g;
+                totalB += b;
+            }
+
+            let avgLum = totalBrightness / pixelCount;
+            let avgR = totalR / pixelCount;
+            let avgG = totalG / pixelCount;
+            let avgB = totalB / pixelCount;
+
+            // Autonomous Style Decision Matrix
+            let chosenStyle = 'cinematic_pop';
+            if (avgLum < 70) {
+                chosenStyle = 'classic_noir';
+            } else if (avgLum < 110) {
+                chosenStyle = 'moody_lowlight';
+            } else if (avgR > avgG && avgR > avgB && avgR > 130) {
+                chosenStyle = 'golden_aesthetic';
+            } else if (avgB > avgR && avgB > avgG) {
+                chosenStyle = 'vintage_film';
+            } else if (avgLum > 160) {
+                chosenStyle = 'outdoor_vibrant';
+            } else {
+                chosenStyle = 'cinematic_pop';
+            }
+
+            // Apply AI Pixel Enhancement & Subject/Background Balancing
             for (let y = 0; y < canvas.height; y++) {
                 for (let x = 0; x < canvas.width; x++) {
                     let i = (y * canvas.width + x) * 4;
@@ -272,19 +306,42 @@
                     let distanceFromCenter = Math.sqrt(Math.pow(x - centerX, 1.2) + Math.pow(y - centerY, 1.2));
                     let normalizedDist = distanceFromCenter / maxDist;
 
+                    // Autonomous situational styling rules
+                    if (chosenStyle === 'classic_noir') {
+                        let avg = 0.299 * r + 0.587 * g + 0.114 * b;
+                        avg = ((avg / 255 - 0.5) * 1.5 + 0.5) * 255;
+                        let vignette = Math.max(0.35, 1 - normalizedDist * 0.6);
+                        r = avg * vignette; g = avg * vignette; b = avg * vignette;
+                    }
+                    else if (chosenStyle === 'moody_lowlight') {
+                        r = ((r / 255 - 0.5) * 1.4 + 0.5) * 255;
+                        g = ((g / 255 - 0.5) * 1.4 + 0.5) * 255;
+                        b = ((b / 255 - 0.5) * 1.4 + 0.5) * 255;
+                        r *= 1.15; b *= 1.2;
+                    } 
+                    else if (chosenStyle === 'golden_aesthetic') {
+                        r = r * 1.15 + 12;
+                        g = g * 1.05 + 6;
+                        b = b * 0.9;
+                        let vignette = Math.max(0.5, 1 - normalizedDist * 0.5);
+                        r *= vignette; g *= vignette; b *= vignette;
+                    } 
+                    else if (chosenStyle === 'vintage_film') {
+                        r = r * 1.1 + 8;
+                        g = g * 0.98;
+                        b = b * 1.05 + 10;
+                        let vignette = Math.max(0.5, 1 - normalizedDist * 0.45);
+                        r *= vignette; g *= vignette; b *= vignette;
+                    }
+                    else {
+                        r = ((r / 255 - 0.5) * 1.25 + 0.5) * 255;
+                        g = ((g / 255 - 0.5) * 1.25 + 0.5) * 255;
+                        b = ((b / 255 - 0.5) * 1.25 + 0.5) * 255;
+                    }
+
+                    // Subject and background harmonization pass
                     if (normalizedDist < 0.45) {
-                        // Central Subject Pop & Clarity Boost
-                        r = ((r / 255 - 0.5) * 1.2 + 0.5) * 255 * 1.08;
-                        g = ((g / 255 - 0.5) * 1.2 + 0.5) * 255 * 1.05;
-                        b = ((b / 255 - 0.5) * 1.2 + 0.5) * 255 * 1.02;
-                    } else {
-                        // Background Atmospheric Merge
-                        let blendFactor = 1 - (normalizedDist - 0.45) * 0.7;
-                        blendFactor = Math.max(0.4, Math.min(1, blendFactor));
-                        
-                        r = ((r / 255 - 0.5) * 1.35 + 0.5) * 255 * blendFactor;
-                        g = ((g / 255 - 0.5) * 1.35 + 0.5) * 255 * blendFactor;
-                        b = ((b / 255 - 0.5) * 1.35 + 0.5) * 255 * blendFactor * 1.05;
+                        r *= 1.04; g *= 1.03; b *= 1.02; // Pop central subject details
                     }
 
                     data[i]   = Math.min(255, Math.max(0, r));
@@ -295,9 +352,9 @@
 
             ctx.putImageData(imgData, 0, 0);
 
-            modeTitle.innerText = "✨ AI Subject Highlight & Merge Applied";
+            modeTitle.innerText = `✨ AI Selected: ${chosenStyle.toUpperCase().replace('_', ' ')}`;
 
-            // Professional Watermark Stamp at the bottom
+            // Professional Watermark Stamp
             ctx.fillStyle = "#ffffff";
             ctx.fillRect(0, canvas.height - 100, canvas.width, 100);
             ctx.fillStyle = "#111111";
@@ -318,7 +375,7 @@
         downloadBtn.addEventListener('click', () => {
             const a = document.createElement('a');
             a.href = finalDataUrl;
-            a.download = `Smart_AI_Camera_${Date.now()}.jpg`;
+            a.download = `Autonomous_AI_${Date.now()}.jpg`;
             a.click();
         });
     </script>
