@@ -36,6 +36,11 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
+            /* Corrects natural front-cam mirroring and orientation sync */
+            transform: scaleX(-1); 
+        }
+        video.environment {
+            transform: scaleX(1); /* Unmirrored for back camera */
         }
         /* Top Toolbar (Flip & Zoom Only) */
         .top-toolbar {
@@ -210,7 +215,7 @@
         let currentStream = null;
         let finalDataUrl = '';
 
-        // Initialize Camera with standard mobile resolution constraints
+        // Initialize Camera
         async function initCamera() {
             if (currentStream) {
                 currentStream.getTracks().forEach(track => track.stop());
@@ -228,6 +233,13 @@
 
                 currentStream = await navigator.mediaDevices.getUserMedia(constraints);
                 video.srcObject = currentStream;
+
+                // Adjust mirror class based on camera type (Front vs Back)
+                if (currentFacingMode === 'user') {
+                    video.classList.remove('environment');
+                } else {
+                    video.classList.add('environment');
+                }
             } catch (err) {
                 alert("Camera error: " + err.message);
             }
@@ -244,20 +256,30 @@
                 zoomBtns.forEach(b => b.classList.remove('active'));
                 e.target.classList.add('active');
                 currentZoom = parseFloat(e.target.getAttribute('data-zoom'));
-                video.style.transform = `scale(${currentZoom})`;
+                
+                // Keep scale zoom aligned with orientation class
+                const isMirror = currentFacingMode === 'user' ? -1 : 1;
+                video.style.transform = `scaleX(${isMirror}) scale(${currentZoom})`;
             });
         });
 
-        // Fully Autonomous AI Engine with Fixed Full-Frame Rendering
+        // Fully Autonomous AI Engine with Corrected Orientation Rendering
         captureBtn.addEventListener('click', () => {
-            // Set canvas dimensions explicitly to match video stream size
             const w = video.videoWidth || video.clientWidth || 1280;
             const h = video.videoHeight || video.clientHeight || 720;
             canvas.width = w;
             canvas.height = h;
             
-            // Draw the video frame filling the entire canvas from coordinates 0,0
-            ctx.drawImage(video, 0, 0, w, h);
+            ctx.save();
+            // Handle mirror flipping correctly on canvas capture if using front camera
+            if (currentFacingMode === 'user') {
+                ctx.scale(-1, 1);
+                ctx.drawImage(video, -w, 0, w, h);
+            } else {
+                ctx.drawImage(video, 0, 0, w, h);
+            }
+            ctx.restore();
+
             let imgData = ctx.getImageData(0, 0, w, h);
             let data = imgData.data;
 
@@ -265,7 +287,7 @@
             let centerY = h / 2;
             let maxDist = Math.sqrt(centerX * centerX + centerY * centerY);
 
-            // Autonomous Image Content Analysis
+            // Autonomous Image Analysis
             let totalBrightness = 0;
             let totalR = 0, totalG = 0, totalB = 0;
             let pixelCount = data.length / 16;
@@ -284,7 +306,6 @@
             let avgG = totalG / pixelCount;
             let avgB = totalB / pixelCount;
 
-            // Autonomous Style Decision Matrix
             let chosenStyle = 'cinematic_pop';
             if (avgLum < 70) {
                 chosenStyle = 'classic_noir';
@@ -300,7 +321,6 @@
                 chosenStyle = 'cinematic_pop';
             }
 
-            // Apply AI Pixel Enhancement & Subject/Background Balancing Across the Full Frame
             for (let y = 0; y < h; y++) {
                 for (let x = 0; x < w; x++) {
                     let i = (y * w + x) * 4;
@@ -341,7 +361,6 @@
                         b = ((b / 255 - 0.5) * 1.25 + 0.5) * 255;
                     }
 
-                    // Subject enhancement pass
                     if (normalizedDist < 0.45) {
                         r *= 1.04; g *= 1.03; b *= 1.02;
                     }
