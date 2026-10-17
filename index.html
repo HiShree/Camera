@@ -248,12 +248,13 @@
             });
         });
 
-        // Autonomous AI Subject-Background Balancing Engine with Fixed Canvas Sizing
+        // Autonomous AI Capture & Full-Frame Processing Engine
         captureBtn.addEventListener('click', () => {
-            // Ensure canvas matches exact video frame dimensions
-            canvas.width = video.videoWidth || 1280;
-            canvas.height = video.videoHeight || 720;
+            // Force strict canvas sizing based on active video stream resolution
+            canvas.width = video.videoWidth || video.clientWidth || 1280;
+            canvas.height = video.videoHeight || video.clientHeight || 720;
             
+            // Draw the complete video frame onto the canvas
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
             let imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
             let data = imgData.data;
@@ -262,7 +263,7 @@
             let centerY = canvas.height / 2;
             let maxDist = Math.sqrt(centerX * centerX + centerY * centerY);
 
-            // Pixel-by-pixel smart separation (Highlights center subject while harmonizing background)
+            // Autonomous pixel processing for subject highlighting and background harmony
             for (let y = 0; y < canvas.height; y++) {
                 for (let x = 0; x < canvas.width; x++) {
                     let i = (y * canvas.width + x) * 4;
@@ -272,12 +273,12 @@
                     let normalizedDist = distanceFromCenter / maxDist;
 
                     if (normalizedDist < 0.45) {
-                        // Central Subject Enhancement: Boost clarity and facial tones
+                        // Central Subject Pop & Clarity Boost
                         r = ((r / 255 - 0.5) * 1.2 + 0.5) * 255 * 1.08;
                         g = ((g / 255 - 0.5) * 1.2 + 0.5) * 255 * 1.05;
                         b = ((b / 255 - 0.5) * 1.2 + 0.5) * 255 * 1.02;
                     } else {
-                        // Background Atmospheric Merging
+                        // Background Atmospheric Merge
                         let blendFactor = 1 - (normalizedDist - 0.45) * 0.7;
                         blendFactor = Math.max(0.4, Math.min(1, blendFactor));
                         
@@ -296,7 +297,7 @@
 
             modeTitle.innerText = "✨ AI Subject Highlight & Merge Applied";
 
-            // Professional Watermark Stamp
+            // Professional Watermark Stamp at the bottom
             ctx.fillStyle = "#ffffff";
             ctx.fillRect(0, canvas.height - 100, canvas.width, 100);
             ctx.fillStyle = "#111111";
