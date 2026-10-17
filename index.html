@@ -220,8 +220,8 @@
                 const constraints = {
                     video: {
                         facingMode: currentFacingMode,
-                        width: { ideal: 3840 },
-                        height: { ideal: 2160 }
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
                     },
                     audio: false
                 };
@@ -248,10 +248,11 @@
             });
         });
 
-        // Autonomous AI Subject-Background Balancing Engine
+        // Autonomous AI Subject-Background Balancing Engine with Fixed Canvas Sizing
         captureBtn.addEventListener('click', () => {
-            canvas.width = video.videoWidth || 1920;
-            canvas.height = video.videoHeight || 1080;
+            // Ensure canvas matches exact video frame dimensions
+            canvas.width = video.videoWidth || 1280;
+            canvas.height = video.videoHeight || 720;
             
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
             let imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
@@ -267,23 +268,22 @@
                     let i = (y * canvas.width + x) * 4;
                     let r = data[i], g = data[i+1], b = data[i+2];
 
-                    // Distance from center (to isolate subject vs background edges)
                     let distanceFromCenter = Math.sqrt(Math.pow(x - centerX, 1.2) + Math.pow(y - centerY, 1.2));
                     let normalizedDist = distanceFromCenter / maxDist;
 
                     if (normalizedDist < 0.45) {
-                        // Central Subject Enhancement: Boost clarity, highlight facial tones, and pop details
+                        // Central Subject Enhancement: Boost clarity and facial tones
                         r = ((r / 255 - 0.5) * 1.2 + 0.5) * 255 * 1.08;
                         g = ((g / 255 - 0.5) * 1.2 + 0.5) * 255 * 1.05;
                         b = ((b / 255 - 0.5) * 1.2 + 0.5) * 255 * 1.02;
                     } else {
-                        // Background Atmospheric Merging: Deepen tones and rich cinematic fade to frame the subject
+                        // Background Atmospheric Merging
                         let blendFactor = 1 - (normalizedDist - 0.45) * 0.7;
                         blendFactor = Math.max(0.4, Math.min(1, blendFactor));
                         
                         r = ((r / 255 - 0.5) * 1.35 + 0.5) * 255 * blendFactor;
                         g = ((g / 255 - 0.5) * 1.35 + 0.5) * 255 * blendFactor;
-                        b = ((b / 255 - 0.5) * 1.35 + 0.5) * 255 * blendFactor * 1.05; // Rich cinematic blue/teal shadow merge
+                        b = ((b / 255 - 0.5) * 1.35 + 0.5) * 255 * blendFactor * 1.05;
                     }
 
                     data[i]   = Math.min(255, Math.max(0, r));
@@ -298,12 +298,12 @@
 
             // Professional Watermark Stamp
             ctx.fillStyle = "#ffffff";
-            ctx.fillRect(0, canvas.height - 120, canvas.width, 120);
+            ctx.fillRect(0, canvas.height - 100, canvas.width, 100);
             ctx.fillStyle = "#111111";
-            ctx.font = `bold ${Math.max(18, canvas.width / 42)}px sans-serif`;
-            ctx.fillText("ASUS_I003DD", 50, canvas.height - 60);
-            ctx.font = `${Math.max(15, canvas.width / 50)}px sans-serif`;
-            ctx.fillText("5mm f/1.8  1/320 ISO25", canvas.width - 430, canvas.height - 60);
+            ctx.font = `bold ${Math.max(16, canvas.width / 45)}px sans-serif`;
+            ctx.fillText("ASUS_I003DD", 40, canvas.height - 45);
+            ctx.font = `${Math.max(14, canvas.width / 50)}px sans-serif`;
+            ctx.fillText("5mm f/1.8  1/320 ISO25", canvas.width - 380, canvas.height - 45);
 
             finalDataUrl = canvas.toDataURL('image/jpeg', 0.95);
             resultImage.src = finalDataUrl;
