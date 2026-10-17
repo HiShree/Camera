@@ -259,11 +259,11 @@
             });
         });
 
-        // Fully Autonomous AI Engine with Unified Safe Frame Mapping
+        // Fully Autonomous AI Engine with Native Aspect Ratio Lock (No Squeezing)
         captureBtn.addEventListener('click', () => {
-            // Lock canvas dimensions explicitly to match the visible viewport element box
-            const w = video.clientWidth || window.innerWidth;
-            const h = video.clientHeight || (window.innerHeight - 130);
+            // Lock canvas strictly to the native camera sensor resolution to prevent aspect distortion
+            const w = video.videoWidth || 1280;
+            const h = video.videoHeight || 720;
             canvas.width = w;
             canvas.height = h;
 
@@ -317,7 +317,7 @@
                 chosenStyle = 'cinematic_pop';
             }
 
-            // Apply unified, safe full-frame pixel enhancements
+            // Apply AI Pixel Enhancement & Subject Balancing
             for (let y = 0; y < h; y++) {
                 for (let x = 0; x < w; x++) {
                     let i = (y * w + x) * 4;
@@ -358,7 +358,6 @@
                         b = ((b / 255 - 0.5) * 1.2 + 0.5) * 255;
                     }
 
-                    // Safe central subject pop pass
                     if (normalizedDist < 0.4) {
                         r *= 1.03; g *= 1.02; b *= 1.01;
                     }
@@ -373,14 +372,14 @@
 
             modeTitle.innerText = `✨ AI Selected: ${chosenStyle.toUpperCase().replace('_', ' ')}`;
 
-            // Professional Watermark Stamp
+            // Professional Watermark Stamp (Cleanly Spaced)
             ctx.fillStyle = "#ffffff";
             ctx.fillRect(0, h - 90, w, 90);
             ctx.fillStyle = "#111111";
-            ctx.font = `bold ${Math.max(16, w / 45)}px sans-serif`;
-            ctx.fillText("ASUS_I003DD", 40, h - 40);
+            ctx.font = `bold ${Math.max(18, w / 40)}px sans-serif`;
+            ctx.fillText("ASUS_I003DD", 50, h - 35);
             ctx.font = `${Math.max(14, w / 50)}px sans-serif`;
-            ctx.fillText("5mm f/1.8  1/320 ISO25", w - 380, h - 40);
+            ctx.fillText("5mm f/1.8  1/320 ISO25", w - 350, h - 35);
 
             finalDataUrl = canvas.toDataURL('image/jpeg', 0.95);
             resultImage.src = finalDataUrl;
